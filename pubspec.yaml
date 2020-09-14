@@ -29,6 +29,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.0
   flutter_hooks:
+  super_tooltip:
   meta:
   
   freezed_annotation:

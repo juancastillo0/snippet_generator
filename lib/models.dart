@@ -38,11 +38,21 @@ class PropertyField {
 }
 
 class TypeConfig {
-  final name = TextEditingController();
-  final isDataValue = AppNotifier(false);
-  final isSumType = AppNotifier(false);
-  final isSerializable = AppNotifier(true);
-  final isListenable = AppNotifier(false);
+  final nameNotifier = TextEditingController();
+  String get name => nameNotifier.text;
+
+  final isDataValueNotifier = AppNotifier(false);
+  bool get isDataValue => isDataValueNotifier.value;
+
+  final isSumTypeNotifier = AppNotifier(false);
+  bool get isSumType => isSumTypeNotifier.value;
+
+  final isSerializableNotifier = AppNotifier(true);
+  bool get isSerializable => isSerializableNotifier.value;
+
+  final isListenableNotifier = AppNotifier(false);
+  bool get isListenable => isListenableNotifier.value;
+
   final classes = ListNotifier<ClassConfig>([]);
 
   final _deepListenable = AppNotifier<Listenable>(null);
@@ -51,8 +61,14 @@ class TypeConfig {
   Listenable get listenable => _listenable;
 
   TypeConfig() {
-    _listenable = Listenable.merge(
-        [isDataValue, isSumType, isSerializable, isListenable, name, classes]);
+    _listenable = Listenable.merge([
+      isDataValueNotifier,
+      isSumTypeNotifier,
+      isSerializableNotifier,
+      isListenableNotifier,
+      nameNotifier,
+      classes
+    ]);
 
     classes.addListener(_setUpDeepListenable);
     classes.add(ClassConfig(this));
@@ -70,14 +86,21 @@ class TypeConfig {
     });
     __s = _s;
 
-    _deepListenable.value = Listenable.merge(
-        [_deepListenable, _listenable, ...classes.value.map((e) => e.deepListenable)]);
+    _deepListenable.value = Listenable.merge([
+      _deepListenable,
+      _listenable,
+      ...classes.value.map((e) => e.deepListenable)
+    ]);
   }
 }
 
 class ClassConfig {
-  final name = TextEditingController();
-  final isPrivate = AppNotifier(true);
+  final nameNotifier = TextEditingController();
+  String get name => nameNotifier.text;
+
+  final isPrivateNotifier = AppNotifier(true);
+  bool get isPrivate => isPrivateNotifier.value;
+
   final properties = ListNotifier<PropertyField>([]);
 
   final TypeConfig typeConfig;
@@ -87,13 +110,20 @@ class ClassConfig {
   Listenable get listenable => _listenable;
 
   ClassConfig(this.typeConfig) {
-    _listenable = Listenable.merge([name, properties, isPrivate]);
+    _listenable = Listenable.merge([
+      nameNotifier,
+      properties,
+      isPrivateNotifier,
+    ]);
     properties.addListener(_setUpDeepListenable);
   }
 
   void _setUpDeepListenable() {
-    _deepListenable.value = Listenable.merge(
-        [_deepListenable, _listenable, ...properties.value.map((e) => e.listenable)]);
+    _deepListenable.value = Listenable.merge([
+      _deepListenable,
+      _listenable,
+      ...properties.value.map((e) => e.listenable)
+    ]);
   }
 }
 
