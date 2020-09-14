@@ -4,7 +4,7 @@ linter:
     avoid_print: false
     avoid_classes_with_only_static_members: false
     use_setters_to_change_properties: false
-    
+    prefer_constructors_over_static_methods: false
     type_annotate_public_apis: true
     avoid_redundant_argument_values: true
 
