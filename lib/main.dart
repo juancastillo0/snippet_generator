@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:snippet_generator/class_properties.dart';
+import 'package:snippet_generator/formatters.dart';
 import 'package:snippet_generator/models.dart';
 import 'package:snippet_generator/templates.dart';
-import 'package:super_tooltip/super_tooltip.dart';
+import 'package:snippet_generator/widgets.dart';
 
 void main() {
   runApp(MyApp());
@@ -33,34 +35,39 @@ class TypeConfigView extends HookWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          RowTextField(
-            label: "Type Name",
-            controller: typeConfig.nameNotifier,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: {
-              "Data Value": typeConfig.isDataValueNotifier,
-              "Listenable": typeConfig.isListenableNotifier,
-              "Serializable": typeConfig.isSerializableNotifier,
-              "Sum Type": typeConfig.isSumTypeNotifier,
-            }
-                .entries
-                .map(
-                  (e) => Padding(
-                    padding: const EdgeInsets.only(right: 15.0),
-                    child: RowBoolField(
-                      label: e.key,
-                      notifier: e.value,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 12.0, right: 12.0, bottom: 12.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RowTextField(
+              label: "Type Name",
+              controller: typeConfig.nameNotifier,
+              inputFormatters: Formatters.variableName,
+            ),
+            Wrap(
+              alignment: WrapAlignment.center,
+              children: {
+                "Data Value": typeConfig.isDataValueNotifier,
+                "Listenable": typeConfig.isListenableNotifier,
+                "Serializable": typeConfig.isSerializableNotifier,
+                "Sum Type": typeConfig.isSumTypeNotifier,
+                "Enum": typeConfig.isEnumNotifier,
+              }
+                  .entries
+                  .map(
+                    (e) => Padding(
+                      padding: const EdgeInsets.only(right: 5.0, left: 5.0),
+                      child: RowBoolField(
+                        label: e.key,
+                        notifier: e.value,
+                      ),
                     ),
-                  ),
-                )
-                .toList(),
-          ),
-        ],
+                  )
+                  .toList(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -103,19 +110,41 @@ class MyHomePage extends HookWidget {
                       (classes) => Column(
                         mainAxisSize: MainAxisSize.min,
                         children: classes
-                            .map((e) => ClassPropertiesTable(data: e))
+                            .map(
+                              (e) => typeConfig.isEnumNotifier.rebuild(
+                                (isEnum) => isEnum
+                                    ? Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          RowTextField(
+                                            controller: e.nameNotifier,
+                                            label: "Variant",
+                                          ),
+                                          IconButton(
+                                            onPressed: () {
+                                              typeConfig.classes.remove(e);
+                                            },
+                                            icon: const Icon(Icons.delete),
+                                          ),
+                                        ],
+                                      )
+                                    : ClassPropertiesTable(data: e),
+                              ),
+                            )
                             .toList(),
                       ),
                     ),
-                    typeConfig.isSumTypeNotifier.rebuild(
-                      (isSumType) => isSumType
+                    typeConfig.hasVariants.rebuild(
+                      (hasVariants) => hasVariants
                           ? Align(
                               alignment: Alignment.centerLeft,
                               child: RaisedButton.icon(
                                 onPressed: () => typeConfig.classes
                                     .add(ClassConfig(typeConfig)),
                                 icon: const Icon(Icons.add),
-                                label: const Text("Add Class"),
+                                label: typeConfig.isEnum
+                                    ? const Text("Add Variant")
+                                    : const Text("Add Class"),
                               ),
                             )
                           : const SizedBox(),
@@ -145,222 +174,6 @@ class MyHomePage extends HookWidget {
   }
 }
 
-class RowBoolField extends StatelessWidget {
-  const RowBoolField({
-    Key key,
-    @required this.notifier,
-    @required this.label,
-  }) : super(key: key);
-
-  final AppNotifier<bool> notifier;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(label),
-        notifier.rebuild(
-          (value) => Checkbox(
-            value: value,
-            onChanged: notifier.set,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class RowTextField extends StatelessWidget {
-  const RowTextField({
-    Key key,
-    @required this.controller,
-    @required this.label,
-  }) : super(key: key);
-
-  final TextEditingController controller;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.subtitle1.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        const SizedBox(width: 15),
-        SizedBox(
-          width: 130,
-          child: TextField(
-            controller: controller,
-            textCapitalization: TextCapitalization.sentences,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class ClassPropertiesTable extends StatelessWidget {
-  const ClassPropertiesTable({Key key, @required this.data}) : super(key: key);
-  final ClassConfig data;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(top: 10.0, bottom: 8.0),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 18.0),
-        child: Column(
-          children: [
-            data.typeConfig.isSumTypeNotifier.rebuild(
-              (isSumType) => isSumType
-                  ? Row(
-                      children: [
-                        RowTextField(
-                          controller: data.nameNotifier,
-                          label: "Class Name",
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                          child: RowBoolField(
-                            label: "Private",
-                            notifier: data.isPrivateNotifier,
-                          ),
-                        ),
-                        const Spacer(),
-                        RaisedButton.icon(
-                          onPressed: () => data.typeConfig.classes.remove(data),
-                          icon: const Icon(Icons.delete),
-                          label: const Text("Remove Class"),
-                        )
-                      ],
-                    )
-                  : const SizedBox(),
-            ),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 300),
-              child: SingleChildScrollView(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: data.properties.rebuild(
-                    (properties) => DataTable(
-                      columnSpacing: 32,
-                      columns: const <DataColumn>[
-                        DataColumn(
-                          label: Text('Field Name'),
-                        ),
-                        DataColumn(
-                          label: Text('Type'),
-                        ),
-                        DataColumn(
-                          label: Text('Required'),
-                        ),
-                        DataColumn(
-                          label: Text('Positional'),
-                        ),
-                        DataColumn(
-                          label: Text('More'),
-                        ),
-                      ],
-                      rows: properties.map(_makeRow).toList(),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 5),
-            RaisedButton.icon(
-              onPressed: () => data.properties.add(PropertyField()),
-              icon: const Icon(Icons.add),
-              label: const Text("Add Field"),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  DataRow _makeRow(PropertyField property) {
-    const _contraints = BoxConstraints(minWidth: 100, maxWidth: 200);
-    return DataRow(
-      cells: <DataCell>[
-        DataCell(ConstrainedBox(
-          constraints: _contraints,
-          child: TextField(
-            controller: property.name,
-          ),
-        )),
-        DataCell(ConstrainedBox(
-          constraints: _contraints,
-          child: TextField(
-            controller: property.type,
-          ),
-        )),
-        DataCell(
-          Center(
-            child: property.isRequired.rebuild(
-              (isRequired) => Checkbox(
-                value: isRequired,
-                onChanged: property.isRequired.set,
-              ),
-            ),
-          ),
-        ),
-        DataCell(
-          Center(
-            child: property.isPositional.rebuild(
-              (isPositional) => Checkbox(
-                value: isPositional,
-                onChanged: property.isPositional.set,
-              ),
-            ),
-          ),
-        ),
-        DataCell(
-          Builder(
-            builder: (context) {
-              return IconButton(
-                icon: const Icon(Icons.more_vert),
-                onPressed: () {
-                  SuperTooltip tooltip;
-                  tooltip = SuperTooltip(
-                    popupDirection: TooltipDirection.up,
-                    arrowLength: 10,
-                    borderColor: Colors.black12,
-                    borderWidth: 1,
-                    hasShadow: false,
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        RaisedButton.icon(
-                          onPressed: () {
-                            tooltip.close();
-                            data.properties.remove(property);
-                          },
-                          icon: const Icon(Icons.delete),
-                          label: const Text("Remove Field"),
-                        ),
-                      ],
-                    ),
-                  );
-
-                  tooltip.show(context);
-                },
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class CodeGenerated extends HookWidget {
   const CodeGenerated({
     Key key,
@@ -374,7 +187,9 @@ class CodeGenerated extends HookWidget {
     final scrollController = useScrollController();
 
     String sourceCode;
-    if (typeConfig.isSumType) {
+    if (typeConfig.isEnum) {
+      sourceCode = typeConfig.templateEnum();
+    } else if (typeConfig.isSumType) {
       sourceCode = typeConfig.templateSumType();
     } else {
       final _class = typeConfig.classes.value[0];

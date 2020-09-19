@@ -1,11 +1,5 @@
 import 'package:flutter/widgets.dart';
 
-enum SnippetEnum {
-  sumType,
-  serializable,
-  dataValue,
-}
-
 class AppNotifier<T> extends ValueNotifier<T> {
   AppNotifier(T value) : super(value);
 
@@ -26,6 +20,7 @@ class AppNotifier<T> extends ValueNotifier<T> {
 class PropertyField {
   final name = TextEditingController();
   final type = TextEditingController();
+  final typeFocusNode = FocusNode();
   final isRequired = AppNotifier(true);
   final isPositional = AppNotifier(false);
 
@@ -35,6 +30,17 @@ class PropertyField {
 
   Listenable _listenable;
   Listenable get listenable => _listenable;
+}
+
+class Computed<T> extends AppNotifier<T> {
+  Computed(
+    T Function() computer,
+    List<Listenable> dependencies,
+  ) : super(computer()) {
+    Listenable.merge(dependencies).addListener(() {
+      value = computer();
+    });
+  }
 }
 
 class TypeConfig {
@@ -53,6 +59,11 @@ class TypeConfig {
   final isListenableNotifier = AppNotifier(false);
   bool get isListenable => isListenableNotifier.value;
 
+  final isEnumNotifier = AppNotifier(false);
+  bool get isEnum => isEnumNotifier.value;
+
+  Computed<bool> hasVariants;
+
   final classes = ListNotifier<ClassConfig>([]);
 
   final _deepListenable = AppNotifier<Listenable>(null);
@@ -62,6 +73,7 @@ class TypeConfig {
 
   TypeConfig() {
     _listenable = Listenable.merge([
+      isEnumNotifier,
       isDataValueNotifier,
       isSumTypeNotifier,
       isSerializableNotifier,
@@ -69,9 +81,16 @@ class TypeConfig {
       nameNotifier,
       classes
     ]);
-
-    classes.addListener(_setUpDeepListenable);
+    hasVariants = Computed(
+      () => isEnum || isSumType,
+      [
+        isEnumNotifier,
+        isSumTypeNotifier,
+      ],
+    );
     classes.add(ClassConfig(this));
+    classes.addListener(_setUpDeepListenable);
+    _setUpDeepListenable();
   }
 
   var __s = <AppNotifier<Listenable>>{};
@@ -116,6 +135,7 @@ class ClassConfig {
       isPrivateNotifier,
     ]);
     properties.addListener(_setUpDeepListenable);
+    _setUpDeepListenable();
   }
 
   void _setUpDeepListenable() {
