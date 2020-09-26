@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:snippet_generator/formatters.dart';
-import 'package:snippet_generator/models.dart';
+import 'package:snippet_generator/models/models.dart';
+import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/widgets.dart';
 import 'package:super_tooltip/super_tooltip.dart';
 
@@ -97,43 +98,41 @@ class ClassPropertiesTable extends StatelessWidget {
         )),
         DataCell(ConstrainedBox(
           constraints: _contraints,
-          child: Stack(
-            children: [
-              AnimatedBuilder(
-                animation: property.type,
-                builder: (context, _) => DropdownButton<String>(
-                  isExpanded: true,
+          child: AnimatedBuilder(
+            animation: property.type,
+            builder: (context, _) => DropdownButton<String>(
+              isExpanded: true,
+              value: "____",
+              onTap: () {
+                Future.delayed(
+                  Duration.zero,
+                  () => property.typeFocusNode.requestFocus(),
+                );
+              },
+              items: [
+                DropdownMenuItem<String>(
+                  key: const Key("____"),
                   value: "____",
-                  onTap: () {
-                    Future.delayed(Duration.zero,
-                        () => property.typeFocusNode.requestFocus());
-                  },
-                  items: [
-                    DropdownMenuItem<String>(
-                      key: const Key("_____"),
-                      value: "____",
-                      child: TextField(
-                        controller: property.type,
-                        focusNode: property.typeFocusNode,
-                      ),
-                    ),
-                    ...supportedTypeList
-                        .where((e) =>
-                            // e
-                            //     .toLowerCase()
-                            //     .contains(property.type.text.toLowerCase()) &&
-                            property.type.text != e)
-                        .map((e) => DropdownMenuItem<String>(
-                              value: e,
-                              onTap: () => property.type.text = e,
-                              key: Key(e),
-                              child: Text(e),
-                            ))
-                  ],
-                  onChanged: (v) {},
+                  child: TextField(
+                    controller: property.type,
+                    focusNode: property.typeFocusNode,
+                  ),
                 ),
-              ),
-            ],
+                ...supportedJsonTypes
+                    .where((e) =>
+                        // e
+                        //     .toLowerCase()
+                        //     .contains(property.type.text.toLowerCase()) &&
+                        property.type.text != e)
+                    .map((e) => DropdownMenuItem<String>(
+                          value: e,
+                          onTap: () => property.type.text = e,
+                          key: Key(e),
+                          child: Text(e),
+                        ))
+              ],
+              onChanged: (v) {},
+            ),
           ),
         )),
         DataCell(
@@ -195,17 +194,4 @@ class ClassPropertiesTable extends StatelessWidget {
   }
 }
 
-enum SupportedType {
-  // ignore: constant_identifier_names
-  String,
-  int,
-  double,
-  num,
-  // ignore: constant_identifier_names
-  List,
-  // ignore: constant_identifier_names
-  Map,
-}
 
-final supportedTypeList =
-    SupportedType.values.map((e) => e.toString().split(".")[1]).toList();

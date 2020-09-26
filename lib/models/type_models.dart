@@ -1,47 +1,5 @@
 import 'package:flutter/widgets.dart';
-
-class AppNotifier<T> extends ValueNotifier<T> {
-  AppNotifier(T value) : super(value);
-
-  void set(T value) {
-    this.value = value;
-  }
-
-  Widget rebuild(Widget Function(T value) fn) {
-    return AnimatedBuilder(
-      animation: this,
-      builder: (context, _) {
-        return fn(value);
-      },
-    );
-  }
-}
-
-class PropertyField {
-  final name = TextEditingController();
-  final type = TextEditingController();
-  final typeFocusNode = FocusNode();
-  final isRequired = AppNotifier(true);
-  final isPositional = AppNotifier(false);
-
-  PropertyField() {
-    _listenable = Listenable.merge([name, type, isRequired, isPositional]);
-  }
-
-  Listenable _listenable;
-  Listenable get listenable => _listenable;
-}
-
-class Computed<T> extends AppNotifier<T> {
-  Computed(
-    T Function() computer,
-    List<Listenable> dependencies,
-  ) : super(computer()) {
-    Listenable.merge(dependencies).addListener(() {
-      value = computer();
-    });
-  }
-}
+import 'package:snippet_generator/models/models.dart';
 
 class TypeConfig {
   final nameNotifier = TextEditingController();
@@ -147,14 +105,28 @@ class ClassConfig {
   }
 }
 
-class ListNotifier<T> extends AppNotifier<List<T>> {
-  ListNotifier(List<T> value) : super(value);
+class PropertyField {
+  final name = TextEditingController();
+  final type = TextEditingController();
+  final typeFocusNode = FocusNode();
+  final isRequired = AppNotifier(true);
+  final isPositional = AppNotifier(false);
 
-  void add(T item) {
-    value = [...value, item];
+  PropertyField() {
+    _listenable = Listenable.merge([name, type, isRequired, isPositional]);
   }
 
-  void remove(T property) {
-    value = [...value..remove(property)];
+  Listenable _listenable;
+  Listenable get listenable => _listenable;
+}
+
+class Computed<T> extends AppNotifier<T> {
+  Computed(
+    T Function() computer,
+    List<Listenable> dependencies,
+  ) : super(computer()) {
+    Listenable.merge(dependencies).addListener(() {
+      value = computer();
+    });
   }
 }

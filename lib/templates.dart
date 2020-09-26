@@ -1,4 +1,6 @@
-import 'package:snippet_generator/models.dart';
+import 'package:snippet_generator/models/type_models.dart';
+import 'package:snippet_generator/utils/json_type.dart';
+import 'package:snippet_generator/utils/type_parser.dart';
 
 extension CasingString on String {
   String firstToLowerCase() =>
@@ -29,7 +31,7 @@ class $className ${typeConfig.isSumType ? "extends ${typeConfig.name}" : ""}{
     return """
 static $className fromJson(Map<String, dynamic> map) {
     return $_classConstructor(
-      ${properties.value.map((e) => "${e.name.text}: map['${e.name.text}'] as ${e.type.text},").join("\n      ")}
+      ${properties.value.map((e) => "${e.name.text}: ${_parseFieldFromJson(e)},").join("\n      ")}
     );
   }
 """;
@@ -56,6 +58,51 @@ Map<String, dynamic> toJson() {
     ${properties.value.map((p) => '${_required(p.isRequired.value)}${p.type.text} ${p.name.text},').join('\n    ')}
   }""";
   }
+}
+
+String _parseJsonTypeFromJson(String getter, JsonTypeParser t) {
+  if (t == null) {
+    return getter;
+  }
+  return t.when<String>(
+    mapParser: (m) {
+      return "($getter as Map).map((key, value) => MapEntry(${_parseJsonTypeFromJson('key', m.genericType?.left)}, ${_parseJsonTypeFromJson('value', m.genericType?.right)}))";
+    },
+    collectionParser: (c) {
+      return "($getter as List).map((e) => ${_parseJsonTypeFromJson('e', c.genericType)}).to${c.collectionType.toEnumString()}()";
+    },
+    primitiveParser: (v) {
+      return v.type.isCustom
+          ? "${v.raw}.fromJson($getter)"
+          : "$getter as ${v.raw}";
+    },
+  );
+}
+
+String _parseFieldFromJson(PropertyField e) {
+  final result = JsonTypeParser.parser.parse(e.type.text);
+  if (result.isFailure) {
+    return "map['${e.name.text}'] as ${e.type.text}";
+  }
+
+  return _parseJsonTypeFromJson("map['${e.name.text}']", result.value);
+
+  // final jsonType = parseSupportedJsonType(e.name.text);
+
+  // switch (jsonType) {
+  //   case SupportedJsonType.List:
+  //   case SupportedJsonType.Set:
+  //     return "(map['${e.name.text}'] as List).map((e) => ),";
+  //     break;
+  //   case SupportedJsonType.Map:
+  //     break;
+  //   case SupportedJsonType.String:
+  //   case SupportedJsonType.double:
+  //   case SupportedJsonType.int:
+  //   case SupportedJsonType.num:
+  //     return "map['${e.name.text}'] as ${e.type.text},";
+  // }
+  // return "${e.type.text}.FromJson(map['${e.name.text}']),";
 }
 
 extension TemplateTypeConfig on TypeConfig {
@@ -105,8 +152,7 @@ extension ${name}Extension on $name {
   }) {
     T Function() c;
     switch (this) {
-      ${classes.value.map((e) => 
-      """
+      ${classes.value.map((e) => """
 case $name.${e.name}:
         c = ${e.name};
         break;   
