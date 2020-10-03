@@ -70,6 +70,8 @@ class TypeConfigView extends HookWidget {
         children: <Widget>[
           TypeConfigTitleView(typeConfig: typeConfig),
           const SizedBox(height: 15),
+          TypeSettingsView(typeConfig: typeConfig),
+          const SizedBox(height: 15),
           variantListListenable.rebuild(
             () {
               if (typeConfig.isEnum) {
@@ -103,6 +105,74 @@ class TypeConfigView extends HookWidget {
           const SizedBox(height: 15),
         ],
       ),
+    );
+  }
+}
+
+Listenable useMergedListenable(
+  Iterable<Listenable> Function() listBuilder, [
+  List<Object> keys = const <dynamic>[],
+]) {
+  final list = useMemoized(
+    () => Listenable.merge(listBuilder().toList()),
+    keys,
+  );
+  return useListenable(list);
+}
+
+class TypeSettingsView extends HookWidget {
+  const TypeSettingsView({
+    Key key,
+    this.typeConfig,
+  }) : super(key: key);
+  final TypeConfig typeConfig;
+
+  @override
+  Widget build(BuildContext context) {
+    final isExpandedList = useMemoized(
+      () => ListNotifier<bool>(
+        Iterable<bool>.generate(5, (_) => false).toList(),
+        maxHistoryLength: 0,
+      ),
+    );
+    useListenable(isExpandedList);
+    useMergedListenable(() => typeConfig.allSettings.values, [typeConfig]);
+
+    final Map<String, Widget Function()> _expansionPanelBuilders = useMemoized(
+      () => {
+        "Data Value": () => Text("d"),
+        "Listenable": () => Text("l"),
+        "Serializable": () => Text("ser"),
+        "Sum Type": () => Text("sum"),
+        "Enum": () => Text("enum"),
+      },
+      [typeConfig],
+    );
+
+    int gIndex = -1;
+    final _map = <int>[];
+    return ExpansionPanelList(
+      expansionCallback: (index, isExpanded) {
+        isExpandedList[_map[index]] = !isExpanded;
+      },
+      children: typeConfig.allSettings.entries
+          .map((e) {
+            gIndex++;
+
+            if (!e.value.value) {
+              return null;
+            }
+            _map.add(gIndex);
+            return ExpansionPanel(
+              isExpanded: isExpandedList[gIndex],
+              canTapOnHeader: true,
+              headerBuilder: (context, isExpanded) =>
+                  Center(child: Text(e.key)),
+              body: _expansionPanelBuilders[e.key](),
+            );
+          })
+          .where((panel) => panel != null)
+          .toList(),
     );
   }
 }
