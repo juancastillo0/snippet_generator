@@ -1,21 +1,27 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 import 'package:snippet_generator/collection_notifier/collection_notifier.dart';
 
-
-
-enum ListEventEnum { change, insert, remove, many }
+enum ListEventEnum { change, insert, remove, many, recreate }
 
 @immutable
-abstract class ListEvent<E> implements Event {
+abstract class ListEvent<E> implements Event<ListEvent<E>> {
   const ListEvent._();
 
-  const factory ListEvent.change(int index, {E oldValue, E newValue}) =
-      ChangeListEvent._;
+  const factory ListEvent.change(
+    int index, {
+    @required E oldValue,
+    @required E newValue,
+  }) = ChangeListEvent._;
   const factory ListEvent.insert(int index, E value) = InsertListEvent._;
   const factory ListEvent.remove(int index, E value) = RemoveListEvent._;
   const factory ListEvent.many(List<ListEvent<E>> events) = ManyListEvent._;
+  const factory ListEvent.recreate({
+    @required List<E> newList,
+    @required List<E> oldList,
+  }) = RecreateListEvent._;
 
   ListEventEnum get typeId {
     final v = this;
@@ -27,6 +33,8 @@ abstract class ListEvent<E> implements Event {
       return ListEventEnum.remove;
     } else if (v is ManyListEvent<E>) {
       return ListEventEnum.many;
+    } else if (v is RecreateListEvent<E>) {
+      return ListEventEnum.recreate;
     }
     throw Error();
   }
@@ -34,22 +42,28 @@ abstract class ListEvent<E> implements Event {
   bool isType(ListEventEnum type) => type == typeId;
 
   T when<T>({
-    T Function(ChangeListEvent<E>) change,
-    T Function(InsertListEvent<E>) insert,
-    T Function(RemoveListEvent<E>) remove,
-    T Function(ManyListEvent<E>) many,
+    @required T Function(ChangeListEvent<E>) change,
+    @required T Function(InsertListEvent<E>) insert,
+    @required T Function(RemoveListEvent<E>) remove,
+    @required T Function(ManyListEvent<E>) many,
+    @required T Function(RecreateListEvent<E>) recreate,
   }) {
-    final callback =
-        [change, insert, remove, many] as List<T Function(ListEvent<E>)>;
-    return callback[typeId.index](this);
+    final v = this;
+    if (v is ChangeListEvent<E>) return change(v);
+    if (v is InsertListEvent<E>) return insert(v);
+    if (v is RemoveListEvent<E>) return remove(v);
+    if (v is ManyListEvent<E>) return many(v);
+    if (v is RecreateListEvent<E>) return recreate(v);
+    throw "";
   }
-
-  ListEvent<E> revert();
 }
 
 class ChangeListEvent<E> extends ListEvent<E> {
-  const ChangeListEvent._(this.index, {this.oldValue, this.newValue})
-      : super._();
+  const ChangeListEvent._(
+    this.index, {
+    @required this.oldValue,
+    @required this.newValue,
+  }) : super._();
   final int index;
   final E oldValue;
   final E newValue;
@@ -67,7 +81,7 @@ class InsertListEvent<E> extends ListEvent<E> {
 
   @override
   ListEvent<E> revert() {
-    return ListEvent.remove(index, value);
+    return ListEvent<E>.remove(index, value);
   }
 }
 
@@ -78,7 +92,7 @@ class RemoveListEvent<E> extends ListEvent<E> {
 
   @override
   ListEvent<E> revert() {
-    return ListEvent.insert(index, value);
+    return ListEvent<E>.insert(index, value);
   }
 }
 
@@ -88,35 +102,39 @@ class ManyListEvent<E> extends ListEvent<E> {
 
   @override
   ListEvent<E> revert() {
-    return ListEvent.many(
+    return ListEvent<E>.many(
       events.map((e) => e.revert()).toList().reversed.toList(),
     );
   }
 }
 
+class RecreateListEvent<E> extends ListEvent<E> {
+  const RecreateListEvent._({@required this.oldList, @required this.newList})
+      : super._();
+  final List<E> newList;
+  final List<E> oldList;
 
-class MutableList<E> extends EventConsumer<ListEvent<E>> implements List<E> {
-  MutableList(
+  @override
+  ListEvent<E> revert() {
+    return ListEvent<E>.recreate(
+      oldList: newList,
+      newList: oldList,
+    );
+  }
+}
+
+class ListNotifier<E> extends EventConsumer<ListEvent<E>> implements List<E> {
+  ListNotifier(
     List<E> inner, {
     int maxHistoryLength,
   })  : _inner = inner,
         super(maxHistoryLength: maxHistoryLength);
 
-  final List<E> _inner;
-
-  // @override
-  // bool operator ==(Object other) {
-  //   if (other is MutableList) {
-  //     return other.history == history && other._inner == _inner;
-  //   }
-  //   return false;
-  // }
-
-  // @override
-  // int get hashCode => super.hashCode;
+  List<E> _inner;
 
   @override
-  void _consume(ListEvent<E> e) {
+  @protected
+  void consume(ListEvent<E> e) {
     e.when(
       change: (c) {
         _inner[c.index] = c.newValue;
@@ -128,13 +146,30 @@ class MutableList<E> extends EventConsumer<ListEvent<E>> implements List<E> {
         _inner.removeAt(c.index);
       },
       many: (c) {
-        c.events.forEach(_consume);
+        c.events.forEach(consume);
+      },
+      recreate: (c) {
+        _inner = c.newList;
       },
     );
   }
 
+  ListNotifier<E> clone() {
+    final value = ListNotifier([..._inner]);
+    value.setClonedHistory(history);
+    return value;
+  }
+
+  @override
+  ListNotifier<E> operator +(List<E> other) {
+    final value = clone();
+    value.addAll(other);
+    return value;
+  }
+
   @override
   set length(int newLength) {
+    // TODO:
     _inner.length = newLength;
   }
 
@@ -148,7 +183,7 @@ class MutableList<E> extends EventConsumer<ListEvent<E>> implements List<E> {
 
   @override
   void add(E value) {
-    apply(ListEvent.insert(_inner.length, value));
+    apply(ListEvent.insert(length, value));
   }
 
   @override
@@ -160,34 +195,23 @@ class MutableList<E> extends EventConsumer<ListEvent<E>> implements List<E> {
   // INSERT MANY
 
   @override
-  MutableList<E> operator +(List<E> other) {
-    addAll(other);
-    return MutableList(_inner + other);
-  }
-
-  @override
   void addAll(Iterable<E> iterable) {
     int offset = length;
-    final event = ListEvent.many(iterable.map((v) {
+    final events = iterable.map((v) {
       return ListEvent.insert(offset++, v);
-    }).toList());
-    apply(event);
-  }
-
-  @override
-  void fillRange(int start, int end, [E fillValue]) {
-    ListEvent.many(Iterable<int>.generate(end - start)
-        .map((index) => ListEvent.insert(index + start, fillValue))
-        .toList());
+    }).toList();
+    apply(ListEvent.many(events));
   }
 
   @override
   void insertAll(int index, Iterable<E> iterable) {
+    validateIndex(index, lengthInclusive: true);
+
     int offset = index;
-    final event = ListEvent.many(iterable.map((v) {
+    final events = iterable.map((v) {
       return ListEvent.insert(offset++, v);
-    }).toList());
-    apply(event);
+    }).toList();
+    apply(ListEvent.many(events));
   }
 
   //
@@ -207,6 +231,8 @@ class MutableList<E> extends EventConsumer<ListEvent<E>> implements List<E> {
 
   @override
   E removeAt(int index) {
+    validateIndex(index, lengthInclusive: false);
+
     final value = _inner[index];
     apply(ListEvent.remove(index, value));
     return value;
@@ -222,20 +248,35 @@ class MutableList<E> extends EventConsumer<ListEvent<E>> implements List<E> {
 
   @override
   void clear() {
-    removeRange(0, _inner.length);
+    if (length != 0) {
+      apply(ListEvent.recreate(newList: const [], oldList: _inner));
+    }
   }
 
   @override
   void removeRange(int start, int end) {
-    final event = ListEvent.many(Iterable<int>.generate(end - start)
-        .map((index) => ListEvent.remove(index + start, _inner[index + start]))
-        .toList());
-    apply(event);
+    validateRange(start, end);
+
+    final events = Iterable<int>.generate(end - start, (index) => index + start)
+        .map((offset) => ListEvent.remove(offset, _inner[offset]))
+        .toList();
+    apply(ListEvent.many(events));
   }
 
   @override
   void removeWhere(bool Function(E element) test) {
-    // TODO: implement removeWhere
+    int index = 0;
+    final events = map((e) {
+      ListEvent<E> event;
+      if (test(e)) {
+        event = ListEvent.remove(index, e);
+      } else {
+        event = null;
+      }
+      index++;
+      return event;
+    }).where((event) => event != null).toList();
+    apply(ListEvent.many(events));
   }
 
   @override
@@ -243,27 +284,22 @@ class MutableList<E> extends EventConsumer<ListEvent<E>> implements List<E> {
     removeWhere((e) => !test(e));
   }
 
-  @override
-  void setAll(int index, Iterable<E> iterable) {
-    // TODO: implement setAll
-  }
-
   //
   // CHANGE SINGLE
 
   @override
   void operator []=(int index, E value) {
-    _inner[index] = value;
+    apply(ListEvent.change(index, oldValue: _inner[index], newValue: value));
   }
 
   @override
   set first(E value) {
-    _inner.first = value;
+    this[0] = value;
   }
 
   @override
   set last(E value) {
-    _inner.last = value;
+    this[length - 1] = value;
   }
 
   //
@@ -271,12 +307,52 @@ class MutableList<E> extends EventConsumer<ListEvent<E>> implements List<E> {
 
   @override
   void replaceRange(int start, int end, Iterable<E> replacement) {
-    // TODO: implement replaceRange
+    validateRange(start, end);
+
+    int offset = start;
+    final events = <ListEvent<E>>[];
+    for (final e in replacement) {
+      if (offset >= end) {
+        break;
+      }
+
+      events.add(ListEvent.change(offset, oldValue: this[offset], newValue: e));
+      offset++;
+    }
+    apply(ListEvent.many(events));
+  }
+
+  @override
+  void fillRange(int start, int end, [E fillValue]) {
+    validateRange(start, end);
+
+    final events = Iterable<int>.generate(end - start).map((index) {
+      final oldValue = this[index];
+      return ListEvent.change(
+        index + start,
+        oldValue: oldValue,
+        newValue: fillValue,
+      );
+    }).toList();
+    apply(ListEvent.many(events));
   }
 
   @override
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
+    validateRange(start, end);
     // TODO: implement setRange
+  }
+
+  @override
+  void setAll(int index, Iterable<E> iterable) {
+    validateIndex(index, lengthInclusive: true);
+
+    int offset = index;
+    final events = iterable.map((v) {
+      final oldValue = this[offset];
+      return ListEvent.change(offset++, oldValue: oldValue, newValue: v);
+    }).toList();
+    apply(ListEvent.many(events));
   }
 
   //
@@ -284,12 +360,38 @@ class MutableList<E> extends EventConsumer<ListEvent<E>> implements List<E> {
 
   @override
   void shuffle([Random random]) {
-    // TODO: implement shuffle
+    if (length > 1) {
+      final newList = [..._inner];
+      newList.shuffle(random);
+      apply(ListEvent.recreate(newList: newList, oldList: _inner));
+    }
   }
 
   @override
   void sort([int Function(E a, E b) compare]) {
-    // TODO: implement sort
+    if (length > 1) {
+      final newList = [..._inner];
+      newList.sort(compare);
+      apply(ListEvent.recreate(newList: newList, oldList: _inner));
+    }
+  }
+
+  //
+  // HELPERS
+
+  /// 0 <= start <= end <= length
+  void validateRange(int start, int end) {
+    if (0 > start || start > end || end > length) {
+      throw "0 <= start <= end <= length";
+    }
+  }
+
+  /// lengthInclusive: 0 <= index <= length
+  /// !lengthInclusive: 0 <= index < length
+  void validateIndex(int index, {@required bool lengthInclusive}) {
+    if (0 > index || (lengthInclusive ? index > length : index >= length)) {
+      throw lengthInclusive ? "0 <= index <= length" : "0 <= index < length";
+    }
   }
 
   //
