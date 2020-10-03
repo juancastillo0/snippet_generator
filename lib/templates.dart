@@ -10,14 +10,15 @@ extension CasingString on String {
 }
 
 extension TemplateClassConfig on ClassConfig {
-  String get className => typeConfig.isSumType ? "_$name" : typeConfig.name;
-  String get _classConstructor =>
-      '$className${typeConfig.isSumType ? "._" : ""}';
+  String get className => typeConfig.isSumType ? name : typeConfig.name;
+  String get _classConstructor {
+    return className;
+  }
 
   String templateClass() {
     return """
 class $className ${typeConfig.isSumType ? "extends ${typeConfig.name}" : ""}{
-  ${properties.value.map((p) => 'final ${p.type.text} ${p.name.text};').join('\n  ')}
+  ${properties.map((p) => 'final ${p.type.text} ${p.name.text};').join('\n  ')}
 
   const $_classConstructor(${_templateClassParams()})${typeConfig.isSumType ? ": super._()" : ""};
 
@@ -31,7 +32,7 @@ class $className ${typeConfig.isSumType ? "extends ${typeConfig.name}" : ""}{
     return """
 static $className fromJson(Map<String, dynamic> map) {
     return $_classConstructor(
-      ${properties.value.map((e) => "${e.name.text}: ${_parseFieldFromJson(e)},").join("\n      ")}
+      ${properties.map((e) => "${e.name.text}: ${_parseFieldFromJson(e)},").join("\n      ")}
     );
   }
 """;
@@ -41,7 +42,7 @@ static $className fromJson(Map<String, dynamic> map) {
     return """
 Map<String, dynamic> toJson() {
     return {
-      ${properties.value.map((e) => "'${e.name.text}': ${e.name.text},").join("\n      ")}
+      ${properties.map((e) => "'${e.name.text}': ${e.name.text},").join("\n      ")}
     };
   }
 """;
@@ -49,13 +50,13 @@ Map<String, dynamic> toJson() {
 
   String _templateClassParams() {
     return """{
-    ${properties.value.map((p) => '${_required(p.isRequired.value)}this.${p.name.text},').join('\n    ')}
+    ${properties.map((p) => '${_required(p.isRequired.value)}this.${p.name.text},').join('\n    ')}
   }""";
   }
 
   String templateFactoryParams() {
     return """{
-    ${properties.value.map((p) => '${_required(p.isRequired.value)}${p.type.text} ${p.name.text},').join('\n    ')}
+    ${properties.map((p) => '${_required(p.isRequired.value)}${p.type.text} ${p.name.text},').join('\n    ')}
   }""";
   }
 }
@@ -86,23 +87,6 @@ String _parseFieldFromJson(PropertyField e) {
   }
 
   return _parseJsonTypeFromJson("map['${e.name.text}']", result.value);
-
-  // final jsonType = parseSupportedJsonType(e.name.text);
-
-  // switch (jsonType) {
-  //   case SupportedJsonType.List:
-  //   case SupportedJsonType.Set:
-  //     return "(map['${e.name.text}'] as List).map((e) => ),";
-  //     break;
-  //   case SupportedJsonType.Map:
-  //     break;
-  //   case SupportedJsonType.String:
-  //   case SupportedJsonType.double:
-  //   case SupportedJsonType.int:
-  //   case SupportedJsonType.num:
-  //     return "map['${e.name.text}'] as ${e.type.text},";
-  // }
-  // return "${e.type.text}.FromJson(map['${e.name.text}']),";
 }
 
 extension TemplateTypeConfig on TypeConfig {
@@ -111,24 +95,30 @@ extension TemplateTypeConfig on TypeConfig {
 abstract class $name {
   const $name._();
   
-  ${classes.value.map((c) => "factory $name.${c.name.firstToLowerCase()}(${c.templateFactoryParams()}) = _${c.name}._;").join("\n  ")}
+  ${classes.map((c) => "factory $name.${c.name.replaceFirst("_", "").firstToLowerCase()}(${c.templateFactoryParams()}) = ${c._classConstructor};").join("\n  ")}
   
-  T when<T>({${classes.value.map((c) => "@required T Function(${c.className} value) ${c.name.firstToLowerCase()},").join("\n    ")}}){
+  T when<T>({${classes.map((c) => "@required T Function(${c.className} value) ${c.name.firstToLowerCase()},").join("\n    ")}}){
     final v = this;
-    ${classes.value.map((c) => "if (v is ${c.className}) return ${c.name.firstToLowerCase()}(v);").join("\n    ")}
+    ${classes.map((c) => "if (v is ${c.className}) return ${c.name.firstToLowerCase()}(v);").join("\n    ")}
+    throw "";
+  }
+
+  T maybeWhen<T>({T Function() orElse, ${classes.map((c) => "T Function(${c.className} value) ${c.name.firstToLowerCase()},").join("\n    ")}}){
+    final v = this;
+    ${classes.map((c) => "if (v is ${c.className}) return ${c.name.firstToLowerCase()} != null ? ${c.name.firstToLowerCase()}(v) : orElse?.call();").join("\n    ")}
     throw "";
   }
   ${isSerializable ? _templateSymTypeFromJson() : ""}
   }
   
-  ${classes.value.map((c) => c.templateClass()).join("\n")}
+  ${classes.map((c) => c.templateClass()).join("\n")}
   """;
   }
 
   String templateEnum() {
     return """
 enum $name {
-  ${classes.value.map((e) => "${e.name},").join("\n  ")}
+  ${classes.map((e) => "${e.name},").join("\n  ")}
 }
 
 $name parse$name(String rawString, {$name defaultValue}) {
@@ -144,21 +134,31 @@ extension ${name}Extension on $name {
   String toEnumString() => toString().split(".")[1];
   String enumType() => toString().split(".")[0];
 
-  ${classes.value.map((e) => "bool get is${e.name.firstToUpperCase()} => this == $name.${e.name};").join("\n  ")}
+  ${classes.map((e) => "bool get is${e.name.firstToUpperCase()} => this == $name.${e.name};").join("\n  ")}
 
   T when<T>({
-    ${classes.value.map((e) => "T Function() ${e.name},").join("\n    ")}
+    ${classes.map((e) => "@required T Function() ${e.name},").join("\n    ")}
+  }) {
+    switch (this) {
+      ${classes.map((e) => """
+case $name.${e.name}:
+        return ${e.name}();
+      """).join()}
+    }
+    throw "";
+  }
+
+  T maybeWhen<T>({
+    ${classes.map((e) => "T Function() ${e.name},").join("\n    ")}
     T Function() orElse,
   }) {
     T Function() c;
     switch (this) {
-      ${classes.value.map((e) => """
+      ${classes.map((e) => """
 case $name.${e.name}:
         c = ${e.name};
         break;   
       """).join()}
-      default:
-        c = orElse;
     }
     return (c ?? orElse)?.call();
   }
@@ -170,7 +170,7 @@ case $name.${e.name}:
     return """
 static $name fromJson(Map<String, dynamic> map) {
   switch (map["runtimeType"] as String) {
-    ${classes.value.map((e) => "case '${e.name}': return _${e.name}.fromJson(map);").join("\n    ")}
+    ${classes.map((e) => "case '${e.name}': return ${e.className}.fromJson(map);").join("\n    ")}
     default:
       return null;
   }
