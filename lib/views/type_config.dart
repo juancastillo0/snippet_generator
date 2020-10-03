@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/views/class_properties.dart';
 import 'package:snippet_generator/formatters.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/models/models.dart';
+import 'package:snippet_generator/views/enum_config.dart';
 import 'package:snippet_generator/widgets.dart';
+import 'package:snippet_generator/collection_notifier/list_notifier.dart';
 
 class TypeConfigTitleView extends HookWidget {
   const TypeConfigTitleView({
@@ -26,16 +29,10 @@ class TypeConfigTitleView extends HookWidget {
               controller: typeConfig.nameNotifier,
               inputFormatters: Formatters.variableName,
             ),
+            const SizedBox(height: 5),
             Wrap(
               alignment: WrapAlignment.center,
-              children: {
-                "Data Value": typeConfig.isDataValueNotifier,
-                "Listenable": typeConfig.isListenableNotifier,
-                "Serializable": typeConfig.isSerializableNotifier,
-                "Sum Type": typeConfig.isSumTypeNotifier,
-                "Enum": typeConfig.isEnumNotifier,
-              }
-                  .entries
+              children: typeConfig.allSettings.entries
                   .map(
                     (e) => Padding(
                       padding: const EdgeInsets.only(right: 5.0, left: 5.0),
@@ -54,18 +51,19 @@ class TypeConfigTitleView extends HookWidget {
   }
 }
 
-class TypeConfigView extends StatelessWidget {
-  const TypeConfigView({
-    Key key,
-    @required this.typeConfig,
-  }) : super(key: key);
-
-  final TypeConfig typeConfig;
+class TypeConfigView extends HookWidget {
+  const TypeConfigView({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final variantListListenable =
-        Listenable.merge([typeConfig.classes, typeConfig.hasVariants]);
+    final TypeConfig typeConfig = useSelectedType(context);
+    final variantListenable = useMemoized(
+        () => Listenable.merge(
+            [typeConfig.isEnumNotifier, typeConfig.isSumTypeNotifier]),
+        [typeConfig]);
+    final variantListListenable = useMemoized(
+        () => Listenable.merge([typeConfig.classes, variantListenable]),
+        [typeConfig]);
 
     return SingleChildScrollView(
       child: Column(
@@ -73,40 +71,27 @@ class TypeConfigView extends StatelessWidget {
           TypeConfigTitleView(typeConfig: typeConfig),
           const SizedBox(height: 15),
           variantListListenable.rebuild(
-            () => Column(
-              mainAxisSize: MainAxisSize.min,
-              children: (typeConfig.hasVariants.value
-                      ? typeConfig.classes.value
-                      : typeConfig.classes.value.take(1))
-                  .map(
-                    (e) => typeConfig.isEnum
-                        ? Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              RowTextField(
-                                controller: e.nameNotifier,
-                                label: "Variant",
-                              ),
-                              IconButton(
-                                onPressed: () {
-                                  typeConfig.classes.remove(e);
-                                },
-                                icon: const Icon(Icons.delete),
-                              ),
-                            ],
-                          )
-                        : ClassPropertiesTable(data: e),
-                  )
-                  .toList(),
-            ),
+            () {
+              if (typeConfig.isEnum) {
+                return EnumTable(typeConfig: typeConfig);
+              } else {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: (typeConfig.hasVariants.value
+                          ? typeConfig.classes
+                          : typeConfig.classes.take(1))
+                      .map((e) => ClassPropertiesTable(data: e))
+                      .toList(),
+                );
+              }
+            },
           ),
-          typeConfig.hasVariants.rebuild(
-            (hasVariants) => hasVariants
+          variantListenable.rebuild(
+            () => typeConfig.isSumType && !typeConfig.isEnum
                 ? Align(
                     alignment: Alignment.centerLeft,
                     child: RaisedButton.icon(
-                      onPressed: () =>
-                          typeConfig.classes.add(ClassConfig(typeConfig)),
+                      onPressed: typeConfig.addVariant,
                       icon: const Icon(Icons.add),
                       label: typeConfig.isEnum
                           ? const Text("Add Variant")

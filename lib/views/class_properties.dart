@@ -25,13 +25,6 @@ class ClassPropertiesTable extends StatelessWidget {
                           controller: data.nameNotifier,
                           label: "Class Name",
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                          child: RowBoolField(
-                            label: "Private",
-                            notifier: data.isPrivateNotifier,
-                          ),
-                        ),
                         const Spacer(),
                         RaisedButton.icon(
                           onPressed: () => data.typeConfig.classes.remove(data),
@@ -48,32 +41,42 @@ class ClassPropertiesTable extends StatelessWidget {
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: data.properties.rebuild(
-                    (properties) => DataTable(
-                      columnSpacing: 32,
-                      columns: const <DataColumn>[
-                        DataColumn(
-                          label: Text('Field Name'),
-                        ),
-                        DataColumn(
-                          label: Text('Type'),
-                        ),
-                        DataColumn(
-                          label: Text('Required'),
-                        ),
-                        DataColumn(
-                          label: Text('Positional'),
-                        ),
-                        DataColumn(
-                          label: Text('More'),
-                        ),
-                      ],
-                      rows: properties.map(_makeRow).toList(),
-                    ),
+                    () {
+                      const _contraints =
+                          BoxConstraints(minWidth: 100, maxWidth: 200);
+                      return DataTable(
+                        columnSpacing: 32,
+                        columns: <DataColumn>[
+                          DataColumn(
+                            label: ConstrainedBox(
+                              constraints: _contraints,
+                              child: const Text('Field Name'),
+                            ),
+                          ),
+                          DataColumn(
+                            label: ConstrainedBox(
+                              constraints: _contraints,
+                              child: const Text('Type'),
+                            ),
+                          ),
+                          const DataColumn(
+                            label: Text('Required'),
+                          ),
+                          const DataColumn(
+                            label: Text('Positional'),
+                          ),
+                          const DataColumn(
+                            label: Text('More'),
+                          ),
+                        ],
+                        rows: data.properties.map(_makeRow).toList(),
+                      );
+                    },
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: 7),
             RaisedButton.icon(
               onPressed: () => data.properties.add(PropertyField()),
               icon: const Icon(Icons.add),
@@ -86,75 +89,64 @@ class ClassPropertiesTable extends StatelessWidget {
   }
 
   DataRow _makeRow(PropertyField property) {
-    const _contraints = BoxConstraints(minWidth: 100, maxWidth: 200);
     return DataRow(
       cells: <DataCell>[
-        DataCell(ConstrainedBox(
-          constraints: _contraints,
-          child: TextField(
-            controller: property.name,
-            inputFormatters: Formatters.variableName,
-          ),
+        DataCell(TextField(
+          controller: property.name,
+          inputFormatters: Formatters.variableName,
         )),
-        DataCell(ConstrainedBox(
-          constraints: _contraints,
-          child: AnimatedBuilder(
-            animation: property.type,
-            builder: (context, _) => DropdownButton<String>(
-              isExpanded: true,
-              value: "____",
-              onTap: () {
-                Future.delayed(
-                  Duration.zero,
-                  () => property.typeFocusNode.requestFocus(),
-                );
-              },
-              items: [
-                DropdownMenuItem<String>(
-                  key: const Key("____"),
-                  value: "____",
-                  child: TextField(
-                    controller: property.type,
-                    focusNode: property.typeFocusNode,
-                  ),
+        DataCell(AnimatedBuilder(
+          animation: property.type,
+          builder: (context, _) => DropdownButton<String>(
+            isExpanded: true,
+            value: "____",
+            onTap: () {
+              Future.delayed(
+                Duration.zero,
+                () => property.typeFocusNode.requestFocus(),
+              );
+            },
+            items: [
+              DropdownMenuItem<String>(
+                key: const Key("____"),
+                value: "____",
+                child: TextField(
+                  controller: property.type,
+                  focusNode: property.typeFocusNode,
                 ),
-                ...supportedJsonTypes
-                    .where((e) =>
-                        // e
-                        //     .toLowerCase()
-                        //     .contains(property.type.text.toLowerCase()) &&
-                        property.type.text != e)
-                    .map((e) => DropdownMenuItem<String>(
-                          value: e,
-                          onTap: () => property.type.text = e,
-                          key: Key(e),
-                          child: Text(e),
-                        ))
-              ],
-              onChanged: (v) {},
+              ),
+              ...supportedJsonTypes
+                  .where((e) =>
+                      // e
+                      //     .toLowerCase()
+                      //     .contains(property.type.text.toLowerCase()) &&
+                      property.type.text != e)
+                  .map((e) => DropdownMenuItem<String>(
+                        value: e,
+                        onTap: () => property.type.text = e,
+                        key: Key(e),
+                        child: Text(e),
+                      ))
+            ],
+            onChanged: (v) {},
+          ),
+        )),
+        DataCell(Center(
+          child: property.isRequired.rebuild(
+            (isRequired) => Checkbox(
+              value: isRequired,
+              onChanged: property.isRequired.set,
             ),
           ),
         )),
-        DataCell(
-          Center(
-            child: property.isRequired.rebuild(
-              (isRequired) => Checkbox(
-                value: isRequired,
-                onChanged: property.isRequired.set,
-              ),
+        DataCell(Center(
+          child: property.isPositional.rebuild(
+            (isPositional) => Checkbox(
+              value: isPositional,
+              onChanged: property.isPositional.set,
             ),
           ),
-        ),
-        DataCell(
-          Center(
-            child: property.isPositional.rebuild(
-              (isPositional) => Checkbox(
-                value: isPositional,
-                onChanged: property.isPositional.set,
-              ),
-            ),
-          ),
-        ),
+        )),
         DataCell(
           Builder(
             builder: (context) {
@@ -193,5 +185,3 @@ class ClassPropertiesTable extends StatelessWidget {
     );
   }
 }
-
-
