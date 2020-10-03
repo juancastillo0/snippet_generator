@@ -1,12 +1,17 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class AppNotifier<T> extends ValueNotifier<T> {
   AppNotifier(T value) : super(value);
+}
 
+extension ValueNotifierSetter<T> on ValueNotifier<T> {
   void set(T value) {
     this.value = value;
   }
+}
 
+extension ValueListenableBuilder<T> on ValueListenable<T> {
   Widget rebuild(Widget Function(T value) fn) {
     return AnimatedBuilder(
       animation: this,
@@ -17,7 +22,7 @@ class AppNotifier<T> extends ValueNotifier<T> {
   }
 }
 
-extension ListenableBuilderd on Listenable {
+extension ListenableBuilder on Listenable {
   Widget rebuild(Widget Function() fn) {
     return AnimatedBuilder(
       animation: this,
@@ -28,15 +33,85 @@ extension ListenableBuilderd on Listenable {
   }
 }
 
-class ListNotifier<T> extends AppNotifier<List<T>> {
-  ListNotifier(List<T> value) : super(value);
+class Computed<T> extends ChangeNotifier implements ValueListenable<T> {
+  Computed(
+    this.computer,
+    List<Listenable> dependencies,
+  ) {
+    _dependencies = Listenable.merge(dependencies);
+  }
+  final T Function() computer;
+  Listenable _dependencies;
+  bool _isUpToDate = false;
+  bool _isListening = false;
+  T _value;
 
-  void add(T item) {
-    value = [...value, item];
+  @override
+  T get value {
+    if (!_isUpToDate) {
+      _listenDependencies();
+      _updateValue();
+      _isUpToDate = true;
+    }
+    return _value;
   }
 
-  void remove(T property) {
-    value = [...value..remove(property)];
+  void _compute() {
+    if (!hasListeners) {
+      _isUpToDate = false;
+      _stopListeningDependencies();
+    } else {
+      _updateValue();
+      _isUpToDate = true;
+    }
+  }
+
+  @override
+  void addListener(void Function() listener) {
+    if (!hasListeners) {
+      _listenDependencies();
+    }
+    super.addListener(listener);
+  }
+
+  //
+  // 
+
+  void _updateValue() {
+    final newValue = computer();
+    if (_value != newValue) {
+      _value = newValue;
+      notifyListeners();
+    }
+  }
+
+  void _listenDependencies() {
+    if (!_isListening) {
+      _dependencies.addListener(_compute);
+      _isListening = true;
+    }
+  }
+
+  void _stopListeningDependencies() {
+    if (_isListening) {
+      _dependencies.removeListener(_compute);
+      _isListening = false;
+    }
+  }
+}
+
+abstract class Disposable {
+  final Set<void Function()> _callbacks = {};
+
+  void onDispose(void Function() callback) {
+    _callbacks.add(callback);
+  }
+
+  @mustCallSuper
+  void dispose() {
+    for (final callback in _callbacks) {
+      callback();
+    }
   }
 }
 

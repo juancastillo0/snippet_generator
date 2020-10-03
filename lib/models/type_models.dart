@@ -1,9 +1,24 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:snippet_generator/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/models/models.dart';
+
+class TextValue {
+  TextValue() {
+    textNotifier = Computed(() => controller.text, [controller]);
+  }
+
+  final TextEditingController controller = TextEditingController();
+  final FocusNode focusNode = FocusNode();
+  Computed<String> textNotifier;
+  String get text => controller.text;
+}
 
 class TypeConfig {
   final nameNotifier = TextEditingController();
   String get name => nameNotifier.text;
+
+  // Settings
 
   final isDataValueNotifier = AppNotifier(false);
   bool get isDataValue => isDataValueNotifier.value;
@@ -20,9 +35,20 @@ class TypeConfig {
   final isEnumNotifier = AppNotifier(false);
   bool get isEnum => isEnumNotifier.value;
 
+  final defaultEnumNotifier = AppNotifier<ClassConfig>(null);
+  ClassConfig get defaultEnum => defaultEnumNotifier.value;
+
   Computed<bool> hasVariants;
 
   final classes = ListNotifier<ClassConfig>([]);
+
+  Map<String, AppNotifier<bool>> get allSettings => {
+        "Data Value": isDataValueNotifier,
+        "Listenable": isListenableNotifier,
+        "Serializable": isSerializableNotifier,
+        "Sum Type": isSumTypeNotifier,
+        "Enum": isEnumNotifier,
+      };
 
   final _deepListenable = AppNotifier<Listenable>(null);
   Listenable get deepListenable => _deepListenable.value;
@@ -37,7 +63,8 @@ class TypeConfig {
       isSerializableNotifier,
       isListenableNotifier,
       nameNotifier,
-      classes
+      classes,
+      defaultEnumNotifier
     ]);
     hasVariants = Computed(
       () => isEnum || isSumType,
@@ -47,13 +74,20 @@ class TypeConfig {
       ],
     );
     classes.add(ClassConfig(this));
+    classes.addListener(() {
+      if (defaultEnum != null && !classes.contains(defaultEnum)) {
+        defaultEnumNotifier.value = null;
+      }
+    });
     classes.addListener(_setUpDeepListenable);
     _setUpDeepListenable();
   }
 
+  void addVariant() => classes.add(ClassConfig(this));
+
   var __s = <AppNotifier<Listenable>>{};
   void _setUpDeepListenable() {
-    final _s = classes.value.map((e) => e._deepListenable).toSet();
+    final _s = classes.map((e) => e._deepListenable).toSet();
 
     __s.difference(_s).forEach((element) {
       element.removeListener(_setUpDeepListenable);
@@ -66,7 +100,7 @@ class TypeConfig {
     _deepListenable.value = Listenable.merge([
       _deepListenable,
       _listenable,
-      ...classes.value.map((e) => e.deepListenable)
+      ...classes.map((e) => e.deepListenable)
     ]);
   }
 }
@@ -75,8 +109,7 @@ class ClassConfig {
   final nameNotifier = TextEditingController();
   String get name => nameNotifier.text;
 
-  final isPrivateNotifier = AppNotifier(true);
-  bool get isPrivate => isPrivateNotifier.value;
+  bool get isDefault => this == typeConfig.defaultEnum;
 
   final properties = ListNotifier<PropertyField>([]);
 
@@ -87,21 +120,14 @@ class ClassConfig {
   Listenable get listenable => _listenable;
 
   ClassConfig(this.typeConfig) {
-    _listenable = Listenable.merge([
-      nameNotifier,
-      properties,
-      isPrivateNotifier,
-    ]);
+    _listenable = Listenable.merge([nameNotifier, properties]);
     properties.addListener(_setUpDeepListenable);
     _setUpDeepListenable();
   }
 
   void _setUpDeepListenable() {
-    _deepListenable.value = Listenable.merge([
-      _deepListenable,
-      _listenable,
-      ...properties.value.map((e) => e.listenable)
-    ]);
+    _deepListenable.value = Listenable.merge(
+        [_deepListenable, _listenable, ...properties.map((e) => e.listenable)]);
   }
 }
 
@@ -118,15 +144,4 @@ class PropertyField {
 
   Listenable _listenable;
   Listenable get listenable => _listenable;
-}
-
-class Computed<T> extends AppNotifier<T> {
-  Computed(
-    T Function() computer,
-    List<Listenable> dependencies,
-  ) : super(computer()) {
-    Listenable.merge(dependencies).addListener(() {
-      value = computer();
-    });
-  }
 }
