@@ -2,7 +2,7 @@ import 'package:meta/meta.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/utils/json_type.dart';
 
-final id = (letter() & (letter() | digit()).star()).flatten();
+final _identifier = (letter() & (letter() | digit()).star()).flatten();
 
 Parser<T> _singleGeneric<T>(Parser<T> p) =>
     (char("<") & p.trim() & char(">")).pick<T>(1);
@@ -105,7 +105,7 @@ class PrimitiveParser extends JsonTypeParser {
           string("num") |
           string("String") |
           string("bool") |
-          id)
+          _identifier)
       .map((s) => _collect(s as String));
 }
 
@@ -125,15 +125,16 @@ class JsonTypeParser {
   }
 
   static void init() {
-    parser.set((MapParser.parser |
+    _parser.set((MapParser.parser |
             CollectionParser.listParser |
             CollectionParser.setParser |
             PrimitiveParser.parser)
         .map((value) => value as JsonTypeParser));
   }
 
-  static final SettableParser<JsonTypeParser> parser =
+  static final SettableParser<JsonTypeParser> _parser =
       undefined<JsonTypeParser>();
+  static Parser<JsonTypeParser> get parser => _parser;
 }
 
 class TEST {
