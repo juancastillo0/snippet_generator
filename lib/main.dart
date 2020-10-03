@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:snippet_generator/collection_notifier/collection_notifier.dart';
+import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/templates.dart';
@@ -13,119 +15,189 @@ void main() {
   runApp(MyApp());
 }
 
+class GlobalKeyboardListener {
+  static final focusNode = FocusNode();
+  static final Set<void Function(RawKeyEvent event)> _listeners = {};
+
+  static void addListener(void Function(RawKeyEvent event) callback) {
+    _listeners.add(callback);
+  }
+
+  static void removeListener(void Function(RawKeyEvent event) callback) {
+    _listeners.remove(callback);
+  }
+
+  static void onKey(RawKeyEvent event) {
+    for (final callback in _listeners) {
+      callback(event);
+    }
+  }
+}
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Snippet Generator',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        scaffoldBackgroundColor: const Color(0xfff5f8fa),
+    return RawKeyboardListener(
+      autofocus: true,
+      focusNode: GlobalKeyboardListener.focusNode,
+      onKey: GlobalKeyboardListener.onKey,
+      child: MaterialApp(
+        title: 'Snippet Generator',
+        theme: ThemeData(
+          primarySwatch: Colors.teal,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+          scaffoldBackgroundColor: const Color(0xfff5f8fa),
+        ),
+        home: const MyHomePage(),
       ),
-      home: const MyHomePage(title: 'Flutter Snippet Generator'),
     );
   }
 }
 
 class MyHomePage extends HookWidget {
-  const MyHomePage({Key key, this.title}) : super(key: key);
-  final String title;
+  const MyHomePage({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final rootStore = useMemoized(() => RootStore());
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-      ),
-      body: Row(
-        children: [
-          SizedBox(
-            width: 150,
-            child: TypesMenu(rootStore: rootStore),
-          ),
-          Expanded(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: SizedBox(
-                width: 600,
-                child: rootStore.selectedTypeNotifier.rebuild(
-                  (typeConfig) => TypeConfigView(typeConfig: typeConfig),
+    return RootStoreProvider(
+      rootStore: rootStore,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Flutter Snippet Generator'),
+        ),
+        body: Row(
+          children: [
+            SizedBox(
+              width: 200,
+              child: Column(
+                children: [
+                  const Expanded(
+                    flex: 2,
+                    child: TypesMenu(),
+                  ),
+                  Expanded(
+                    child: HistoryView(eventConsumer: rootStore.types),
+                  )
+                ],
+              ),
+            ),
+            const Expanded(
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: SizedBox(
+                  width: 600,
+                  child: TypeConfigView(),
                 ),
               ),
             ),
-          ),
-          SizedBox(
-            width: 450,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: rootStore.selectedTypeNotifier.rebuild(
-                (typeConfig) => CodeGenerated(typeConfig: typeConfig),
+            const SizedBox(
+              width: 450,
+              child: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: CodeGenerated(),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class TypesMenu extends HookWidget {
-  const TypesMenu({
-    Key key,
-    @required this.rootStore,
-  }) : super(key: key);
+extension ContextExtension on BuildContext {
+  ThemeData get theme => Theme.of(this);
+  TextTheme get textTheme => theme.textTheme;
 
-  final RootStore rootStore;
+  MediaQueryData get mq => MediaQuery.of(this);
+
+  Size get size => mq.size;
+}
+
+class TypesMenu extends HookWidget {
+  const TypesMenu({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final rootStore = RootStore.of(context);
     useListenable(rootStore.types);
     useListenable(rootStore.selectedTypeNotifier);
 
-    return ListView(
+    return Column(
       children: [
-        ...rootStore.types.value.map(
-          (type) => DecoratedBox(
-            decoration: BoxDecoration(
-              color: type == rootStore.selectedType
-                  ? Colors.black.withOpacity(0.06)
-                  : Colors.white,
-            ),
-            child: FlatButton(
-              onPressed: () {
-                rootStore.selectType(type);
-              },
-              child: AnimatedBuilder(
-                animation: type.nameNotifier,
-                builder: (context, _) {
-                  return Text(type.name);
-                },
-              ),
-            ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16.0, top: 6.0),
+          child: Text(
+            "Types",
+            style: context.textTheme.headline5,
           ),
         ),
-        FlatButton.icon(
-          onPressed: rootStore.addType,
-          icon: const Icon(Icons.add),
-          label: const Text("Add Type"),
-        )
+        Expanded(
+          child: ListView(
+            children: [
+              ...rootStore.types.map(
+                (type) => DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: type == rootStore.selectedType
+                        ? context.theme.primaryColor
+                        : Colors.white,
+                  ),
+                  child: TextButton(
+                    onPressed: () {
+                      rootStore.selectType(type);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Expanded(
+                            child: type.nameNotifier.rebuild((_) {
+                              return Text(
+                                type.name,
+                                style: context.textTheme.button.copyWith(
+                                  color: type == rootStore.selectedType
+                                      ? Colors.white
+                                      : null,
+                                ),
+                              );
+                            }),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              rootStore.removeType(type);
+                            },
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Colors.black,
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              FlatButton.icon(
+                onPressed: rootStore.addType,
+                icon: const Icon(Icons.add),
+                label: const Text("Add Type"),
+              )
+            ],
+          ),
+        ),
       ],
     );
   }
 }
 
 class CodeGenerated extends HookWidget {
-  const CodeGenerated({
-    Key key,
-    @required this.typeConfig,
-  }) : super(key: key);
-  final TypeConfig typeConfig;
+  const CodeGenerated({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final TypeConfig typeConfig = useSelectedType(context);
     useListenable(typeConfig.deepListenable);
     final scrollController = useScrollController();
 
@@ -135,7 +207,7 @@ class CodeGenerated extends HookWidget {
     } else if (typeConfig.isSumType) {
       sourceCode = typeConfig.templateSumType();
     } else {
-      final _class = typeConfig.classes.value[0];
+      final _class = typeConfig.classes[0];
       sourceCode = _class.templateClass();
     }
     return Column(
@@ -166,6 +238,33 @@ class CodeGenerated extends HookWidget {
                 ),
               ),
             ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class HistoryView extends HookWidget {
+  const HistoryView({Key key, @required this.eventConsumer}) : super(key: key);
+  final EventConsumer<Object> eventConsumer;
+
+  @override
+  Widget build(BuildContext context) {
+    useListenable(eventConsumer);
+    final history = eventConsumer.history;
+    return Column(
+      children: [
+        Text("Position: ${history.position}"),
+        Text("canUndo: ${history.canUndo}"),
+        Text("canRedo: ${history.canRedo}"),
+        Expanded(
+          child: ListView(
+            children: history.events
+                .map(
+                  (event) => Text(event.runtimeType.toString()),
+                )
+                .toList(),
           ),
         ),
       ],
