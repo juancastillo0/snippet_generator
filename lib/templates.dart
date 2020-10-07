@@ -18,7 +18,7 @@ extension TemplateClassConfig on ClassConfig {
   String templateClass() {
     return """
 class $className ${typeConfig.isSumType ? "extends ${typeConfig.name}" : ""}{
-  ${properties.map((p) => 'final ${p.type.text} ${p.name.text};').join('\n  ')}
+  ${properties.map((p) => 'final ${p.type} ${p.name};').join('\n  ')}
 
   const $_classConstructor(${_templateClassParams()})${typeConfig.isSumType ? ": super._()" : ""};
 
@@ -32,7 +32,7 @@ class $className ${typeConfig.isSumType ? "extends ${typeConfig.name}" : ""}{
     return """
 static $className fromJson(Map<String, dynamic> map) {
     return $_classConstructor(
-      ${properties.map((e) => "${e.name.text}: ${_parseFieldFromJson(e)},").join("\n      ")}
+      ${propertiesSorted.map((e) => "${e.isPositional ? '' : '${e.name}:'} ${_parseFieldFromJson(e)},").join("\n      ")}
     );
   }
 """;
@@ -42,22 +42,39 @@ static $className fromJson(Map<String, dynamic> map) {
     return """
 Map<String, dynamic> toJson() {
     return {
-      ${properties.map((e) => "'${e.name.text}': ${e.name.text},").join("\n      ")}
+      ${properties.map((e) => "'${e.name}': ${e.name},").join("\n      ")}
     };
   }
 """;
   }
 
   String _templateClassParams() {
-    return """{
-    ${properties.map((p) => '${_required(p.isRequired.value)}this.${p.name.text},').join('\n    ')}
-  }""";
+    return _params((_) => "this.");
   }
 
   String templateFactoryParams() {
-    return """{
-    ${properties.map((p) => '${_required(p.isRequired.value)}${p.type.text} ${p.name.text},').join('\n    ')}
-  }""";
+    return _params((p) => '${p.type} ');
+  }
+
+  String _params(String Function(PropertyField) accessor) {
+    bool foundPositionalNotRequired = false;
+    bool foundNonPositional = false;
+
+    String mm(PropertyField p) {
+      String pre = "";
+      if (p.isPositional && !p.isRequired && !foundPositionalNotRequired) {
+        foundPositionalNotRequired = true;
+        pre = "[";
+      } else if (!p.isPositional && !foundNonPositional) {
+        foundNonPositional = true;
+        pre = "${foundPositionalNotRequired ? ']' : ''}{";
+      }
+      return "$pre${_required(!p.isPositional && p.isRequired)}${accessor(p)}${p.name},";
+    }
+
+    return """\
+  ${propertiesSorted.map(mm).join('\n    ')}
+  ${foundNonPositional ? '}' : foundPositionalNotRequired ? ']' : ''}""";
   }
 }
 
@@ -81,12 +98,12 @@ String _parseJsonTypeFromJson(String getter, JsonTypeParser t) {
 }
 
 String _parseFieldFromJson(PropertyField e) {
-  final result = JsonTypeParser.parser.parse(e.type.text);
+  final result = JsonTypeParser.parser.parse(e.type);
   if (result.isFailure) {
-    return "map['${e.name.text}'] as ${e.type.text}";
+    return "map['${e.name}'] as ${e.type}";
   }
 
-  return _parseJsonTypeFromJson("map['${e.name.text}']", result.value);
+  return _parseJsonTypeFromJson("map['${e.name}']", result.value);
 }
 
 extension TemplateTypeConfig on TypeConfig {

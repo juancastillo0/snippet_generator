@@ -1,13 +1,90 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+class Globals {
+  static final _map = <Type, Object>{};
+
+  static void add<T>(T value) {
+    _map[T] = value;
+  }
+
+  static T get<T>() {
+    return _map[T] as T;
+  }
+}
+
+// class NestedNotifier extends ChangeNotifier {
+//   final _notifiers = <AppNotifier>[];
+//   final _nestedNotifiers = <NestedNotifier>[];
+
+//   Computed<Listenable> _deepListenable;
+//   Listenable get deepListenable => _deepListenable?.value ?? _listenable;
+
+//   Listenable _listenable;
+//   Listenable get listenable => _listenable;
+
+//   NestedNotifier({NestedNotifier parent}) {
+//     parent?.registerNested(this);
+
+//     _listenable = Listenable.merge([
+//       isEnumNotifier,
+//       isDataValueNotifier,
+//       isSumTypeNotifier,
+//       isSerializableNotifier,
+//       isListenableNotifier,
+//       nameNotifier,
+//       classes,
+//       defaultEnumNotifier
+//     ]);
+//   }
+
+//   void register(AppNotifier notifier) {
+//     _notifiers.add(notifier);
+//     notifier.addListener(notifyListeners);
+//   }
+
+//   void registerNested(NestedNotifier notifier) {
+//     _nestedNotifiers.add(notifier);
+//     _deepListenable = Computed(_setUpDeepListenable, _nestedNotifiers);
+//   }
+
+//   var __s = <NestedNotifier, Computed<Listenable>>{};
+//   Listenable _setUpDeepListenable() {
+//     for (final nested in _nestedNotifiers) {
+//       final _s = classes.map((e) => e._deepListenable).toSet();
+
+//       __s.difference(_s).forEach((element) {
+//         element.removeListener(_setUpDeepListenable);
+//       });
+//       _s.difference(__s).forEach((element) {
+//         element.addListener(_setUpDeepListenable);
+//       });
+//       __s = _s;
+//     }
+
+//     return Listenable.merge([
+//       _deepListenable,
+//       _listenable,
+//       ...classes.map((e) => e.deepListenable)
+//     ]);
+//   }
+// }
+
 class AppNotifier<T> extends ValueNotifier<T> {
-  AppNotifier(T value) : super(value);
+  final String key;
+
+  AppNotifier(T value, {dynamic parent, this.key}) : super(value) {
+    // parent?.register(this);
+  }
 }
 
 extension ValueNotifierSetter<T> on ValueNotifier<T> {
   void set(T value) {
     this.value = value;
+  }
+
+  Computed<B> map<B>(B Function(T) mapper) {
+    return Computed<B>(() => mapper(value), [this]);
   }
 }
 
@@ -31,6 +108,18 @@ extension ListenableBuilder on Listenable {
       },
     );
   }
+}
+
+class TextNotifier {
+  TextNotifier({String initialText, dynamic parent})
+      : controller = TextEditingController(text: initialText ?? '') {
+    textNotifier = Computed(() => controller.text, [controller]);
+  }
+
+  final TextEditingController controller;
+  final FocusNode focusNode = FocusNode();
+  Computed<String> textNotifier;
+  String get text => controller.text;
 }
 
 class Computed<T> extends ChangeNotifier implements ValueListenable<T> {
@@ -75,7 +164,7 @@ class Computed<T> extends ChangeNotifier implements ValueListenable<T> {
   }
 
   //
-  // 
+  //
 
   void _updateValue() {
     final newValue = computer();

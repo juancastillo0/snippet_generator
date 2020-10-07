@@ -59,15 +59,15 @@ class EnumTable extends StatelessWidget {
     return DataRow(
       cells: <DataCell>[
         DataCell(TextField(
-          controller: value.nameNotifier,
+          controller: value.nameNotifier.controller,
           inputFormatters: Formatters.variableName,
         )),
         DataCell(Center(
-          child: value.typeConfig.defaultEnumNotifier.rebuild(
-            (defaultEnum) => Radio(
-              groupValue: defaultEnum,
-              value: value,
-              onChanged: value.typeConfig.defaultEnumNotifier.set,
+          child: value.typeConfig.defaultEnumKeyNotifier.rebuild(
+            (defaultEnumKey) => Radio(
+              groupValue: defaultEnumKey,
+              value: value.key,
+              onChanged: value.typeConfig.defaultEnumKeyNotifier.set,
               toggleable: true,
             ),
           ),

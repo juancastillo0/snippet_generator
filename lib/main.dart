@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -7,11 +9,13 @@ import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/templates.dart';
+import 'package:snippet_generator/utils/download_json.dart';
 import 'package:snippet_generator/utils/type_parser.dart';
 import 'package:snippet_generator/views/type_config.dart';
 
 void main() {
   JsonTypeParser.init();
+  Globals.add(RootStore());
   runApp(MyApp());
 }
 
@@ -43,6 +47,7 @@ class MyApp extends StatelessWidget {
       onKey: GlobalKeyboardListener.onKey,
       child: MaterialApp(
         title: 'Snippet Generator',
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primarySwatch: Colors.teal,
           visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -59,14 +64,12 @@ class MyHomePage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rootStore = useMemoized(() => RootStore());
+    final rootStore = Globals.get<RootStore>();
 
     return RootStoreProvider(
       rootStore: rootStore,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Flutter Snippet Generator'),
-        ),
+        appBar: const _HomePageAppBar(),
         body: Row(
           children: [
             SizedBox(
@@ -106,6 +109,66 @@ class MyHomePage extends HookWidget {
   }
 }
 
+class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const _HomePageAppBar({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final rootStore = RootStore.of(context);
+
+    return AppBar(
+      title: const Text('Flutter Snippet Generator'),
+      actions: [
+        FlatButton.icon(
+          colorBrightness: Brightness.dark,
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                behavior: SnackBarBehavior.floating,
+                content: Text("Invalid json file."),
+              ),
+            );
+          },
+          icon: const Icon(Icons.save),
+          label: const Text("Save"),
+        ),
+        FlatButton.icon(
+          colorBrightness: Brightness.dark,
+          onPressed: () async {
+            final jsonString = await importFromClient();
+            if (jsonString != null) {
+              try {
+                final json = jsonDecode(jsonString);
+                rootStore.importJson(json as Map<String, dynamic>);
+              } catch (_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    behavior: SnackBarBehavior.floating,
+                    content: Text("Invalid json file."),
+                  ),
+                );
+              }
+            }
+          },
+          icon: const Icon(Icons.file_upload),
+          label: const Text("Import"),
+        ),
+        FlatButton.icon(
+          colorBrightness: Brightness.dark,
+          onPressed: () {
+            rootStore.downloadJson();
+          },
+          icon: const Icon(Icons.file_download),
+          label: const Text("Download"),
+        )
+      ],
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
 extension ContextExtension on BuildContext {
   ThemeData get theme => Theme.of(this);
   TextTheme get textTheme => theme.textTheme;
@@ -136,11 +199,11 @@ class TypesMenu extends HookWidget {
         Expanded(
           child: ListView(
             children: [
-              ...rootStore.types.map(
+              ...rootStore.types.values.map(
                 (type) => DecoratedBox(
                   decoration: BoxDecoration(
                     color: type == rootStore.selectedType
-                        ? context.theme.primaryColor
+                        ? context.theme.primaryColorLight
                         : Colors.white,
                   ),
                   child: TextButton(
@@ -156,11 +219,7 @@ class TypesMenu extends HookWidget {
                             child: type.nameNotifier.rebuild((_) {
                               return Text(
                                 type.name,
-                                style: context.textTheme.button.copyWith(
-                                  color: type == rootStore.selectedType
-                                      ? Colors.white
-                                      : null,
-                                ),
+                                style: context.textTheme.button,
                               );
                             }),
                           ),
@@ -179,10 +238,14 @@ class TypesMenu extends HookWidget {
                   ),
                 ),
               ),
-              FlatButton.icon(
-                onPressed: rootStore.addType,
-                icon: const Icon(Icons.add),
-                label: const Text("Add Type"),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FlatButton.icon(
+                  padding: const EdgeInsets.all(18.0),
+                  onPressed: rootStore.addType,
+                  icon: const Icon(Icons.add),
+                  label: const Text("Add Type"),
+                ),
               )
             ],
           ),

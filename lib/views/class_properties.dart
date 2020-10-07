@@ -22,7 +22,7 @@ class ClassPropertiesTable extends StatelessWidget {
                   ? Row(
                       children: [
                         RowTextField(
-                          controller: data.nameNotifier,
+                          controller: data.nameNotifier.controller,
                           label: "Class Name",
                         ),
                         const Spacer(),
@@ -78,7 +78,7 @@ class ClassPropertiesTable extends StatelessWidget {
             ),
             const SizedBox(height: 7),
             RaisedButton.icon(
-              onPressed: () => data.properties.add(PropertyField()),
+              onPressed: () => data.properties.add(PropertyField(data)),
               icon: const Icon(Icons.add),
               label: const Text("Add Field"),
             )
@@ -89,21 +89,22 @@ class ClassPropertiesTable extends StatelessWidget {
   }
 
   DataRow _makeRow(PropertyField property) {
+    final typeNotifier = property.typeNotifier;
     return DataRow(
       cells: <DataCell>[
         DataCell(TextField(
-          controller: property.name,
+          controller: property.nameNotifier.controller,
           inputFormatters: Formatters.variableName,
         )),
         DataCell(AnimatedBuilder(
-          animation: property.type,
+          animation: typeNotifier.textNotifier,
           builder: (context, _) => DropdownButton<String>(
             isExpanded: true,
             value: "____",
             onTap: () {
               Future.delayed(
                 Duration.zero,
-                () => property.typeFocusNode.requestFocus(),
+                () => typeNotifier.focusNode.requestFocus(),
               );
             },
             items: [
@@ -111,8 +112,8 @@ class ClassPropertiesTable extends StatelessWidget {
                 key: const Key("____"),
                 value: "____",
                 child: TextField(
-                  controller: property.type,
-                  focusNode: property.typeFocusNode,
+                  controller: typeNotifier.controller,
+                  focusNode: typeNotifier.focusNode,
                 ),
               ),
               ...supportedJsonTypes
@@ -120,10 +121,10 @@ class ClassPropertiesTable extends StatelessWidget {
                       // e
                       //     .toLowerCase()
                       //     .contains(property.type.text.toLowerCase()) &&
-                      property.type.text != e)
+                      property.type != e)
                   .map((e) => DropdownMenuItem<String>(
                         value: e,
-                        onTap: () => property.type.text = e,
+                        onTap: () => typeNotifier.controller.text = e,
                         key: Key(e),
                         child: Text(e),
                       ))
@@ -132,18 +133,18 @@ class ClassPropertiesTable extends StatelessWidget {
           ),
         )),
         DataCell(Center(
-          child: property.isRequired.rebuild(
+          child: property.isRequiredNotifier.rebuild(
             (isRequired) => Checkbox(
               value: isRequired,
-              onChanged: property.isRequired.set,
+              onChanged: property.isRequiredNotifier.set,
             ),
           ),
         )),
         DataCell(Center(
-          child: property.isPositional.rebuild(
+          child: property.isPositionalNotifier.rebuild(
             (isPositional) => Checkbox(
               value: isPositional,
-              onChanged: property.isPositional.set,
+              onChanged: property.isPositionalNotifier.set,
             ),
           ),
         )),
