@@ -12,6 +12,7 @@ analyzer:
   exclude:
     - lib/**.g.dart
     - lib/**.freezed.dart
+    - lib/generated/**/*
   enable-experiment:
     - non-nullable
     - extension-methods
