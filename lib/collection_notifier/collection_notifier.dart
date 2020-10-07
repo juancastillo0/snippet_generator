@@ -8,6 +8,13 @@ abstract class Event<E extends Event<E>> {
   E revert();
 }
 
+@immutable
+class EventData<V extends Event<V>> {
+  const EventData(this.event, this.type);
+  final V event;
+  final EventType type;
+}
+
 abstract class EventConsumer<V extends Event<V>> extends ChangeNotifier {
   EventConsumer({
     int maxHistoryLength,
@@ -140,7 +147,7 @@ class EventHistory<V extends Event<V>> {
   }
 
   EventHistory<V> clone() {
-    return copyWith(events: ListQueue.from(events));
+    return copyWith(events: ListQueue<V>.from(events));
   }
 
   EventHistory<V> copyWith({
