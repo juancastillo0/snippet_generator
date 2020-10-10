@@ -191,11 +191,17 @@ class MapReplaceEvent<K, V> extends MapEvent<K, V> {
   }) : super._();
 
   static MapReplaceEvent<K, V> fromJson<K, V>(Map<String, dynamic> map) {
-    return MapReplaceEvent._();
+    return MapReplaceEvent._(
+      oldMap: Serializers.fromJsonMap<K, V>(map["oldMap"]),
+      newMap: Serializers.fromJsonMap<K, V>(map["newMap"]),
+    );
   }
 
   Map<String, dynamic> toJson() {
-    return {};
+    return {
+      "oldMap": Serializers.toJson(oldMap),
+      "newMap": Serializers.toJson(newMap),
+    };
   }
 
   @override
@@ -204,10 +210,22 @@ class MapReplaceEvent<K, V> extends MapEvent<K, V> {
   }
 }
 
+Map<K, V> _defaultMapCreator<K, V>() {
+  return <K, V>{};
+}
+
 class MapNotifier<K, V> extends EventConsumer<MapEvent<K, V>>
     implements Map<K, V> {
-  Map<K, V> _inner = {};
+  final Map<K, V> Function() _mapCreator;
+  Map<K, V> _inner;
 
+  MapNotifier({int maxHistoryLength, Map<K, V> Function() mapCreator})
+      : _mapCreator = mapCreator ?? _defaultMapCreator,
+        super(maxHistoryLength: maxHistoryLength) {
+    _inner = _mapCreator();
+  }
+
+  @protected
   @override
   void consume(MapEvent<K, V> e) {
     e.when(change: (e) {
@@ -274,8 +292,10 @@ class MapNotifier<K, V> extends EventConsumer<MapEvent<K, V>>
   @override
   void updateAll(V Function(K key, V value) update) {
     if (isNotEmpty) {
-      final newMap = {..._inner};
-      newMap.updateAll(update);
+      final newMap = _mapCreator();
+      newMap.addEntries(
+        _inner.entries.map((e) => MapEntry(e.key, update(e.key, e.value))),
+      );
 
       apply(MapEvent.replace(oldMap: _inner, newMap: newMap));
     }
@@ -329,7 +349,7 @@ class MapNotifier<K, V> extends EventConsumer<MapEvent<K, V>>
   void clear() {
     if (isNotEmpty) {
       // ignore: prefer_const_literals_to_create_immutables
-      apply(MapEvent.replace(oldMap: _inner, newMap: <K, V>{}));
+      apply(MapEvent.replace(oldMap: _inner, newMap: _mapCreator()));
     }
   }
 

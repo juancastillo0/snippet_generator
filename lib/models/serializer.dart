@@ -4,11 +4,12 @@ class Serializers {
   const Serializers._();
 
   static final _map = <Type, Serializer<dynamic>>{
-    int: SerializerIdentity<int>(),
-    double: SerializerIdentity<double>(),
-    num: SerializerIdentity<num>(),
-    String: SerializerIdentity<String>(),
-    bool: SerializerIdentity<bool>(),
+    int: _SerializerIdentity<int>(),
+    double: _SerializerIdentity<double>(),
+    num: _SerializerIdentity<num>(),
+    String: _SerializerIdentity<String>(),
+    bool: _SerializerIdentity<bool>(),
+    Map: _MapSerializer(),
   };
 
   static T fromJson<T>(dynamic json) {
@@ -17,6 +18,25 @@ class Serializers {
     } else {
       return Serializers.of<T>().fromJson(json);
     }
+  }
+
+  static Map<K, V> fromJsonMap<K, V>(dynamic json) {
+    if (json is Map) {
+      return json.map(
+        (key, value) => MapEntry(
+          Serializers.fromJson<K>(key),
+          Serializers.fromJson<V>(value),
+        ),
+      );
+    }
+    throw "";
+  }
+
+  static List<V> fromJsonList<V>(dynamic json) {
+    if (json is List) {
+      return json.map((value) => Serializers.fromJson<V>(value)).toList();
+    }
+    throw "";
   }
 
   static dynamic toJson<T>(T instance) {
@@ -55,7 +75,32 @@ abstract class Serializer<T> {
   dynamic toJson(T instance);
 }
 
-class SerializerIdentity<T> extends Serializer<T> {
+class _MapSerializer<K, V> implements Serializer<Map<K, V>> {
+  @override
+  Map<K, V> fromJson(dynamic json) {
+    if (json is Map) {
+      return json.map(
+        (key, value) => MapEntry(
+          Serializers.fromJson<K>(key),
+          Serializers.fromJson<V>(value),
+        ),
+      );
+    }
+    throw "";
+  }
+
+  @override
+  dynamic toJson(Map<K, V> instance) {
+    return instance.map(
+      (key, value) => MapEntry(
+        Serializers.toJson(key),
+        Serializers.toJson(value),
+      ),
+    );
+  }
+}
+
+class _SerializerIdentity<T> implements Serializer<T> {
   @override
   T fromJson(dynamic json) {
     return json as T;
