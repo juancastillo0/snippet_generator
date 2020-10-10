@@ -57,24 +57,30 @@ Map<String, dynamic> toJson() {
   }
 
   String _params(String Function(PropertyField) accessor) {
-    bool foundPositionalNotRequired = false;
-    bool foundNonPositional = false;
+    const _join = '\n    ';
+    String _map(PropertyField p) => "${accessor(p)}${p.name},";
 
-    String mm(PropertyField p) {
-      String pre = "";
-      if (p.isPositional && !p.isRequired && !foundPositionalNotRequired) {
-        foundPositionalNotRequired = true;
-        pre = "[";
-      } else if (!p.isPositional && !foundNonPositional) {
-        foundNonPositional = true;
-        pre = "${foundPositionalNotRequired ? ']' : ''}{";
-      }
-      return "$pre${_required(!p.isPositional && p.isRequired)}${accessor(p)}${p.name},";
-    }
+    final _posReq = properties
+        .where((p) => p.isPositional && p.isRequired)
+        .map(_map)
+        .join(_join);
+    final _posNotReq = properties
+        .where((p) => p.isPositional && !p.isRequired)
+        .map(_map)
+        .join(_join);
+    final _namedReq = properties
+        .where((p) => !p.isPositional && p.isRequired)
+        .map((p) => "@required ${accessor(p)}${p.name},")
+        .join(_join);
+    final _namedNotReq = properties
+        .where((p) => !p.isPositional && !p.isRequired)
+        .map(_map)
+        .join(_join);
 
-    return """\
-  ${propertiesSorted.map(mm).join('\n    ')}
-  ${foundNonPositional ? '}' : foundPositionalNotRequired ? ']' : ''}""";
+    return """
+  $_posReq ${_posNotReq.isEmpty ? '' : '[$_posNotReq]'}\
+  ${_namedReq.isEmpty && _namedNotReq.isEmpty ? '' : '{$_namedReq $_namedNotReq}'}
+  """;
   }
 }
 
