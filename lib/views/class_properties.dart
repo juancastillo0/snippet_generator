@@ -78,7 +78,8 @@ class ClassPropertiesTable extends StatelessWidget {
             ),
             const SizedBox(height: 7),
             RaisedButton.icon(
-              onPressed: () => data.properties.add(PropertyField(data)),
+              onPressed: () =>
+                  data.properties.add(PropertyField(classConfigKey: data.key)),
               icon: const Icon(Icons.add),
               label: const Text("Add Field"),
             )

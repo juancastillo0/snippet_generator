@@ -6,9 +6,8 @@ import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/models/serializer.dart';
 import 'package:uuid/uuid.dart';
 
-final uuid = Uuid();
-
-class TypeConfig implements Serializable<TypeConfig> {
+class TypeConfig implements Serializable<TypeConfig>, Keyed {
+  @override
   final String key;
 
   TextEditingController nameNotifier;
@@ -106,7 +105,7 @@ class TypeConfig implements Serializable<TypeConfig> {
   }
 
   void addVariant() {
-    classes.add(ClassConfig(this));
+    classes.add(ClassConfig(typeConfigKey: key));
   }
 
   var __s = <AppNotifier<Listenable>>{};
@@ -158,7 +157,8 @@ class TypeConfig implements Serializable<TypeConfig> {
   static final serializer = SerializerFunc<TypeConfig>(fromJson: fromJson);
 }
 
-class ClassConfig implements Serializable<ClassConfig> {
+class ClassConfig implements Serializable<ClassConfig>, Keyed {
+  @override
   final String key;
 
   TextNotifier nameNotifier;
@@ -171,15 +171,19 @@ class ClassConfig implements Serializable<ClassConfig> {
   Computed<List<PropertyField>> propertiesSortedNotifier;
   List<PropertyField> get propertiesSorted => propertiesSortedNotifier.value;
 
-  final TypeConfig typeConfig;
+  final String typeConfigKey;
+  TypeConfig _typeConfig;
+  TypeConfig get typeConfig {
+    return _typeConfig ??= Globals.get<RootStore>().types[typeConfigKey];
+  }
 
   final _deepListenable = AppNotifier<Listenable>(null);
   Listenable get deepListenable => _deepListenable.value;
   Listenable _listenable;
   Listenable get listenable => _listenable;
 
-  ClassConfig(
-    this.typeConfig, {
+  ClassConfig({
+    @required this.typeConfigKey,
     String name,
     String key,
   }) : key = key ?? uuid.v4() {
@@ -204,8 +208,8 @@ class ClassConfig implements Serializable<ClassConfig> {
   @override
   Map<String, dynamic> toJson() {
     return {
-      "key": key,
       "typeKey": typeConfig.key,
+      "key": key,
       "name": name,
     };
   }
@@ -215,33 +219,19 @@ class ClassConfig implements Serializable<ClassConfig> {
     if (typeKey == null) {
       return null;
     }
-    final typeConfig = Globals.get<RootStore>().types[typeKey];
-    if (typeConfig == null) {
-      return null;
-    } else {
-      return ClassConfig(
-        typeConfig,
-        name: json["name"] as String,
-        key: json["key"] as String,
-      );
-    }
+    return ClassConfig(
+      typeConfigKey: typeKey,
+      key: json["key"] as String,
+      name: json["name"] as String,
+    );
   }
 
   static final serializer = SerializerFunc<ClassConfig>(fromJson: fromJson);
 }
 
-class KeySetter {
-  String init(String key) {
-    return key ?? uuid.v4();
-  }
-
-  void collect(String key) {}
-}
-
-final _s = KeySetter();
-
 class PropertyField
-    implements Comparable<PropertyField>, Serializable<PropertyField> {
+    implements Comparable<PropertyField>, Serializable<PropertyField>, Keyed {
+  @override
   final String key;
 
   TextNotifier nameNotifier;
@@ -256,9 +246,18 @@ class PropertyField
   AppNotifier<bool> isPositionalNotifier;
   bool get isPositional => isPositionalNotifier.value;
 
-  final ClassConfig classConfig;
-  PropertyField(
-    this.classConfig, {
+  final String classConfigKey;
+  ClassConfig _classConfig;
+  ClassConfig get classConfig {
+    return _classConfig ??= Globals.get<RootStore>()
+        .types
+        .values
+        .expand((e) => e.classes)
+        .firstWhere((e) => e.key == classConfigKey, orElse: () => null);
+  }
+
+  PropertyField({
+    @required this.classConfigKey,
     String key,
     String name,
     String type,
@@ -285,8 +284,8 @@ class PropertyField
   @override
   Map<String, dynamic> toJson() {
     return {
-      "key": key,
       "classKey": classConfig.key,
+      "key": key,
       "name": name,
       "type": type,
       "isRequired": isRequired,
@@ -299,26 +298,17 @@ class PropertyField
     if (classKey == null) {
       return null;
     }
-    final classConfig = Globals.get<RootStore>()
-        .types
-        .values
-        .expand((e) => e.classes)
-        .firstWhere((e) => e.key == classKey, orElse: () => null);
-    if (classConfig == null) {
-      return null;
-    } else {
-      return PropertyField(
-        classConfig,
-        name: json["name"] as String,
-        type: json["type"] as String,
-        isRequired: json["isRequired"] as bool,
-        isPositional: json["isPositional"] as bool,
-      );
-    }
+    return PropertyField(
+      classConfigKey: classKey,
+      key: json["key"] as String,
+      name: json["name"] as String,
+      type: json["type"] as String,
+      isRequired: json["isRequired"] as bool,
+      isPositional: json["isPositional"] as bool,
+    );
   }
 
-  static final SerializerFunc<PropertyField> serializer =
-      SerializerFunc<PropertyField>(fromJson: fromJson);
+  static final serializer = SerializerFunc<PropertyField>(fromJson: fromJson);
 
   @override
   int compareTo(PropertyField other) {
@@ -345,3 +335,19 @@ class PropertyField
     }
   }
 }
+
+final uuid = Uuid();
+
+abstract class Keyed {
+  String get key;
+}
+
+class KeySetter {
+  String init(String key) {
+    return key ?? uuid.v4();
+  }
+
+  void collect(String key) {}
+}
+
+final _s = KeySetter();
