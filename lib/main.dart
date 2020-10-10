@@ -4,18 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'package:snippet_generator/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/templates.dart';
 import 'package:snippet_generator/utils/download_json.dart';
+import 'package:snippet_generator/utils/persistence.dart';
 import 'package:snippet_generator/utils/type_parser.dart';
 import 'package:snippet_generator/views/type_config.dart';
 
-void main() {
+Future<void> main() async {
   JsonTypeParser.init();
-  Globals.add(RootStore());
+  await initHive();
+
+  final rootStore = RootStore();
+  Globals.add(rootStore);
+  rootStore.loadHive();
+
   runApp(MyApp());
 }
 
@@ -121,11 +128,13 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         FlatButton.icon(
           colorBrightness: Brightness.dark,
-          onPressed: () {
+          onPressed: () async {
+            await rootStore.saveHive();
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 behavior: SnackBarBehavior.floating,
-                content: Text("Invalid json file."),
+                width: 350,
+                content: const Text("The types where saved correctly."),
               ),
             );
           },

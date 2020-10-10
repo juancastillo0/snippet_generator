@@ -3,13 +3,12 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:snippet_generator/collection_notifier/collection_notifier.dart';
-import 'package:snippet_generator/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/collection_notifier/map_notifier.dart';
 import 'package:snippet_generator/main.dart';
 import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/utils/download_json.dart';
+import 'package:snippet_generator/utils/persistence.dart';
 
 class RootStore {
   final types = MapNotifier<String, TypeConfig>();
@@ -18,16 +17,11 @@ class RootStore {
 
   RootStore() {
     GlobalKeyboardListener.addListener(_handleKeyPress);
-    addType();
     types.addEventListener((event, eventType) {
-      if (eventType.isApply && event is MapRemoveEvent<String, TypeConfig>) {
-        if (event.value == selectedType) {
-          if (types.isNotEmpty) {
-            selectedTypeNotifier.value = types.values.first;
-          } else {
-            selectedTypeNotifier.value = null;
-          }
-        }
+      if (selectedType != null &&
+          !types.containsKey(selectedType.key) &&
+          types.isNotEmpty) {
+        selectedTypeNotifier.value = types.values.first;
       }
     });
   }
@@ -89,30 +83,76 @@ class RootStore {
     if (type != null) {
       types[type.key] = type;
       for (final _classJson in json["classes"] as List<dynamic>) {
-        final _class = ClassConfig.fromJson(_classJson as Map<String, dynamic>);
-        if (_class != null) {
-          final index =
-              _class.typeConfig.classes.indexWhere((e) => e.key == _class.key);
-          if (index == -1) {
-            _class.typeConfig.classes.add(_class);
-          } else {
-            _class.typeConfig.classes[index] = _class;
-          }
-        }
+        final c = ClassConfig.fromJson(_classJson as Map<String, dynamic>);
+        _loadItem<ClassConfig>(
+          c,
+          c.typeConfig?.classes,
+        );
       }
       for (final _propertyJson in json["fields"] as List<dynamic>) {
-        final _property = PropertyField.fromJson(_propertyJson as Map<String, dynamic>);
-        if (_property != null) {
-          final index =
-              _property.classConfig.properties.indexWhere((e) => e.key == _property.key);
-          if (index == -1) {
-            _property.classConfig.properties.add(_property);
-          } else {
-            _property.classConfig.properties[index] = _property;
-          }
-        }
+        final p = PropertyField.fromJson(_propertyJson as Map<String, dynamic>);
+        _loadItem(
+          p,
+          p.classConfig?.properties,
+        );
       }
     }
+  }
+
+  void loadHive() {
+    final typeBox = getBox<TypeConfig>();
+    types.addEntries(typeBox.values.map((e) => MapEntry(e.key, e)));
+
+    final classBox = getBox<ClassConfig>();
+    for (final c in classBox.values) {
+      if (c.typeConfig != null) {
+        _loadItem(c, c.typeConfig.classes);
+      }
+    }
+    final propertyBox = getBox<PropertyField>();
+    for (final c in propertyBox.values) {
+      if (c.classConfig != null) {
+        _loadItem(c, c.classConfig.properties);
+      }
+    }
+
+    if (types.isEmpty) {
+      addType();
+    } else {
+      final type = types.values.first;
+      selectedTypeNotifier.value = type;
+      types[selectedTypeNotifier.value.key] = type;
+    }
+  }
+
+  Future<void> saveHive() async {
+    final typeBox = getBox<TypeConfig>();
+    await typeBox.clear();
+    await typeBox.addAll(types.values);
+
+    final classBox = getBox<ClassConfig>();
+    await classBox.clear();
+    await classBox.addAll(types.values.expand((e) => e.classes));
+
+    final propertyBox = getBox<PropertyField>();
+    await propertyBox.clear();
+    await propertyBox.addAll(
+        types.values.expand((e) => e.classes).expand((e) => e.properties));
+  }
+}
+
+void _loadItem<T extends Keyed>(
+  T item,
+  List<T> list,
+) {
+  if (item == null || list == null) {
+    return;
+  }
+  final index = list.indexWhere((e) => e.key == item.key);
+  if (index == -1) {
+    list.add(item);
+  } else {
+    list[index] = item;
   }
 }
 
