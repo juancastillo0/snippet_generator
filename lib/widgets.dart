@@ -54,7 +54,7 @@ class RowTextField extends StatelessWidget {
         ),
         const SizedBox(width: 15),
         SizedBox(
-          width: 130,
+          width: 165,
           child: TextField(
             controller: controller,
             textCapitalization: TextCapitalization.sentences,

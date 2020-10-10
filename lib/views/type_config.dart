@@ -152,6 +152,7 @@ class TypeSettingsView extends HookWidget {
     int gIndex = -1;
     final _map = <int>[];
     return ExpansionPanelList(
+      expandedHeaderPadding: const EdgeInsets.symmetric(vertical: 8),
       expansionCallback: (index, isExpanded) {
         isExpandedList[_map[index]] = !isExpanded;
       },
