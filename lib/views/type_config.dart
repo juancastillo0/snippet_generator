@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/models/root_store.dart';
+import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
+import 'package:snippet_generator/resizable_scrollable/scrollable_extended.dart';
 import 'package:snippet_generator/views/class_properties.dart';
 import 'package:snippet_generator/formatters.dart';
 import 'package:snippet_generator/models/type_models.dart';
@@ -65,46 +67,62 @@ class TypeConfigView extends HookWidget {
         () => Listenable.merge([typeConfig.classes, variantListenable]),
         [typeConfig]);
 
-    return SingleChildScrollView(
-      child: Column(
-        children: <Widget>[
-          TypeConfigTitleView(typeConfig: typeConfig),
-          const SizedBox(height: 15),
-          TypeSettingsView(typeConfig: typeConfig),
-          const SizedBox(height: 15),
-          variantListListenable.rebuild(
-            () {
-              if (typeConfig.isEnum) {
-                return EnumTable(typeConfig: typeConfig);
-              } else {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: (typeConfig.hasVariants.value
-                          ? typeConfig.classes
-                          : typeConfig.classes.take(1))
-                      .map((e) => ClassPropertiesTable(data: e))
-                      .toList(),
-                );
-              }
-            },
-          ),
-          variantListenable.rebuild(
-            () => typeConfig.isSumType && !typeConfig.isEnum
-                ? Align(
-                    alignment: Alignment.centerLeft,
-                    child: RaisedButton.icon(
-                      onPressed: typeConfig.addVariant,
-                      icon: const Icon(Icons.add),
-                      label: typeConfig.isEnum
-                          ? const Text("Add Variant")
-                          : const Text("Add Class"),
+    return MultiScrollable(
+      listenable: variantListListenable,
+      builder: (ctx, controller) {
+        return MouseScrollListener(
+          controller: controller,
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: SingleChildScrollView(
+              controller: controller.vertical,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                child: Column(
+                  children: <Widget>[
+                    TypeConfigTitleView(typeConfig: typeConfig),
+                    const SizedBox(height: 15),
+                    TypeSettingsView(typeConfig: typeConfig),
+                    const SizedBox(height: 15),
+                    variantListListenable.rebuild(
+                      () {
+                        if (typeConfig.isEnum) {
+                          return EnumTable(typeConfig: typeConfig);
+                        } else {
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: (typeConfig.hasVariants.value
+                                    ? typeConfig.classes
+                                    : typeConfig.classes.take(1))
+                                .map((e) => ClassPropertiesTable(data: e))
+                                .toList(),
+                          );
+                        }
+                      },
                     ),
-                  )
-                : const SizedBox(),
+                    variantListenable.rebuild(
+                      () => typeConfig.isSumType && !typeConfig.isEnum
+                          ? Align(
+                              alignment: Alignment.centerLeft,
+                              child: RaisedButton.icon(
+                                onPressed: typeConfig.addVariant,
+                                icon: const Icon(Icons.add),
+                                label: typeConfig.isEnum
+                                    ? const Text("Add Variant")
+                                    : const Text("Add Class"),
+                              ),
+                            )
+                          : const SizedBox(),
+                    ),
+                    const SizedBox(height: 15),
+                    controller.sizer(),
+                  ],
+                ),
+              ),
+            ),
           ),
-          const SizedBox(height: 15),
-        ],
-      ),
+        );
+      },
     );
   }
 }

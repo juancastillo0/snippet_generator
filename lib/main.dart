@@ -9,11 +9,14 @@ import 'package:snippet_generator/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/models/type_models.dart';
+import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
 import 'package:snippet_generator/templates.dart';
 import 'package:snippet_generator/utils/download_json.dart';
 import 'package:snippet_generator/utils/persistence.dart';
 import 'package:snippet_generator/utils/type_parser.dart';
 import 'package:snippet_generator/views/type_config.dart';
+
+final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 
 Future<void> main() async {
   JsonTypeParser.init();
@@ -60,6 +63,7 @@ class MyApp extends StatelessWidget {
           visualDensity: VisualDensity.adaptivePlatformDensity,
           scaffoldBackgroundColor: const Color(0xfff5f8fa),
         ),
+        navigatorObservers: [routeObserver],
         home: const MyHomePage(),
       ),
     );
@@ -293,19 +297,17 @@ class CodeGenerated extends HookWidget {
         Expanded(
           child: Card(
             child: Padding(
-              padding:
-                  const EdgeInsets.only(top: 12.0, bottom: 12.0, left: 12.0),
-              child: Scrollbar(
-                isAlwaysShown: true,
-                controller: scrollController,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 12.0),
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    child: SelectableText(
-                      sourceCode,
-                      style: GoogleFonts.cousine(),
-                    ),
+              padding: const EdgeInsets.only(
+                top: 12.0,
+                bottom: 12.0,
+                left: 12.0,
+              ),
+              child: MultiScrollable(
+                builder: (context, controller) => SingleChildScrollView(
+                  controller: controller.vertical,
+                  child: SelectableText(
+                    sourceCode,
+                    style: GoogleFonts.cousine(),
                   ),
                 ),
               ),
