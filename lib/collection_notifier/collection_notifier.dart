@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
@@ -15,20 +16,40 @@ class EventData<V extends Event<V>> {
   final EventType type;
 }
 
-abstract class EventConsumer<V extends Event<V>> extends ChangeNotifier {
+abstract class EventConsumer<E extends Event<E>> extends ChangeNotifier {
   EventConsumer({
     int maxHistoryLength,
   }) : _history = EventHistory(maxHistoryLength: maxHistoryLength);
 
-  EventHistory<V> _history;
-  EventHistory<V> get history => _history;
+  EventHistory<E> _history;
+  EventHistory<E> get history => _history;
   bool get canUndo => _history.canUndo;
   bool get canRedo => _history.canRedo;
 
-  V _lastConsumed;
-  EventType _lastTypeConsumed;
+  Stream<EventData<E>> get events => _eventStreamController.stream;
+  final _eventStreamController = StreamController<EventData<E>>.broadcast();
 
-  void apply(V e) {
+  List<EventData<E>> _transactionEvents;
+
+  void syncTransaction(void Function() execute) {
+    if (_transactionEvents != null) {
+      // Already in transaction
+      execute();
+      return;
+    }
+
+    _transactionEvents = [];
+    execute();
+    if (_transactionEvents.isNotEmpty) {
+      notifyListeners();
+      for (final event in _transactionEvents) {
+        _eventStreamController.add(event);
+      }
+    }
+    _transactionEvents = null;
+  }
+
+  void apply(E e) {
     _history = _history.push(e);
     _callConsume(e, EventType.apply);
   }
@@ -51,23 +72,28 @@ abstract class EventConsumer<V extends Event<V>> extends ChangeNotifier {
     }
   }
 
-  void _callConsume(V event, EventType type) {
-    _lastConsumed = event;
-    _lastTypeConsumed = type;
+  void _callConsume(E event, EventType type) {
     consume(event);
-    notifyListeners();
+
+    final data = EventData(event, type);
+    if (_transactionEvents != null) {
+      _transactionEvents.add(data);
+    } else {
+      notifyListeners();
+      _eventStreamController.add(data);
+    }
   }
 
   @protected
-  void consume(V e);
+  void consume(E e);
 
-  void setClonedHistory(EventHistory<V> h) {
+  void setClonedHistory(EventHistory<E> h) {
     _history = h.clone();
   }
 
   @override
   bool operator ==(Object other) {
-    if (other is EventConsumer<V>) {
+    if (other is EventConsumer<E>) {
       return other._history == _history;
     } else {
       return false;
@@ -77,15 +103,10 @@ abstract class EventConsumer<V extends Event<V>> extends ChangeNotifier {
   @override
   int get hashCode => _history.hashCode;
 
-  void Function() addEventListener(
-    void Function(V event, EventType type) callback,
-  ) {
-    void _callback() {
-      callback(_lastConsumed, _lastTypeConsumed);
-    }
-
-    addListener(_callback);
-    return () => removeListener(_callback);
+  @override
+  void dispose() {
+    _eventStreamController.close();
+    super.dispose();
   }
 }
 
