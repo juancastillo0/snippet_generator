@@ -88,12 +88,12 @@ extension ValueNotifierSetter<T> on ValueNotifier<T> {
   }
 }
 
-extension ValueListenableBuilder<T> on ValueListenable<T> {
+extension ValueListenableBuilderExtension<T> on ValueListenable<T> {
   Widget rebuild(Widget Function(T value) fn) {
-    return AnimatedBuilder(
-      animation: this,
-      builder: (context, _) {
-        return fn(value);
+    return ValueListenableBuilder<T>(
+      valueListenable: this,
+      builder: (context, v, _) {
+        return fn(v);
       },
     );
   }
@@ -112,7 +112,7 @@ extension ListenableBuilder on Listenable {
 
 class TextNotifier {
   TextNotifier({String initialText, dynamic parent})
-      : controller = TextEditingController(text: initialText ?? '') {
+      : controller = TextEditingController(text: initialText) {
     textNotifier = Computed(() => controller.text, [controller]);
   }
 
@@ -139,7 +139,7 @@ class Computed<T> extends ChangeNotifier implements ValueListenable<T> {
   T get value {
     if (!_isUpToDate) {
       _listenDependencies();
-      _updateValue();
+      _updateValue(initial: true);
       _isUpToDate = true;
     }
     return _value;
@@ -150,7 +150,7 @@ class Computed<T> extends ChangeNotifier implements ValueListenable<T> {
       _isUpToDate = false;
       _stopListeningDependencies();
     } else {
-      _updateValue();
+      _updateValue(initial: false);
       _isUpToDate = true;
     }
   }
@@ -166,11 +166,13 @@ class Computed<T> extends ChangeNotifier implements ValueListenable<T> {
   //
   //
 
-  void _updateValue() {
+  void _updateValue({@required bool initial}) {
     final newValue = computer();
     if (_value != newValue) {
       _value = newValue;
-      notifyListeners();
+      if (!initial) {
+        notifyListeners();
+      }
     }
   }
 
