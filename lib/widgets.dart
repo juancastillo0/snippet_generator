@@ -35,11 +35,13 @@ class RowTextField extends StatelessWidget {
     @required this.controller,
     @required this.label,
     this.inputFormatters,
+    this.width = 165.0
   }) : super(key: key);
 
   final TextEditingController controller;
   final List<TextInputFormatter> inputFormatters;
   final String label;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +56,7 @@ class RowTextField extends StatelessWidget {
         ),
         const SizedBox(width: 15),
         SizedBox(
-          width: 165,
+          width: width,
           child: TextField(
             controller: controller,
             textCapitalization: TextCapitalization.sentences,

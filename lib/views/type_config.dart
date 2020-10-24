@@ -28,8 +28,8 @@ class TypeConfigTitleView extends HookWidget {
           children: [
             RowTextField(
               label: "Type Name",
-              controller: typeConfig.nameNotifier,
-              inputFormatters: Formatters.variableName,
+              controller: typeConfig.signatureNotifier.controller,
+              width: 220.0,
             ),
             const SizedBox(height: 5),
             Wrap(
@@ -68,56 +68,52 @@ class TypeConfigView extends HookWidget {
         [typeConfig]);
 
     return MultiScrollable(
-      listenable: variantListListenable,
       builder: (ctx, controller) {
-        return MouseScrollListener(
-          controller: controller,
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: SingleChildScrollView(
-              controller: controller.vertical,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                child: Column(
-                  children: <Widget>[
-                    TypeConfigTitleView(typeConfig: typeConfig),
-                    const SizedBox(height: 15),
-                    TypeSettingsView(typeConfig: typeConfig),
-                    const SizedBox(height: 15),
-                    variantListListenable.rebuild(
-                      () {
-                        if (typeConfig.isEnum) {
-                          return EnumTable(typeConfig: typeConfig);
-                        } else {
-                          return Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: (typeConfig.hasVariants.value
-                                    ? typeConfig.classes
-                                    : typeConfig.classes.take(1))
-                                .map((e) => ClassPropertiesTable(data: e))
-                                .toList(),
-                          );
-                        }
-                      },
-                    ),
-                    variantListenable.rebuild(
-                      () => typeConfig.isSumType && !typeConfig.isEnum
-                          ? Align(
-                              alignment: Alignment.centerLeft,
-                              child: RaisedButton.icon(
-                                onPressed: typeConfig.addVariant,
-                                icon: const Icon(Icons.add),
-                                label: typeConfig.isEnum
-                                    ? const Text("Add Variant")
-                                    : const Text("Add Class"),
-                              ),
-                            )
-                          : const SizedBox(),
-                    ),
-                    const SizedBox(height: 15),
-                    controller.sizer(),
-                  ],
-                ),
+        return Align(
+          alignment: Alignment.topCenter,
+          child: SingleChildScrollView(
+            controller: controller.vertical,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6.0),
+              child: Column(
+                children: <Widget>[
+                  TypeConfigTitleView(typeConfig: typeConfig),
+                  const SizedBox(height: 15),
+                  TypeSettingsView(typeConfig: typeConfig),
+                  const SizedBox(height: 15),
+                  variantListListenable.rebuild(
+                    () {
+                      if (typeConfig.isEnum) {
+                        return EnumTable(typeConfig: typeConfig);
+                      } else {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: (typeConfig.hasVariants.value
+                                  ? typeConfig.classes
+                                  : typeConfig.classes.take(1))
+                              .map((e) => ClassPropertiesTable(data: e))
+                              .toList(),
+                        );
+                      }
+                    },
+                  ),
+                  variantListenable.rebuild(
+                    () => typeConfig.isSumType && !typeConfig.isEnum
+                        ? Align(
+                            alignment: Alignment.centerLeft,
+                            child: RaisedButton.icon(
+                              onPressed: typeConfig.addVariant,
+                              icon: const Icon(Icons.add),
+                              label: typeConfig.isEnum
+                                  ? const Text("Add Variant")
+                                  : const Text("Add Class"),
+                            ),
+                          )
+                        : const SizedBox(),
+                  ),
+                  const SizedBox(height: 15),
+                  controller.sizer(),
+                ],
               ),
             ),
           ),
@@ -149,7 +145,8 @@ class TypeSettingsView extends HookWidget {
   Widget build(BuildContext context) {
     final isExpandedList = useMemoized(
       () => ListNotifier<bool>(
-        Iterable<bool>.generate(5, (_) => false).toList(),
+        Iterable<bool>.generate(typeConfig.allSettings.length + 1, (_) => false)
+            .toList(),
         maxHistoryLength: 0,
       ),
     );
@@ -163,6 +160,45 @@ class TypeSettingsView extends HookWidget {
         "Serializable": () => Text("ser"),
         "Sum Type": () => Text("sum"),
         "Enum": () => Text("enum"),
+        "Advanced": () => ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 420),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text("Custom Code"),
+                        RowBoolField(
+                          label: "Const",
+                          notifier: typeConfig.isConstNotifier,
+                        ),
+                        RowBoolField(
+                          label: "Override Constructor",
+                          notifier: typeConfig.overrideConstructorNotifier,
+                        )
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    TextField(
+                      controller: typeConfig.customCodeNotifier.controller,
+                      focusNode: typeConfig.customCodeNotifier.focusNode,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 5,
+                        ),
+                      ),
+                      maxLines: 6,
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              ),
+            )
       },
       [typeConfig],
     );
@@ -175,6 +211,7 @@ class TypeSettingsView extends HookWidget {
         isExpandedList[_map[index]] = !isExpanded;
       },
       children: typeConfig.allSettings.entries
+          .followedBy([MapEntry("Advanced", AppNotifier(true))])
           .map((e) {
             gIndex++;
 
