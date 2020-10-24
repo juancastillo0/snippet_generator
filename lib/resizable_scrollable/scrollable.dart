@@ -16,23 +16,31 @@ class MultiScrollController {
     ScrollController vertical,
     ScrollController horizontal,
     void Function(double) setScale,
-    @required BuildContext context,
     this.canScale = false,
   })  : vertical = vertical ?? ScrollController(),
         horizontal = horizontal ?? ScrollController(),
-        _setScale = setScale,
-        _context = context;
+        _setScale = setScale;
+
   final ScrollController vertical;
   final ScrollController horizontal;
   final void Function(double) _setScale;
-  final BuildContext _context;
   final bool canScale;
+  BuildContext _context;
 
   final scaleNotifier = ValueNotifier<double>(1);
   double get scale => scaleNotifier.value;
 
   final sizeNotifier = ValueNotifier<Size>(const Size(1, 1));
   Size get size => sizeNotifier.value;
+
+  Offset get offset {
+    return Offset(
+      horizontal.offset,
+      vertical.offset,
+    );
+  }
+
+  Rect get globalPaintBounds => _context.globalPaintBounds;
 
   Offset toCanvasOffset(Offset offset) {
     final _canvasOffset = offset + offset - globalPaintBounds.topLeft;
@@ -57,12 +65,6 @@ class MultiScrollController {
       vertical.jumpTo(dy);
     }
   }
-
-  Offset get offset => Offset(
-        horizontal.offset,
-        vertical.offset,
-      );
-  Rect get globalPaintBounds => _context.globalPaintBounds;
 
   void onScale(double newScale) {
     if (!canScale) {
@@ -106,14 +108,14 @@ class MultiScrollController {
 class MultiScrollable extends StatefulWidget {
   const MultiScrollable({
     this.builder,
-    this.listenable,
     Key key,
+    this.controller,
   }) : super(key: key);
   final Widget Function(
     BuildContext context,
     MultiScrollController controller,
   ) builder;
-  final Listenable listenable;
+  final MultiScrollController controller;
 
   @override
   _MultiScrollableState createState() => _MultiScrollableState();
@@ -127,24 +129,31 @@ class _MultiScrollableState extends State<MultiScrollable> with RouteAware {
   @override
   void initState() {
     super.initState();
-    controller = MultiScrollController(context: context);
-    widget.listenable?.addListener(_rebuild);
-    _rebuild();
-    SchedulerBinding.instance.addPostFrameCallback((_) => setState(() {}));
+    _initController();
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _notifyAll();
+    });
   }
 
   @override
   void didUpdateWidget(covariant MultiScrollable oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.listenable != widget.listenable) {
-      widget.listenable?.addListener(_rebuild);
-      oldWidget.listenable?.removeListener(_rebuild);
-      _rebuild();
+    if (widget.controller != oldWidget.controller) {
+      _initController();
     }
   }
 
-  void _rebuild() {
+  void _initController() {
+    controller = widget.controller ?? MultiScrollController();
+    controller._context = context;
     controller.notifyAll();
+  }
+
+  void _notifyAll() {
+    setState(() {
+      controller.notifyAll();
+    });
   }
 
   @override
@@ -205,8 +214,8 @@ class _MultiScrollableState extends State<MultiScrollable> with RouteAware {
 
   @override
   void didPopNext() {
-    setState(() {});
     super.didPopNext();
+    _notifyAll();
   }
 }
 
