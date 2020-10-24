@@ -1,27 +1,7 @@
 import 'package:meta/meta.dart';
 import 'package:petitparser/petitparser.dart';
+import 'package:snippet_generator/parsers/parsers.dart';
 import 'package:snippet_generator/utils/json_type.dart';
-
-final _identifier = (letter() & (letter() | digit()).star()).flatten();
-
-Parser<T> _singleGeneric<T>(Parser<T> p) =>
-    (char("<") & p.trim() & char(">")).pick<T>(1);
-
-class _DoubleGeneric {
-  const _DoubleGeneric(this.left, this.right);
-  final PrimitiveParser left;
-  final JsonTypeParser right;
-
-  static final parser = (char("<") &
-          PrimitiveParser.parser.trim() &
-          char(",") &
-          JsonTypeParser.parser.trim() &
-          char(">"))
-      .map<_DoubleGeneric>(
-    (list) =>
-        _DoubleGeneric(list[1] as PrimitiveParser, list[3] as JsonTypeParser),
-  );
-}
 
 // ignore: constant_identifier_names
 enum CollectionType { List, Set }
@@ -69,44 +49,84 @@ class CollectionParser extends JsonTypeParser {
   final CollectionType collectionType;
   final JsonTypeParser genericType;
 
-  static CollectionParser _collect(List<dynamic> parserOutput) =>
-      CollectionParser(
+  static CollectionParser _collect(dynamic parserOutput) {
+    if (parserOutput is String) {
+      return CollectionParser(
+          parserOutput == "List" ? CollectionType.List : CollectionType.Set,
+          null);
+    } else if (parserOutput is List) {
+      return CollectionParser(
           parserOutput[0] == "List" ? CollectionType.List : CollectionType.Set,
           parserOutput[1] as JsonTypeParser);
+    }
+    throw "";
+  }
 
   static final listParser =
-      (string("List") & _singleGeneric(JsonTypeParser.parser).optional().trim())
+      (string("List").trim() & singleGeneric(JsonTypeParser.parser).optional())
           .map(_collect);
-  static final setParser =
-      (string("Set") & _singleGeneric(JsonTypeParser.parser).optional().trim())
-          .map(_collect);
+  static final setParser = (string("Set").trim() |
+          string("Set").trim() & singleGeneric(JsonTypeParser.parser))
+      .end()
+      .map(_collect);
 }
 
 class MapParser extends JsonTypeParser {
   const MapParser(this.genericType);
-  final _DoubleGeneric genericType;
+  final DoubleGeneric<PrimitiveParser, JsonTypeParser> genericType;
 
-  static final parser =
-      (string("Map") & _DoubleGeneric.parser.optional().trim()).map(_collect);
+  static final parser = (string("Map").trim() &
+          DoubleGeneric.parser(
+            PrimitiveParser.parser,
+            JsonTypeParser._parser,
+          ).optional())
+      .map(_collect);
 
-  static MapParser _collect(List<dynamic> parserOutput) =>
-      MapParser(parserOutput[1] as _DoubleGeneric);
+  static MapParser _collect(List<dynamic> parserOutput) => MapParser(
+        parserOutput[1] as DoubleGeneric<PrimitiveParser, JsonTypeParser>,
+      );
 }
 
 class PrimitiveParser extends JsonTypeParser {
-  const PrimitiveParser(this.type, this.raw);
+  const PrimitiveParser(this.type, this.raw,
+      [this.genericIds = const <String>[]]);
   final PrimitiveJson type;
   final String raw;
+  final List<String> genericIds;
 
-  static PrimitiveParser _collect(String raw) =>
-      PrimitiveParser(parsePrimitiveJson(raw), raw);
+  static PrimitiveParser _collect(dynamic raw) {
+    if (raw is String) {
+      final type = parsePrimitiveJson(raw);
+      return PrimitiveParser(type, raw);
+    } else if (raw is List) {
+      final rawString = raw[0] as String;
+      final type = parsePrimitiveJson(rawString);
+      return type.when(
+        custom: () => PrimitiveParser(
+            type,
+            rawString,
+            raw[1] != null
+                ? (raw[1] as List).map((e) => e as String).toList()
+                : const <String>[]),
+        orElse: () => PrimitiveParser(type, rawString),
+      );
+    }
+    throw "";
+  }
+
   static final parser = (string("int") |
           string("double") |
           string("num") |
           string("String") |
           string("bool") |
-          _identifier)
-      .map((s) => _collect(s as String));
+          (identifier &
+              (char("<") &
+                      identifier.separatedBy(char(","),
+                          includeSeparators: false) &
+                      char(">"))
+                  .pick(1)
+                  .optional()))
+      .map(_collect);
 }
 
 class JsonTypeParser {
@@ -135,8 +155,4 @@ class JsonTypeParser {
   static final SettableParser<JsonTypeParser> _parser =
       undefined<JsonTypeParser>();
   static Parser<JsonTypeParser> get parser => _parser;
-}
-
-class TEST {
-  static const Parser<T> Function<T>(Parser<T>) singleGeneric = _singleGeneric;
 }

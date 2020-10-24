@@ -1,5 +1,6 @@
+import 'package:snippet_generator/parsers/parsers.dart';
 import 'package:snippet_generator/utils/json_type.dart';
-import 'package:snippet_generator/utils/type_parser.dart';
+import 'package:snippet_generator/parsers/type_parser.dart';
 import 'package:test/test.dart';
 import 'package:petitparser/petitparser.dart' show TrimmingParserExtension;
 
@@ -19,11 +20,7 @@ void main() {
       expect(r2.value.type.toEnumString(), "custom");
       expect(r2.value.raw, "Bo");
 
-      print(TEST
-          .singleGeneric(JsonTypeParser.parser)
-          .trim()
-          .parse(" < int>")
-          .value);
+      print(singleGeneric(JsonTypeParser.parser).trim().parse(" < int>").value);
     });
   });
 
@@ -80,11 +77,12 @@ void main() {
 
   group('None', () {
     test('simple', () {
-      Map m = {"d": {"w": 2}};
+      Map m = {
+        "d": {"w": 2}
+      };
 
       final m2 = m.cast<String, Map<String, int>>();
       print(m2);
-      
     });
   });
 }
