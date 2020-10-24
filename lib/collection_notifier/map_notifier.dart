@@ -163,11 +163,12 @@ class MapManyEvent<K, V> extends MapEvent<K, V> {
 
   static MapManyEvent<K, V> fromJson<K, V>(Map<String, dynamic> map) {
     return MapManyEvent._(
-      events: map['events'] as List<MapEvent<K, V>>,
+      events: Serializers.fromJsonList<MapEvent<K, V>>(map['events']),
     );
   }
 
   Map<String, dynamic> toJson() {
+    // TODO: 
     return {
       'events': events,
     };
