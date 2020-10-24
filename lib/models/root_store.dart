@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
@@ -6,18 +7,36 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/collection_notifier/map_notifier.dart';
 import 'package:snippet_generator/main.dart';
 import 'package:snippet_generator/models/models.dart';
+import 'package:snippet_generator/models/type_item.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/utils/download_json.dart';
 import 'package:snippet_generator/utils/persistence.dart';
 
 class RootStore {
+  TypeItem lastSelectedItem;
+  TypeItem _selectedItem;
+  TypeItem get selectedItem => _selectedItem;
+  set selectedItem(TypeItem item) {
+    lastSelectedItem = item;
+    Future.delayed(Duration.zero, () {
+      _selectedItem = item;
+    });
+  }
+
+  TypeItem copiedItem;
+
   final types = MapNotifier<String, TypeConfig>();
+
   final selectedTypeNotifier = AppNotifier<TypeConfig>(null);
   TypeConfig get selectedType => selectedTypeNotifier.value;
 
+  final _messageEventsController = StreamController<MessageEvent>.broadcast();
+  Stream<MessageEvent> get messageEvents => _messageEventsController.stream;
+
   RootStore() {
-    GlobalKeyboardListener.addListener(_handleKeyPress);
-    types.addEventListener((event, eventType) {
+    GlobalKeyboardListener.addKeyListener(_handleKeyPress);
+    GlobalKeyboardListener.addTapListener(_handleGlobalTap);
+    types.events.listen((data) {
       if (selectedType != null &&
           !types.containsKey(selectedType.key) &&
           types.isNotEmpty) {
@@ -26,17 +45,54 @@ class RootStore {
     });
   }
 
+  void _handleGlobalTap(_) {
+    _selectedItem = null;
+  }
+
   void _handleKeyPress(RawKeyEvent event) {
-    if (event is RawKeyDownEvent &&
-        event.isControlPressed &&
-        event.logicalKey == LogicalKeyboardKey.keyZ) {
-      if (event.isShiftPressed) {
-        if (types.canRedo) {
-          types.redo();
+    if (event is RawKeyDownEvent && event.isControlPressed) {
+      if (event.logicalKey == LogicalKeyboardKey.keyZ) {
+        if (event.isShiftPressed) {
+          if (types.canRedo) {
+            types.redo();
+          }
+        } else {
+          if (types.canUndo) {
+            types.undo();
+          }
         }
-      } else {
-        if (types.canUndo) {
-          types.undo();
+      } else if (event.logicalKey == LogicalKeyboardKey.keyC) {
+        if (selectedItem != null) {
+          copiedItem = selectedItem;
+          // Clipboard.setData(ClipboardData(text: copiedItem.toJson))
+          _messageEventsController.add(MessageEvent.typeCopied);
+        }
+      } else if (event.logicalKey == LogicalKeyboardKey.keyV) {
+        if (copiedItem != null && lastSelectedItem != null) {
+          copiedItem.when(
+            classI: (c) {
+              final t = lastSelectedItem.parentType();
+              t.classes.add(c.clone().copyWith(typeConfigKey: t.key));
+            },
+            typeI: (t) {
+              selectedTypeNotifier.value = t.clone();
+              types[selectedType.key] = selectedType;
+            },
+            propertyI: (p) {
+              final c = lastSelectedItem.parentClass();
+              if (c != null) {
+                c.properties.add(p.copyWith(classConfigKey: c.key));
+              }
+            },
+            propertyListI: (pList) {
+              final c = lastSelectedItem.parentClass();
+              if (c != null) {
+                c.properties.addAll(
+                  pList.map((e) => e.copyWith(classConfigKey: c.key)),
+                );
+              }
+            },
+          );
         }
       }
     }
@@ -60,6 +116,15 @@ class RootStore {
 
   void selectType(TypeConfig type) {
     selectedTypeNotifier.value = type;
+    selectedItem = TypeItem.typeI(type);
+  }
+
+  void selectClass(ClassConfig type) {
+    selectedItem = TypeItem.classI(type);
+  }
+
+  void selectProperty(PropertyField type) {
+    selectedItem = TypeItem.propertyI(type);
   }
 
   static RootStore of(BuildContext context) =>
@@ -177,5 +242,57 @@ class RootStoreProvider extends InheritedWidget {
   @override
   bool updateShouldNotify(RootStoreProvider oldWidget) {
     return oldWidget.rootStore != rootStore;
+  }
+}
+
+enum MessageEvent {
+  typeCopied,
+  typesSaved,
+}
+
+MessageEvent parseMessageEvent(String rawString, {MessageEvent defaultValue}) {
+  for (final variant in MessageEvent.values) {
+    if (rawString == variant.toEnumString()) {
+      return variant;
+    }
+  }
+  return defaultValue;
+}
+
+extension MessageEventExtension on MessageEvent {
+  String toEnumString() => toString().split(".")[1];
+  String enumType() => toString().split(".")[0];
+
+  bool get isTypeCopied => this == MessageEvent.typeCopied;
+  bool get isTypesSaved => this == MessageEvent.typesSaved;
+
+  T when<T>({
+    @required T Function() typeCopied,
+    @required T Function() typesSaved,
+  }) {
+    switch (this) {
+      case MessageEvent.typeCopied:
+        return typeCopied();
+      case MessageEvent.typesSaved:
+        return typesSaved();
+    }
+    throw "";
+  }
+
+  T maybeWhen<T>({
+    T Function() typeCopied,
+    T Function() typesSaved,
+    T Function() orElse,
+  }) {
+    T Function() c;
+    switch (this) {
+      case MessageEvent.typeCopied:
+        c = typeCopied;
+        break;
+      case MessageEvent.typesSaved:
+        c = typesSaved;
+        break;
+    }
+    return (c ?? orElse)?.call();
   }
 }

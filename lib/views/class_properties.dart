@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:snippet_generator/formatters.dart';
 import 'package:snippet_generator/models/models.dart';
+import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/widgets.dart';
 import 'package:super_tooltip/super_tooltip.dart';
@@ -11,79 +12,82 @@ class ClassPropertiesTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(top: 10.0, bottom: 8.0),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 18.0),
-        child: Column(
-          children: [
-            data.typeConfig.isSumTypeNotifier.rebuild(
-              (isSumType) => isSumType
-                  ? Row(
-                      children: [
-                        RowTextField(
-                          controller: data.nameNotifier.controller,
-                          label: "Class Name",
-                        ),
-                        const Spacer(),
-                        RaisedButton.icon(
-                          onPressed: () => data.typeConfig.classes.remove(data),
-                          icon: const Icon(Icons.delete),
-                          label: const Text("Remove Class"),
-                        )
-                      ],
-                    )
-                  : const SizedBox(),
-            ),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 300),
-              child: SingleChildScrollView(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: data.properties.rebuild(
-                    () {
-                      const _contraints =
-                          BoxConstraints(minWidth: 100, maxWidth: 200);
-                      return DataTable(
-                        columnSpacing: 32,
-                        columns: <DataColumn>[
-                          DataColumn(
-                            label: ConstrainedBox(
-                              constraints: _contraints,
-                              child: const Text('Field Name'),
-                            ),
+    return GestureDetector(
+      onTap: () => RootStore.of(context).selectClass(data),
+      child: Card(
+        margin: const EdgeInsets.only(top: 10.0, bottom: 8.0),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 18.0),
+          child: Column(
+            children: [
+              data.typeConfig.isSumTypeNotifier.rebuild(
+                (isSumType) => isSumType
+                    ? Row(
+                        children: [
+                          RowTextField(
+                            controller: data.nameNotifier.controller,
+                            label: "Class Name",
                           ),
-                          DataColumn(
-                            label: ConstrainedBox(
-                              constraints: _contraints,
-                              child: const Text('Type'),
-                            ),
-                          ),
-                          const DataColumn(
-                            label: Text('Required'),
-                          ),
-                          const DataColumn(
-                            label: Text('Positional'),
-                          ),
-                          const DataColumn(
-                            label: Text('More'),
-                          ),
+                          const Spacer(),
+                          RaisedButton.icon(
+                            onPressed: () =>
+                                data.typeConfig.classes.remove(data),
+                            icon: const Icon(Icons.delete),
+                            label: const Text("Remove Class"),
+                          )
                         ],
-                        rows: data.properties.map(_makeRow).toList(),
-                      );
-                    },
+                      )
+                    : const SizedBox(),
+              ),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 300),
+                child: SingleChildScrollView(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: data.properties.rebuild(
+                      () {
+                        const _contraints =
+                            BoxConstraints(minWidth: 100, maxWidth: 200);
+                        return DataTable(
+                          columnSpacing: 24,
+                          columns: <DataColumn>[
+                            DataColumn(
+                              label: ConstrainedBox(
+                                constraints: _contraints,
+                                child: const Text('Field Name'),
+                              ),
+                            ),
+                            DataColumn(
+                              label: ConstrainedBox(
+                                constraints: _contraints,
+                                child: const Text('Type'),
+                              ),
+                            ),
+                            const DataColumn(
+                              label: Text('Required'),
+                            ),
+                            const DataColumn(
+                              label: Text('Positional'),
+                            ),
+                            const DataColumn(
+                              label: Text('More'),
+                            ),
+                          ],
+                          rows: data.properties.map(_makeRow).toList(),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 7),
-            RaisedButton.icon(
-              onPressed: () =>
-                  data.properties.add(PropertyField(classConfigKey: data.key)),
-              icon: const Icon(Icons.add),
-              label: const Text("Add Field"),
-            )
-          ],
+              const SizedBox(height: 7),
+              RaisedButton.icon(
+                onPressed: data.addProperty,
+                icon: const Icon(Icons.add),
+                label: const Text("Add Field"),
+              )
+            ],
+          ),
         ),
       ),
     );

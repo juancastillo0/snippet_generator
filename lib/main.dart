@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -10,10 +12,10 @@ import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
-import 'package:snippet_generator/templates.dart';
+import 'package:snippet_generator/templates/templates.dart';
 import 'package:snippet_generator/utils/download_json.dart';
 import 'package:snippet_generator/utils/persistence.dart';
-import 'package:snippet_generator/utils/type_parser.dart';
+import 'package:snippet_generator/parsers/type_parser.dart';
 import 'package:snippet_generator/views/type_config.dart';
 
 final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
@@ -25,20 +27,38 @@ Future<void> main() async {
   final rootStore = RootStore();
   Globals.add(rootStore);
   rootStore.loadHive();
-
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class GlobalKeyboardListener {
   static final focusNode = FocusNode();
   static final Set<void Function(RawKeyEvent event)> _listeners = {};
+  static final Set<void Function(TapDownDetails event)> _tapDownListeners = {};
 
-  static void addListener(void Function(RawKeyEvent event) callback) {
+  static final gestures = {
+    AllowMultipleGestureRecognizer:
+        GestureRecognizerFactoryWithHandlers<AllowMultipleGestureRecognizer>(
+      () => AllowMultipleGestureRecognizer(),
+      (instance) {
+        instance.onTapDown = GlobalKeyboardListener.onTapDown;
+      },
+    )
+  };
+
+  static void addKeyListener(void Function(RawKeyEvent) callback) {
     _listeners.add(callback);
   }
 
-  static void removeListener(void Function(RawKeyEvent event) callback) {
+  static void removeKeyListener(void Function(RawKeyEvent) callback) {
     _listeners.remove(callback);
+  }
+
+  static void addTapListener(void Function(TapDownDetails) callback) {
+    _tapDownListeners.add(callback);
+  }
+
+  static void removeTapListener(void Function(TapDownDetails) callback) {
+    _tapDownListeners.remove(callback);
   }
 
   static void onKey(RawKeyEvent event) {
@@ -46,25 +66,44 @@ class GlobalKeyboardListener {
       callback(event);
     }
   }
+
+  static void onTapDown(TapDownDetails event) {
+    for (final callback in _tapDownListeners) {
+      callback(event);
+    }
+  }
+}
+
+class AllowMultipleGestureRecognizer extends TapGestureRecognizer {
+  @override
+  void rejectGesture(int pointer) {
+    acceptGesture(pointer);
+  }
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp();
+
   @override
   Widget build(BuildContext context) {
     return RawKeyboardListener(
       autofocus: true,
       focusNode: GlobalKeyboardListener.focusNode,
       onKey: GlobalKeyboardListener.onKey,
-      child: MaterialApp(
-        title: 'Snippet Generator',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primarySwatch: Colors.teal,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-          scaffoldBackgroundColor: const Color(0xfff5f8fa),
+      child: RawGestureDetector(
+        behavior: HitTestBehavior.translucent,
+        gestures: GlobalKeyboardListener.gestures,
+        child: MaterialApp(
+          title: 'Snippet Generator',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            primarySwatch: Colors.teal,
+            visualDensity: VisualDensity.adaptivePlatformDensity,
+            scaffoldBackgroundColor: const Color(0xfff5f8fa),
+          ),
+          navigatorObservers: [routeObserver],
+          home: const MyHomePage(),
         ),
-        navigatorObservers: [routeObserver],
-        home: const MyHomePage(),
       ),
     );
   }
@@ -76,47 +115,113 @@ class MyHomePage extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final rootStore = Globals.get<RootStore>();
-
     return RootStoreProvider(
       rootStore: rootStore,
       child: Scaffold(
         appBar: const _HomePageAppBar(),
-        body: Row(
-          children: [
-            SizedBox(
-              width: 200,
-              child: Column(
-                children: [
-                  const Expanded(
-                    flex: 2,
-                    child: TypesMenu(),
-                  ),
-                  Expanded(
-                    child: HistoryView(eventConsumer: rootStore.types),
-                  )
-                ],
-              ),
-            ),
-            const Expanded(
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: SizedBox(
-                  width: 600,
-                  child: TypeConfigView(),
+        body: RootStoreMessager(
+          rootStore: rootStore,
+          child: Row(
+            children: [
+              SizedBox(
+                width: 200,
+                child: Column(
+                  children: [
+                    const Expanded(
+                      flex: 2,
+                      child: TypesMenu(),
+                    ),
+                    Expanded(
+                      child: HistoryView(eventConsumer: rootStore.types),
+                    )
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(
-              width: 450,
-              child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: CodeGenerated(),
+              const Expanded(
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: SizedBox(
+                    width: 600,
+                    child: TypeConfigView(),
+                  ),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(
+                width: 450,
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: CodeGenerated(),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+}
+
+void useValueListenableEffect<T>(
+  void Function(T) callback,
+  ValueListenable<T> listenable, [
+  List<Object> keys,
+]) {
+  useEffect(
+    () {
+      void _c() {
+        callback(listenable.value);
+      }
+
+      listenable.addListener(_c);
+      return () => listenable.removeListener(_c);
+    },
+    keys,
+  );
+}
+
+void useStreamEffect<T>(
+  void Function(T) callback,
+  Stream<T> listenable, [
+  List<Object> keys,
+]) {
+  useEffect(
+    () {
+      final subs = listenable.listen(callback);
+      return subs.cancel;
+    },
+    keys,
+  );
+}
+
+class RootStoreMessager extends HookWidget {
+  const RootStoreMessager({
+    Key key,
+    @required this.child,
+    @required this.rootStore,
+  }) : super(key: key);
+  final Widget child;
+  final RootStore rootStore;
+
+  @override
+  Widget build(BuildContext context) {
+    final messager = ScaffoldMessenger.of(context);
+    useEffect(() {
+      final subs = rootStore.messageEvents.listen((messageEvent) {
+        messageEvent.when(
+          typeCopied: () => messager.showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              width: 350,
+              content: const Text("Type copied"),
+            ),
+          ),
+          typesSaved: () {},
+        );
+      });
+      return subs.cancel;
+    }, [rootStore]);
+
+    return child;
   }
 }
 
@@ -138,7 +243,7 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
               SnackBar(
                 behavior: SnackBarBehavior.floating,
                 width: 350,
-                content: const Text("The types where saved correctly."),
+                content: const Text("The types where saved correctly"),
               ),
             );
           },
@@ -172,7 +277,7 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
             rootStore.downloadJson();
           },
           icon: const Icon(Icons.file_download),
-          label: const Text("Download"),
+          label: const Text("Export"),
         )
       ],
     );
@@ -229,9 +334,10 @@ class TypesMenu extends HookWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Expanded(
-                            child: type.nameNotifier.rebuild((_) {
+                            child: type.signatureNotifier.textNotifier
+                                .rebuild((signature) {
                               return Text(
-                                type.name,
+                                signature,
                                 style: context.textTheme.button,
                               );
                             }),
@@ -275,7 +381,6 @@ class CodeGenerated extends HookWidget {
   Widget build(BuildContext context) {
     final TypeConfig typeConfig = useSelectedType(context);
     useListenable(typeConfig.deepListenable);
-    final scrollController = useScrollController();
 
     String sourceCode;
     if (typeConfig.isEnum) {
