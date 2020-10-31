@@ -189,6 +189,12 @@ class Computed<T> extends ChangeNotifier implements ValueListenable<T> {
       _isListening = false;
     }
   }
+
+  @override
+  void dispose() {
+    _stopListeningDependencies();
+    super.dispose();
+  }
 }
 
 abstract class Disposable {

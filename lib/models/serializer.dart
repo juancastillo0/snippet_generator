@@ -41,9 +41,9 @@ class Serializers {
 
   static dynamic toJson<T>(T instance) {
     try {
-      return (instance as dynamic).toJson();
-    } catch (_) {
       return Serializers.of<T>().toJson(instance);
+    } catch (_) {
+      return (instance as dynamic).toJson();
     }
   }
 
