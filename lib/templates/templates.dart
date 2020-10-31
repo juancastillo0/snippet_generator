@@ -14,6 +14,7 @@ extension TemplateClassConfig on ClassConfig {
   String get _classConstructor {
     return className;
   }
+
   String get classNameWithGenericIds => "$className${typeConfig.genericIds}";
 
   String get signature => typeConfig.isSumType
@@ -27,10 +28,34 @@ class $signature {
 
   ${typeConfig._const} $_classConstructor(${_templateClassParams()})${typeConfig.isSumType ? ": super._()" : ""};
 
+  ${typeConfig.isDataValue ? _templateClassCopyWith() : ""}
+  ${typeConfig.isDataValue ? _templateClassClone() : ""}
   ${typeConfig.isSerializable ? _templateClassFromJson() : ""}
   ${typeConfig.isSerializable ? _templateClassToJson() : ""}
 }
   """;
+  }
+
+  String _templateClassCopyWith() {
+    final _params =
+        properties.map((p) => '${p.type} ${p.name},').join('\n    ');
+    return """
+$classNameWithGenericIds copyWith({$_params}) {
+    return $_classConstructor(
+      ${propertiesSorted.map((e) => "${e.isPositional ? '' : '${e.name}:'} ${e.name} ?? this.${e.name},").join("\n      ")}
+    );
+  }
+""";
+  }
+
+  String _templateClassClone() {
+    return """
+$classNameWithGenericIds clone() {
+    return $_classConstructor(
+      ${propertiesSorted.map((e) => "${e.isPositional ? '' : '${e.name}:'} this.${e.name},").join("\n      ")}
+    );
+  }
+""";
   }
 
   String _templateClassFromJson() {
