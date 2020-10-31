@@ -125,11 +125,38 @@ class TextNotifier {
 class Computed<T> extends ChangeNotifier implements ValueListenable<T> {
   Computed(
     this.computer,
-    List<Listenable> dependencies,
-  ) {
-    _dependencies = Listenable.merge(dependencies);
+    List<Listenable> dependencies, {
+    this.derivedDependencies,
+  }) {
+    _primaryDependencies = Listenable.merge(dependencies);
+    if (derivedDependencies != null) {
+      _calculateDependencies();
+      _primaryDependencies.addListener(_calculateDependencies);
+    } else {
+      _dependencies = _primaryDependencies;
+    }
   }
+
+  void _calculateDependencies() {
+    final deps = Listenable.merge(
+      [_primaryDependencies, ...derivedDependencies()],
+    );
+    if (_isListening) {
+      _compute();
+      final wasListening = _isListening;
+      _stopListeningDependencies();
+      _dependencies = deps;
+      if (wasListening) {
+        _listenDependencies();
+      }
+    } else {
+      _dependencies = deps;
+    }
+  }
+
   final T Function() computer;
+  final Iterable<Listenable> Function() derivedDependencies;
+  Listenable _primaryDependencies;
   Listenable _dependencies;
   bool _isUpToDate = false;
   bool _isListening = false;
@@ -193,6 +220,9 @@ class Computed<T> extends ChangeNotifier implements ValueListenable<T> {
   @override
   void dispose() {
     _stopListeningDependencies();
+    if (derivedDependencies != null) {
+      _primaryDependencies.removeListener(_calculateDependencies);
+    }
     super.dispose();
   }
 }
