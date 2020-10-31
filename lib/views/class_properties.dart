@@ -50,7 +50,7 @@ class ClassPropertiesTable extends StatelessWidget {
                         const _contraints =
                             BoxConstraints(minWidth: 100, maxWidth: 200);
                         return DataTable(
-                          columnSpacing: 24,
+                          columnSpacing: 20,
                           columns: <DataColumn>[
                             DataColumn(
                               label: ConstrainedBox(
@@ -65,10 +65,12 @@ class ClassPropertiesTable extends StatelessWidget {
                               ),
                             ),
                             const DataColumn(
-                              label: Text('Required'),
+                              tooltip: "Required",
+                              label: Text('Req.'),
                             ),
                             const DataColumn(
-                              label: Text('Positional'),
+                              tooltip: 'Positional',
+                              label: Text('Pos.'),
                             ),
                             const DataColumn(
                               label: Text('More'),
