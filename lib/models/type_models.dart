@@ -270,11 +270,20 @@ class ClassConfig
       this.properties,
     ]);
 
-    propertiesSortedNotifier = Computed(() {
-      final list = [...this.properties];
-      list.sort();
-      return list;
-    }, [this.properties]);
+    propertiesSortedNotifier = Computed(
+      () {
+        final list = [...this.properties];
+        list.sort();
+        return list;
+      },
+      [this.properties],
+      derivedDependencies: () => this.properties.expand(
+        (e) sync* {
+          yield e.isRequiredNotifier;
+          yield e.isPositionalNotifier;
+        },
+      ),
+    );
 
     this.properties.addListener(_setUpDeepListenable);
     _setUpDeepListenable();
