@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_portal/flutter_portal.dart';
 import 'package:snippet_generator/formatters.dart';
 import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/root_store.dart';
@@ -101,42 +102,68 @@ class ClassPropertiesTable extends StatelessWidget {
           controller: property.nameNotifier.controller,
           inputFormatters: Formatters.variableName,
         )),
-        DataCell(AnimatedBuilder(
-          animation: typeNotifier.textNotifier,
-          builder: (context, _) => DropdownButton<String>(
-            isExpanded: true,
-            value: "____",
-            onTap: () {
-              Future.delayed(
-                Duration.zero,
-                () => typeNotifier.focusNode.requestFocus(),
-              );
-            },
-            items: [
-              DropdownMenuItem<String>(
-                key: const Key("____"),
-                value: "____",
+        DataCell(
+          AnimatedBuilder(
+            animation: Listenable.merge(
+              [typeNotifier.textNotifier, typeNotifier.focusNode],
+            ),
+            builder: (context, _) {
+              final options = supportedJsonTypes
+                  .where((e) =>
+                      e.toLowerCase().contains(property.type.toLowerCase()) &&
+                      property.type != e)
+                  .toList();
+              return PortalEntry(
+                visible: typeNotifier.focusNode.hasPrimaryFocus &&
+                    options.isNotEmpty,
+                portalAnchor: Alignment.topCenter,
+                childAnchor: Alignment.bottomCenter,
+                portal: Container(
+                  constraints: const BoxConstraints(maxHeight: 300),
+                  width: 100,
+                  margin: const EdgeInsets.only(top: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(5),
+                    boxShadow: const [
+                      BoxShadow(
+                        blurRadius: 2,
+                        spreadRadius: 1,
+                        offset: Offset(0, 1.5),
+                        color: Colors.black12,
+                      )
+                    ],
+                  ),
+                  child: ListView(
+                    itemExtent: 32,
+                    shrinkWrap: true,
+                    children: [
+                      ...options.map(
+                        (e) => FlatButton(
+                          onPressed: () {
+                            typeNotifier.controller.value = TextEditingValue(
+                              text: e,
+                              selection: TextSelection(
+                                baseOffset: e.length,
+                                extentOffset: e.length,
+                              ),
+                            );
+                          },
+                          key: Key(e),
+                          child: Text(e),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
                 child: TextField(
                   controller: typeNotifier.controller,
                   focusNode: typeNotifier.focusNode,
                 ),
-              ),
-              ...supportedJsonTypes
-                  .where((e) =>
-                      // e
-                      //     .toLowerCase()
-                      //     .contains(property.type.text.toLowerCase()) &&
-                      property.type != e)
-                  .map((e) => DropdownMenuItem<String>(
-                        value: e,
-                        onTap: () => typeNotifier.controller.text = e,
-                        key: Key(e),
-                        child: Text(e),
-                      ))
-            ],
-            onChanged: (v) {},
+              );
+            },
           ),
-        )),
+        ),
         DataCell(Center(
           child: property.isRequiredNotifier.rebuild(
             (isRequired) => Checkbox(
