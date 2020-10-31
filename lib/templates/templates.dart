@@ -30,6 +30,7 @@ class $signature {
 
   ${typeConfig.isDataValue ? _templateClassCopyWith() : ""}
   ${typeConfig.isDataValue ? _templateClassClone() : ""}
+  ${typeConfig.isDataValue ? _templateClassEquals() : ""}
   ${typeConfig.isSerializable ? _templateClassFromJson() : ""}
   ${typeConfig.isSerializable ? _templateClassToJson() : ""}
 }
@@ -55,6 +56,21 @@ $classNameWithGenericIds clone() {
       ${propertiesSorted.map((e) => "${e.isPositional ? '' : '${e.name}:'} this.${e.name},").join("\n      ")}
     );
   }
+""";
+  }
+
+  String _templateClassEquals() {
+    return """
+@override
+bool operator ==(Object other) {
+  if (other is $classNameWithGenericIds){
+    return ${properties.map((e) => 'this.${e.name} == other.${e.name}').join(" && ")};
+  }
+  return false;
+}
+
+@override
+int get hashCode => ${properties.map((e) => '${e.name}.hashCode').join(" + ")};
 """;
   }
 
