@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_portal/flutter_portal.dart';
 import 'package:reorderables/reorderables.dart';
 import 'package:snippet_generator/formatters.dart';
@@ -8,12 +9,15 @@ import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/widgets.dart';
 import 'package:super_tooltip/super_tooltip.dart';
 
-class ClassPropertiesTable extends StatelessWidget {
+class ClassPropertiesTable extends HookWidget {
   const ClassPropertiesTable({Key key, @required this.data}) : super(key: key);
   final ClassConfig data;
 
   @override
   Widget build(BuildContext context) {
+    final tableListenable = useMemoized(
+        () => Listenable.merge([data.properties, data.isReorderingNotifier]),
+        [data]);
     return GestureDetector(
       onTap: () => RootStore.of(context).selectClass(data),
       child: Card(
@@ -40,31 +44,35 @@ class ClassPropertiesTable extends StatelessWidget {
                         ],
                       )
                     : const SizedBox(),
+                key: const Key("header"),
               ),
               ConstrainedBox(
+                key: const Key("table"),
                 constraints: const BoxConstraints(maxHeight: 300),
-                // const BoxConstraints(maxHeight: 300, maxWidth: 520),
                 child: SingleChildScrollView(
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    child: data.properties.rebuild(
+                    child: tableListenable.rebuild(
                       () {
                         const columnSizes = <double>[200.0, 200, 40, 40, 40];
-                        const _contraints =
-                            BoxConstraints(minWidth: 100, maxWidth: 200);
+                        const _contraints = BoxConstraints(minWidth: 150);
                         return DataTable(
                           columnSpacing: 20,
                           columns: <DataColumn>[
-                            DataColumn(
-                              label: ConstrainedBox(
-                                constraints: _contraints,
-                                child: const Text('Field Name'),
+                            if (data.isReordering)
+                              const DataColumn(
+                                label: Text('Order'),
+                              ),
+                            const DataColumn(
+                              label: SizedBox(
+                                width: 110,
+                                child: Text('Field Name'),
                               ),
                             ),
-                            DataColumn(
-                              label: ConstrainedBox(
-                                constraints: _contraints,
-                                child: const Text('Type'),
+                            const DataColumn(
+                              label: SizedBox(
+                                width: 150,
+                                child: Text('Type'),
                               ),
                             ),
                             const DataColumn(
@@ -79,29 +87,10 @@ class ClassPropertiesTable extends StatelessWidget {
                               label: Text('More'),
                             ),
                           ],
-                          // onReorder: (index1, index2) {
-                          //   data.properties.syncTransaction(() {
-                          //     final temp = data.properties[index1];
-                          //     data.properties[index1] = data.properties[index2];
-                          //     data.properties[index2] = temp;
-                          //   });
-                          // },
                           rows: data.properties
                               .map(
-                                // (p) => ReorderableTableRow(
-                                //   key: Key(p.key),
-                                //   children: _makeRowChildren(p).zip<Widget, double>(
-                                //     columnSizes,
-                                //     (w, size) {
-                                //       print(size);
-                                //       return SizedBox(
-                                //         width: size,
-                                //         child: w,
-                                //       );
-                                //     },
-                                //   ).toList(),
-                                // ),
                                 (p) => DataRow(
+                                  key: ValueKey(p.key),
                                   cells: _makeRowChildren(p)
                                       .map((e) => DataCell(e))
                                       .toList(),
@@ -114,11 +103,22 @@ class ClassPropertiesTable extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 7),
-              RaisedButton.icon(
-                onPressed: data.addProperty,
-                icon: const Icon(Icons.add),
-                label: const Text("Add Field"),
+              const SizedBox(height: 9),
+              Row(
+                key: const Key("footer"),
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  RowBoolField(
+                    notifier: data.isReorderingNotifier,
+                    label: "Reorder",
+                  ),
+                  RaisedButton.icon(
+                    onPressed: data.addProperty,
+                    icon: const Icon(Icons.add),
+                    label: const Text("Add Field"),
+                  ),
+                  const SizedBox(width: 100),
+                ],
               )
             ],
           ),
@@ -129,12 +129,56 @@ class ClassPropertiesTable extends StatelessWidget {
 
   List<Widget> _makeRowChildren(PropertyField property) {
     final typeNotifier = property.typeNotifier;
+    final index = data.properties.indexOf(property);
     return [
+      if (data.isReordering)
+        Center(
+          key: const Key("reorder"),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              InkWell(
+                onTap: index != 0
+                    ? () {
+                        data.properties.syncTransaction(() {
+                          data.properties[index] = data.properties[index - 1];
+                          data.properties[index - 1] = property;
+                        });
+                      }
+                    : null,
+                child: Icon(
+                  Icons.arrow_drop_up,
+                  size: 20,
+                  color: index != 0 ? Colors.black : Colors.black12,
+                ),
+              ),
+              InkWell(
+                onTap: index != data.properties.length - 1
+                    ? () {
+                        data.properties.syncTransaction(() {
+                          data.properties[index] = data.properties[index + 1];
+                          data.properties[index + 1] = property;
+                        });
+                      }
+                    : null,
+                child: Icon(
+                  Icons.arrow_drop_down,
+                  size: 20,
+                  color: index != data.properties.length - 1
+                      ? Colors.black
+                      : Colors.black12,
+                ),
+              )
+            ],
+          ),
+        ),
       TextField(
+        key: const Key("name"),
         controller: property.nameNotifier.controller,
         inputFormatters: Formatters.variableName,
       ),
       AnimatedBuilder(
+        key: const Key("type"),
         animation: Listenable.merge(
           [typeNotifier.textNotifier, typeNotifier.focusNode],
         ),
@@ -194,6 +238,7 @@ class ClassPropertiesTable extends StatelessWidget {
         },
       ),
       Center(
+        key: const Key("required"),
         child: property.isRequiredNotifier.rebuild(
           (isRequired) => Checkbox(
             value: isRequired,
@@ -202,6 +247,7 @@ class ClassPropertiesTable extends StatelessWidget {
         ),
       ),
       Center(
+        key: const Key("positional"),
         child: property.isPositionalNotifier.rebuild(
           (isPositional) => Checkbox(
             value: isPositional,
@@ -210,6 +256,7 @@ class ClassPropertiesTable extends StatelessWidget {
         ),
       ),
       Builder(
+        key: const Key("more"),
         builder: (context) {
           return IconButton(
             icon: const Icon(Icons.more_vert),

@@ -239,6 +239,9 @@ class ClassConfig
   TextNotifier nameNotifier;
   String get name => nameNotifier.text;
 
+  AppNotifier<bool> isReorderingNotifier;
+  bool get isReordering => isReorderingNotifier.value;
+
   bool get isDefault => this == typeConfig.defaultEnum;
 
   final ListNotifier<PropertyField> properties;
@@ -265,6 +268,7 @@ class ClassConfig
         properties =
             ListNotifier<PropertyField>(properties ?? <PropertyField>[]) {
     nameNotifier = TextNotifier(initialText: name, parent: this);
+    isReorderingNotifier = AppNotifier(false, parent: this);
     _listenable = Listenable.merge([
       nameNotifier.textNotifier,
       this.properties,
