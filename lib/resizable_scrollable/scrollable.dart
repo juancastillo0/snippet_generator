@@ -246,7 +246,8 @@ class ButtonScrollbar extends HookWidget {
     useListenable(controller);
     final isPressedButton = useState(false);
     if (!controller.hasClients ||
-        controller.position?.viewportDimension == null ||
+        controller.position == null ||
+        !controller.position.hasViewportDimension ||
         controller.position.viewportDimension < maxSize ||
         controller.position.maxScrollExtent == 0) {
       return const SizedBox(width: 0, height: 0);
