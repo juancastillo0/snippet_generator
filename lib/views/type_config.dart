@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
-import 'package:snippet_generator/resizable_scrollable/scrollable_extended.dart';
 import 'package:snippet_generator/views/class_properties.dart';
-import 'package:snippet_generator/formatters.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/views/enum_config.dart';
@@ -60,12 +58,14 @@ class TypeConfigView extends HookWidget {
   Widget build(BuildContext context) {
     final TypeConfig typeConfig = useSelectedType(context);
     final variantListenable = useMemoized(
-        () => Listenable.merge(
-            [typeConfig.isEnumNotifier, typeConfig.isSumTypeNotifier]),
-        [typeConfig]);
+      () => Listenable.merge(
+          [typeConfig.isEnumNotifier, typeConfig.isSumTypeNotifier]),
+      [typeConfig],
+    );
     final variantListListenable = useMemoized(
-        () => Listenable.merge([typeConfig.classes, variantListenable]),
-        [typeConfig]);
+      () => Listenable.merge([typeConfig.classes, variantListenable]),
+      [typeConfig],
+    );
 
     return MultiScrollable(
       builder: (ctx, controller) {
