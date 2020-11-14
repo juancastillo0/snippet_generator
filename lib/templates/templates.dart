@@ -161,15 +161,15 @@ extension TemplateTypeConfig on TypeConfig {
   }
 
   String get _const {
-    return isConst ? "const" : "";
+    return advancedConfig.isConst ? "const" : "";
   }
 
   String templateSumType() {
     return """
 abstract class $signature {
-  ${overrideConstructor ? '' : '$_const $name._();'}
+  ${advancedConfig.overrideConstructor ? '' : '$_const $name._();'}
 
-  $customCode
+  ${advancedConfig.customCode}
   
   ${classes.map((c) => "$_const factory $name.${c.name.asVariableName()}(${c.templateFactoryParams()}) = ${c._classConstructor};").join("\n  ")}
   

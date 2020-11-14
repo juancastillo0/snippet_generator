@@ -9,6 +9,54 @@ import 'package:snippet_generator/parsers/signature_parser.dart';
 import 'package:snippet_generator/parsers/type_parser.dart';
 import 'package:uuid/uuid.dart';
 
+class AdvancedTypeConfig implements Serializable<AdvancedTypeConfig> {
+  TextNotifier customCodeNotifier;
+  String get customCode => customCodeNotifier.text;
+
+  AppNotifier<bool> overrideConstructorNotifier;
+  bool get overrideConstructor => overrideConstructorNotifier.value;
+
+  AppNotifier<bool> isConstNotifier;
+  bool get isConst => isConstNotifier.value;
+
+  Listenable _listenable;
+  Listenable get listenable => _listenable;
+
+  AdvancedTypeConfig({
+    String customCode,
+    bool overrideConstructor,
+    bool isConst,
+  }) {
+    overrideConstructorNotifier =
+        AppNotifier(overrideConstructor ?? false, parent: this);
+    customCodeNotifier = TextNotifier(initialText: customCode, parent: this);
+    isConstNotifier = AppNotifier(isConst ?? true, parent: this);
+
+    _listenable = Listenable.merge([
+      overrideConstructorNotifier,
+      customCodeNotifier.textNotifier,
+      isConstNotifier,
+    ]);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      "customCode": customCode,
+      "overrideConstructor": overrideConstructor,
+      "isConst": isConst,
+    };
+  }
+
+  static AdvancedTypeConfig fromJson(Map<String, dynamic> json) {
+    return AdvancedTypeConfig(
+      customCode: json["customCode"] as String,
+      overrideConstructor: json["overrideConstructor"] as bool,
+      isConst: json["isConst"] as bool,
+    );
+  }
+}
+
 class TypeConfig
     implements Serializable<TypeConfig>, Keyed, Clonable<TypeConfig> {
   @override
@@ -44,14 +92,13 @@ class TypeConfig
   AppNotifier<bool> isEnumNotifier;
   bool get isEnum => isEnumNotifier.value;
 
-  TextNotifier customCodeNotifier;
-  String get customCode => customCodeNotifier.text;
+  // Sum type
 
-  AppNotifier<bool> overrideConstructorNotifier;
-  bool get overrideConstructor => overrideConstructorNotifier.value;
+  // Advanced
 
-  AppNotifier<bool> isConstNotifier;
-  bool get isConst => isConstNotifier.value;
+  AdvancedTypeConfig advancedConfig;
+
+  // Enum
 
   AppNotifier<String> defaultEnumKeyNotifier;
   Computed<ClassConfig> defaultEnumNotifier;
@@ -82,11 +129,9 @@ class TypeConfig
     bool isSumType,
     bool isSerializable,
     bool isListenable,
-    String customCode,
     String defaultEnumKey,
-    bool overrideConstructor,
-    bool isConst,
     List<ClassConfig> classes,
+    AdvancedTypeConfig advancedConfig,
   })  : key = key ?? uuid.v4(),
         classes = ListNotifier(classes ?? []) {
     isEnumNotifier = AppNotifier(isEnum ?? false, parent: this);
@@ -94,17 +139,13 @@ class TypeConfig
     isSumTypeNotifier = AppNotifier(isSumType ?? false, parent: this);
     isSerializableNotifier = AppNotifier(isSerializable ?? true, parent: this);
     isListenableNotifier = AppNotifier(isListenable ?? false, parent: this);
-    overrideConstructorNotifier =
-        AppNotifier(overrideConstructor ?? false, parent: this);
     defaultEnumKeyNotifier = AppNotifier(defaultEnumKey, parent: this);
-    customCodeNotifier = TextNotifier(initialText: customCode, parent: this);
-    isConstNotifier = AppNotifier(isConst ?? true, parent: this);
+    this.advancedConfig = advancedConfig ?? AdvancedTypeConfig();
     signatureNotifier = TextNotifier(initialText: signature, parent: this);
     signatureParserNotifier = Computed(
       () => SignatureParser.parser.parse(signatureNotifier.text),
       [signatureNotifier.textNotifier],
     );
-
     defaultEnumNotifier = Computed(
       () => defaultEnumKeyNotifier.value != null
           ? this.classes.firstWhere(
@@ -122,9 +163,7 @@ class TypeConfig
       isSerializableNotifier,
       isListenableNotifier,
       signatureNotifier.textNotifier,
-      customCodeNotifier.textNotifier,
-      overrideConstructorNotifier,
-      isConstNotifier,
+      this.advancedConfig.listenable,
       this.classes,
       defaultEnumNotifier
     ]);
@@ -136,11 +175,6 @@ class TypeConfig
         isSumTypeNotifier,
       ],
     );
-    // classes.addListener(() {
-    //   if (defaultEnum != null && !classes.contains(defaultEnum)) {
-    //     defaultEnumNotifier.value = null;
-    //   }
-    // });
     this.classes.addListener(_setUpDeepListenable);
     _setUpDeepListenable();
   }
@@ -179,9 +213,7 @@ class TypeConfig
       "isSerializable": isSerializable,
       "isListenable": isListenable,
       "defaultEnumKey": defaultEnum?.key,
-      "customCode": customCode,
-      "overrideConstructor": overrideConstructor,
-      "isConst": isConst,
+      "advancedConfig": advancedConfig.toJson(),
     };
   }
 
@@ -195,9 +227,14 @@ class TypeConfig
       isSerializable: json["isSerializable"] as bool,
       isListenable: json["isListenable"] as bool,
       defaultEnumKey: json["defaultEnumKey"] as String,
-      customCode: json["customCode"] as String,
-      overrideConstructor: json["overrideConstructor"] as bool,
-      isConst: json["isConst"] as bool,
+      advancedConfig: AdvancedTypeConfig.fromJson(
+        json["advancedConfig"] as Map<String, dynamic> ??
+            {
+              "customCode": json["customCode"] as String,
+              "overrideConstructor": json["overrideConstructor"] as bool,
+              "isConst": json["isConst"] as bool,
+            },
+      ),
     );
   }
 
@@ -281,12 +318,14 @@ class ClassConfig
         return list;
       },
       [this.properties],
-      derivedDependencies: () => this.properties.expand(
-        (e) sync* {
-          yield e.isRequiredNotifier;
-          yield e.isPositionalNotifier;
-        },
-      ),
+      derivedDependencies: () {
+        return this.properties.expand(
+          (e) sync* {
+            yield e.isRequiredNotifier;
+            yield e.isPositionalNotifier;
+          },
+        );
+      },
     );
 
     this.properties.addListener(_setUpDeepListenable);
@@ -370,6 +409,9 @@ class PropertyField
   AppNotifier<bool> isPositionalNotifier;
   bool get isPositional => isPositionalNotifier.value;
 
+  AppNotifier<bool> isSelectedNotifier;
+  bool get isSelected => isSelectedNotifier.value;
+
   final String classConfigKey;
   ClassConfig _classConfig;
   ClassConfig get classConfig {
@@ -392,6 +434,7 @@ class PropertyField
     nameNotifier = TextNotifier(initialText: name, parent: this);
     isRequiredNotifier = AppNotifier(isRequired ?? true);
     isPositionalNotifier = AppNotifier(isPositional ?? false);
+    isSelectedNotifier = AppNotifier(false);
 
     _listenable = Listenable.merge([
       nameNotifier.textNotifier,

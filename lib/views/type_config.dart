@@ -160,45 +160,48 @@ class TypeSettingsView extends HookWidget {
         "Serializable": () => Text("ser"),
         "Sum Type": () => Text("sum"),
         "Enum": () => Text("enum"),
-        "Advanced": () => ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 420),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text("Custom Code"),
-                        RowBoolField(
-                          label: "Const",
-                          notifier: typeConfig.isConstNotifier,
-                        ),
-                        RowBoolField(
-                          label: "Override Constructor",
-                          notifier: typeConfig.overrideConstructorNotifier,
-                        )
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    TextField(
-                      controller: typeConfig.customCodeNotifier.controller,
-                      focusNode: typeConfig.customCodeNotifier.focusNode,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 5,
-                        ),
+        "Advanced": () {
+          final advancedConfig = typeConfig.advancedConfig;
+          return ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 420),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("Custom Code"),
+                      RowBoolField(
+                        label: "Const",
+                        notifier: advancedConfig.isConstNotifier,
                       ),
-                      maxLines: 6,
+                      RowBoolField(
+                        label: "Override Constructor",
+                        notifier: advancedConfig.overrideConstructorNotifier,
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  TextField(
+                    controller: advancedConfig.customCodeNotifier.controller,
+                    focusNode: advancedConfig.customCodeNotifier.focusNode,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 5,
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                  ],
-                ),
+                    maxLines: 6,
+                  ),
+                  const SizedBox(height: 10),
+                ],
               ),
-            )
+            ),
+          );
+        }
       },
       [typeConfig],
     );
