@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:snippet_generator/models/rebuilder.dart';
 
 class Globals {
   static final _map = <Type, Object>{};
@@ -73,6 +74,12 @@ class Globals {
 class AppNotifier<T> extends ValueNotifier<T> {
   final String key;
 
+  @override
+  T get value {
+    RebuilderGlobalScope.instance.addToScope(this);
+    return super.value;
+  }
+
   AppNotifier(T value, {dynamic parent, this.key}) : super(value) {
     // parent?.register(this);
   }
@@ -123,13 +130,30 @@ class TextNotifier {
   String get text => controller.text;
 }
 
-class Computed<T> extends ChangeNotifier implements ValueListenable<T> {
+class Computed<T> extends ComputedBase<T> {
   Computed(
-    this.computer,
+    this._computer,
     List<Listenable> dependencies, {
     this.derivedDependencies,
-  }) {
-    _primaryDependencies = Listenable.merge(dependencies);
+  }) : super(dependencies);
+
+  final T Function() _computer;
+  @override
+  final Iterable<Listenable> Function() derivedDependencies;
+
+  @override
+  T computer() {
+    return this._computer();
+  }
+}
+
+abstract class ComputedBase<T> extends ChangeNotifier
+    implements ValueListenable<T> {
+  ComputedBase([List<Listenable> _primaryDependencyList]) {
+    _primaryDependencies = Listenable.merge(
+      _primaryDependencyList ?? dependencies,
+    );
+
     if (derivedDependencies != null) {
       _calculateDependencies();
       _primaryDependencies.addListener(_calculateDependencies);
@@ -138,25 +162,10 @@ class Computed<T> extends ChangeNotifier implements ValueListenable<T> {
     }
   }
 
-  void _calculateDependencies() {
-    final deps = Listenable.merge(
-      [_primaryDependencies, ...derivedDependencies()],
-    );
-    if (_isListening) {
-      _compute();
-      final wasListening = _isListening;
-      _stopListeningDependencies();
-      _dependencies = deps;
-      if (wasListening) {
-        _listenDependencies();
-      }
-    } else {
-      _dependencies = deps;
-    }
-  }
+  T computer();
+  Iterable<Listenable> Function() get derivedDependencies => null;
+  List<Listenable> get dependencies => null;
 
-  final T Function() computer;
-  final Iterable<Listenable> Function() derivedDependencies;
   Listenable _primaryDependencies;
   Listenable _dependencies;
   bool _isUpToDate = false;
@@ -165,6 +174,7 @@ class Computed<T> extends ChangeNotifier implements ValueListenable<T> {
 
   @override
   T get value {
+    RebuilderGlobalScope.instance.addToScope(this);
     if (!_isUpToDate) {
       _listenDependencies();
       _updateValue(initial: true);
@@ -215,6 +225,23 @@ class Computed<T> extends ChangeNotifier implements ValueListenable<T> {
     if (_isListening) {
       _dependencies.removeListener(_compute);
       _isListening = false;
+    }
+  }
+
+  void _calculateDependencies() {
+    final deps = Listenable.merge(
+      [_primaryDependencies, ...derivedDependencies()],
+    );
+    if (_isListening) {
+      _compute();
+      final wasListening = _isListening;
+      _stopListeningDependencies();
+      _dependencies = deps;
+      if (wasListening) {
+        _listenDependencies();
+      }
+    } else {
+      _dependencies = deps;
     }
   }
 

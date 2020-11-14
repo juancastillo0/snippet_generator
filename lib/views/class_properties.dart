@@ -4,6 +4,7 @@ import 'package:flutter_portal/flutter_portal.dart';
 import 'package:reorderables/reorderables.dart';
 import 'package:snippet_generator/formatters.dart';
 import 'package:snippet_generator/models/models.dart';
+import 'package:snippet_generator/models/rebuilder.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/widgets.dart';
@@ -15,9 +16,6 @@ class ClassPropertiesTable extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tableListenable = useMemoized(
-        () => Listenable.merge([data.properties, data.isReorderingNotifier]),
-        [data]);
     return GestureDetector(
       onTap: () => RootStore.of(context).selectClass(data),
       child: Card(
@@ -52,51 +50,56 @@ class ClassPropertiesTable extends HookWidget {
                 child: SingleChildScrollView(
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    child: tableListenable.rebuild(
+                    child: data.properties.rebuild(
                       () {
                         const columnSizes = <double>[200.0, 200, 40, 40, 40];
                         const _contraints = BoxConstraints(minWidth: 150);
-                        return DataTable(
-                          columnSpacing: 20,
-                          columns: <DataColumn>[
-                            if (data.isReordering)
-                              const DataColumn(
-                                label: Text('Order'),
-                              ),
-                            const DataColumn(
-                              label: SizedBox(
-                                width: 110,
-                                child: Text('Field Name'),
-                              ),
-                            ),
-                            const DataColumn(
-                              label: SizedBox(
-                                width: 150,
-                                child: Text('Type'),
-                              ),
-                            ),
-                            const DataColumn(
-                              tooltip: "Required",
-                              label: Text('Req.'),
-                            ),
-                            const DataColumn(
-                              tooltip: 'Positional',
-                              label: Text('Pos.'),
-                            ),
-                            const DataColumn(
-                              label: Text('More'),
-                            ),
-                          ],
-                          rows: data.properties
-                              .map(
-                                (p) => DataRow(
-                                  key: ValueKey(p.key),
-                                  cells: _makeRowChildren(p)
-                                      .map((e) => DataCell(e))
-                                      .toList(),
+                        return Rebuilder(
+                          builder: (_) => DataTable(
+                            showCheckboxColumn: false,
+                            columnSpacing: 20,
+                            columns: <DataColumn>[
+                              if (data.isReordering)
+                                const DataColumn(
+                                  label: Text('Order'),
                                 ),
-                              )
-                              .toList(),
+                              const DataColumn(
+                                label: SizedBox(
+                                  width: 110,
+                                  child: Text('Field Name'),
+                                ),
+                              ),
+                              const DataColumn(
+                                label: SizedBox(
+                                  width: 150,
+                                  child: Text('Type'),
+                                ),
+                              ),
+                              const DataColumn(
+                                tooltip: "Required",
+                                label: Text('Req.'),
+                              ),
+                              const DataColumn(
+                                tooltip: 'Positional',
+                                label: Text('Pos.'),
+                              ),
+                              const DataColumn(
+                                label: Text('More'),
+                              ),
+                            ],
+                            rows: data.properties
+                                .map(
+                                  (p) => DataRow(
+                                    key: ValueKey(p.key),
+                                    selected: p.isSelected,
+                                    onSelectChanged: p.isSelectedNotifier.set,
+                                    cells: _makeRowChildren(p)
+                                        .map((e) => DataCell(e))
+                                        .toList(),
+                                  ),
+                                )
+                                .toList(),
+                          ),
                         );
                       },
                     ),
