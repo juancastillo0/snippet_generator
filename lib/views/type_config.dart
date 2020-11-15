@@ -4,6 +4,7 @@ import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
 import 'package:snippet_generator/views/class_properties.dart';
 import 'package:snippet_generator/models/type_models.dart';
+import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/views/enum_config.dart';
 import 'package:snippet_generator/widgets.dart';

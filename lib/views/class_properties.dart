@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_portal/flutter_portal.dart';
-import 'package:reorderables/reorderables.dart';
+import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/formatters.dart';
 import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/rebuilder.dart';
@@ -292,23 +292,5 @@ class ClassPropertiesTable extends HookWidget {
         },
       ),
     ];
-  }
-}
-
-extension IndexedMap<T> on Iterable<T> {
-  Iterable<V> mapIndex<V>(V Function(T, int) f) {
-    int i = 0;
-    return this.map((v) => f(v, i++));
-  }
-
-  Iterable<O> zip<O, V>(Iterable<V> it, O Function(T, V) f) sync* {
-    final iterator = it.iterator;
-    for (final v in this) {
-      if (iterator.moveNext()) {
-        yield f(v, iterator.current);
-      } else {
-        break;
-      }
-    }
   }
 }

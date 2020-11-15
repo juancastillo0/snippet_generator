@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:snippet_generator/formatters.dart';
 import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/type_models.dart';
+import 'package:snippet_generator/utils/extensions.dart';
 
 class EnumTable extends StatelessWidget {
   const EnumTable({Key key, @required this.typeConfig}) : super(key: key);
