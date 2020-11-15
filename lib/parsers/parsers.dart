@@ -39,3 +39,50 @@ class ManyGeneric<T> {
         },
       );
 }
+
+Parser<T> enumParser<T>(List<T> enumValues, {String optionalPrefix}) {
+  return enumValues.fold<Parser<T>>(null, (value, element) {
+    Parser<T> curr =
+        string(element.toString().split(".")[1]).map((value) => element);
+    if (optionalPrefix != null) {
+      curr = (string("$optionalPrefix.").optional() & curr).pick<T>(1);
+    }
+    if (value == null) {
+      value = curr;
+    } else {
+      value = value.or(curr).map((v) => v as T);
+    }
+    return value;
+  });
+}
+
+Parser<String> stringsParser(Iterable<String> enumValues) {
+  return enumValues.fold<Parser<String>>(null, (value, element) {
+    final curr = string(element);
+    if (value == null) {
+      value = curr;
+    } else {
+      value = value.or(curr).map((v) => v as String);
+    }
+    return value;
+  });
+}
+
+Parser<List<T>> separatedParser<T>(
+  Parser<T> parser, {
+  Parser left,
+  Parser right,
+  Parser separator,
+}) {
+  return ((left ?? char("[")).trim() &
+          parser
+              .separatedBy(
+                (separator ?? char(",")).trim(),
+                includeSeparators: false,
+                optionalSeparatorAtEnd: true,
+              )
+              .optional() &
+          (right ?? char("]")).trim())
+      .pick(1)
+      .map((value) => List.castFrom<dynamic, T>(value as List ?? []));
+}
