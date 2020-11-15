@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/models/models.dart';
 
 class RowBoolField extends StatelessWidget {

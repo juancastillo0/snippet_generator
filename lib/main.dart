@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -12,17 +11,22 @@ import 'package:snippet_generator/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/models/type_models.dart';
+import 'package:snippet_generator/parsers/widget_parser.dart';
 import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
 import 'package:snippet_generator/templates/templates.dart';
 import 'package:snippet_generator/utils/download_json.dart';
 import 'package:snippet_generator/utils/persistence.dart';
 import 'package:snippet_generator/parsers/type_parser.dart';
+import 'package:snippet_generator/views/globals.dart';
+import 'package:snippet_generator/views/parsers_view.dart';
 import 'package:snippet_generator/views/type_config.dart';
+import 'package:snippet_generator/views/types_menu.dart';
 
 final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 
 Future<void> main() async {
   JsonTypeParser.init();
+  WidgetParser.init();
   await initHive();
 
   final rootStore = RootStore();
@@ -31,81 +35,23 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-class GlobalKeyboardListener {
-  static final focusNode = FocusNode();
-  static final Set<void Function(RawKeyEvent event)> _listeners = {};
-  static final Set<void Function(TapDownDetails event)> _tapDownListeners = {};
-
-  static final gestures = {
-    AllowMultipleGestureRecognizer:
-        GestureRecognizerFactoryWithHandlers<AllowMultipleGestureRecognizer>(
-      () => AllowMultipleGestureRecognizer(),
-      (instance) {
-        instance.onTapDown = GlobalKeyboardListener.onTapDown;
-      },
-    )
-  };
-
-  static void addKeyListener(void Function(RawKeyEvent) callback) {
-    _listeners.add(callback);
-  }
-
-  static void removeKeyListener(void Function(RawKeyEvent) callback) {
-    _listeners.remove(callback);
-  }
-
-  static void addTapListener(void Function(TapDownDetails) callback) {
-    _tapDownListeners.add(callback);
-  }
-
-  static void removeTapListener(void Function(TapDownDetails) callback) {
-    _tapDownListeners.remove(callback);
-  }
-
-  static void onKey(RawKeyEvent event) {
-    for (final callback in _listeners) {
-      callback(event);
-    }
-  }
-
-  static void onTapDown(TapDownDetails event) {
-    for (final callback in _tapDownListeners) {
-      callback(event);
-    }
-  }
-}
-
-class AllowMultipleGestureRecognizer extends TapGestureRecognizer {
-  @override
-  void rejectGesture(int pointer) {
-    acceptGesture(pointer);
-  }
-}
-
 class MyApp extends StatelessWidget {
   const MyApp();
 
   @override
   Widget build(BuildContext context) {
     return Portal(
-      child: RawKeyboardListener(
-        autofocus: true,
-        focusNode: GlobalKeyboardListener.focusNode,
-        onKey: GlobalKeyboardListener.onKey,
-        child: RawGestureDetector(
-          behavior: HitTestBehavior.translucent,
-          gestures: GlobalKeyboardListener.gestures,
-          child: MaterialApp(
-            title: 'Snippet Generator',
-            debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              primarySwatch: Colors.teal,
-              visualDensity: VisualDensity.adaptivePlatformDensity,
-              scaffoldBackgroundColor: const Color(0xfff5f8fa),
-            ),
-            navigatorObservers: [routeObserver],
-            home: const MyHomePage(),
+      child: GlobalKeyboardListener.wrapper(
+        child: MaterialApp(
+          title: 'Snippet Generator',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            primarySwatch: Colors.teal,
+            visualDensity: VisualDensity.adaptivePlatformDensity,
+            scaffoldBackgroundColor: const Color(0xfff5f8fa),
           ),
+          navigatorObservers: [routeObserver],
+          home: const MyHomePage(),
         ),
       ),
     );
@@ -124,76 +70,54 @@ class MyHomePage extends HookWidget {
         appBar: const _HomePageAppBar(),
         body: RootStoreMessager(
           rootStore: rootStore,
-          child: Row(
-            children: [
-              SizedBox(
-                width: 200,
-                child: Column(
-                  children: [
-                    const Expanded(
-                      flex: 2,
-                      child: TypesMenu(),
-                    ),
-                    Expanded(
-                      child: HistoryView(eventConsumer: rootStore.types),
-                    )
-                  ],
-                ),
-              ),
-              const Expanded(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: SizedBox(
-                    width: 600,
-                    child: TypeConfigView(),
-                  ),
-                ),
-              ),
-              const SizedBox(
-                width: 450,
-                child: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: CodeGenerated(),
-                ),
-              ),
-            ],
-          ),
+          child: const TypesTabView(),
         ),
       ),
     );
   }
 }
 
-void useValueListenableEffect<T>(
-  void Function(T) callback,
-  ValueListenable<T> listenable, [
-  List<Object> keys,
-]) {
-  useEffect(
-    () {
-      void _c() {
-        callback(listenable.value);
-      }
+class TypesTabView extends HookWidget {
+  const TypesTabView({Key key}) : super(key: key);
 
-      listenable.addListener(_c);
-      return () => listenable.removeListener(_c);
-    },
-    keys,
-  );
-}
-
-void useStreamEffect<T>(
-  void Function(T) callback,
-  Stream<T> listenable, [
-  List<Object> keys,
-]) {
-  useEffect(
-    () {
-      final subs = listenable.listen(callback);
-      return subs.cancel;
-    },
-    keys,
-  );
+  @override
+  Widget build(BuildContext context) {
+    final rootStore = useRootStore(context);
+    return Row(
+      children: [
+        SizedBox(
+          width: 200,
+          child: Column(
+            children: [
+              const Expanded(
+                flex: 2,
+                child: TypesMenu(),
+              ),
+              Expanded(
+                child: HistoryView(eventConsumer: rootStore.types),
+              )
+            ],
+          ),
+        ),
+        const Expanded(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              width: 600,
+              child: TypeConfigView(),
+            ),
+          ),
+        ),
+        const SizedBox(
+          width: 450,
+          child: Padding(
+            padding: EdgeInsets.all(8.0),
+            child: TypeCodeGenerated(),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class RootStoreMessager extends HookWidget {
@@ -265,7 +189,7 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     behavior: SnackBarBehavior.floating,
-                    content: Text("Invalid json file."),
+                    content: Text("Invalid json file"),
                   ),
                 );
               }
@@ -287,113 +211,19 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-}
-
-extension ContextExtension on BuildContext {
-  ThemeData get theme => Theme.of(this);
-  TextTheme get textTheme => theme.textTheme;
-
-  MediaQueryData get mq => MediaQuery.of(this);
-
-  Size get size => mq.size;
-}
-
-class TypesMenu extends HookWidget {
-  const TypesMenu({Key key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final rootStore = RootStore.of(context);
-    useListenable(rootStore.types);
-    useListenable(rootStore.selectedTypeNotifier);
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 16.0, top: 6.0),
-          child: Text(
-            "Types",
-            style: context.textTheme.headline5,
-          ),
-        ),
-        Expanded(
-          child: ListView(
-            children: [
-              ...rootStore.types.values.map(
-                (type) => DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: type == rootStore.selectedType
-                        ? context.theme.primaryColorLight
-                        : Colors.white,
-                  ),
-                  child: TextButton(
-                    onPressed: () {
-                      rootStore.selectType(type);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Expanded(
-                            child: type.signatureNotifier.textNotifier
-                                .rebuild((signature) {
-                              return Text(
-                                signature,
-                                style: context.textTheme.button,
-                              );
-                            }),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              rootStore.removeType(type);
-                            },
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Colors.black,
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: FlatButton.icon(
-                  padding: const EdgeInsets.all(18.0),
-                  onPressed: rootStore.addType,
-                  icon: const Icon(Icons.add),
-                  label: const Text("Add Type"),
-                ),
-              )
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+  Size get preferredSize => const Size.fromHeight(46);
 }
 
 class CodeGenerated extends HookWidget {
-  const CodeGenerated({Key key}) : super(key: key);
+  final String sourceCode;
+
+  const CodeGenerated({
+    Key key,
+    @required this.sourceCode,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final TypeConfig typeConfig = useSelectedType(context);
-    useListenable(typeConfig.deepListenable);
-
-    String sourceCode;
-    if (typeConfig.isEnum) {
-      sourceCode = typeConfig.templateEnum();
-    } else if (typeConfig.isSumType) {
-      sourceCode = typeConfig.templateSumType();
-    } else {
-      final _class = typeConfig.classes[0];
-      sourceCode = _class.templateClass();
-    }
     return Column(
       children: [
         RaisedButton.icon(
@@ -424,6 +254,27 @@ class CodeGenerated extends HookWidget {
         ),
       ],
     );
+  }
+}
+
+class TypeCodeGenerated extends HookWidget {
+  const TypeCodeGenerated({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final TypeConfig typeConfig = useSelectedType(context);
+    useListenable(typeConfig.deepListenable);
+
+    String sourceCode;
+    if (typeConfig.isEnum) {
+      sourceCode = typeConfig.templateEnum();
+    } else if (typeConfig.isSumType) {
+      sourceCode = typeConfig.templateSumType();
+    } else {
+      final _class = typeConfig.classes[0];
+      sourceCode = _class.templateClass();
+    }
+    return CodeGenerated(sourceCode: sourceCode);
   }
 }
 

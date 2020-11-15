@@ -95,29 +95,6 @@ extension ValueNotifierSetter<T> on ValueNotifier<T> {
   }
 }
 
-extension ValueListenableBuilderExtension<T> on ValueListenable<T> {
-  Widget rebuild(Widget Function(T value) fn, {Key key}) {
-    return ValueListenableBuilder<T>(
-      key: key,
-      valueListenable: this,
-      builder: (context, v, _) {
-        return fn(v);
-      },
-    );
-  }
-}
-
-extension ListenableBuilder on Listenable {
-  Widget rebuild(Widget Function() fn) {
-    return AnimatedBuilder(
-      animation: this,
-      builder: (context, _) {
-        return fn();
-      },
-    );
-  }
-}
-
 class TextNotifier {
   TextNotifier({String initialText, dynamic parent})
       : controller = TextEditingController(text: initialText) {
