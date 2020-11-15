@@ -5,18 +5,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/collection_notifier/map_notifier.dart';
-import 'package:snippet_generator/main.dart';
 import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/type_item.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/utils/download_json.dart';
 import 'package:snippet_generator/utils/persistence.dart';
+import 'package:snippet_generator/views/globals.dart';
 
 class RootStore {
   TypeItem lastSelectedItem;
   TypeItem _selectedItem;
   TypeItem get selectedItem => _selectedItem;
-  set selectedItem(TypeItem item) {
+  void setSelectedItem(TypeItem item) {
     lastSelectedItem = item;
     Future.delayed(Duration.zero, () {
       _selectedItem = item;
@@ -116,15 +116,15 @@ class RootStore {
 
   void selectType(TypeConfig type) {
     selectedTypeNotifier.value = type;
-    selectedItem = TypeItem.typeI(type);
+    setSelectedItem(TypeItem.typeI(type));
   }
 
   void selectClass(ClassConfig type) {
-    selectedItem = TypeItem.classI(type);
+    setSelectedItem(TypeItem.classI(type));
   }
 
   void selectProperty(PropertyField type) {
-    selectedItem = TypeItem.propertyI(type);
+    setSelectedItem(TypeItem.propertyI(type));
   }
 
   static RootStore of(BuildContext context) =>
