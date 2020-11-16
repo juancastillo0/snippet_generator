@@ -86,3 +86,112 @@ Parser<List<T>> separatedParser<T>(
       .pick(1)
       .map((value) => List.castFrom<dynamic, T>(value as List ?? []));
 }
+
+Parser<Map<String, T>> structParser<T>(
+  Map<String, Parser<T>> params, {
+  String optionalName,
+}) {
+  final parser = separatedParser(
+    structParamsParser(params),
+    left: char("("),
+    right: char(")"),
+  ).map((entries) => Map.fromEntries(entries));
+  final hasFactory = params["factory"] != null;
+
+  if (hasFactory && optionalName != null) {
+    return ((string(optionalName).trim() & char(".").trim()).optional() &
+            params["factory"].optional() &
+            parser)
+        .map((value) {
+      final r = value[2] as Map<String, T>;
+      if (value[1] != null) {
+        r["factory"] = value[1] as T;
+      }
+      return r;
+    });
+  } else if (hasFactory) {
+    return (params["factory"].optional() & parser).map((value) {
+      final r = value[1] as Map<String, T>;
+      if (value[0] != null) {
+        r["factory"] = value[0] as T;
+      }
+      return r;
+    });
+  } else if (optionalName != null) {
+    return (string(optionalName).trim().optional() & parser).pick(1);
+  }
+  return parser;
+}
+
+Parser<MapEntry<String, T>> structParamsParser<T>(
+    Map<String, Parser<T>> params) {
+  final parser = params.entries.fold<Parser<MapEntry<String, T>>>(null,
+      (previousValue, element) {
+    final curr =
+        (string(element.key).trim() & char(":").trim() & element.value.trim())
+            .map((value) => MapEntry(value[0] as String, value[2] as T));
+    if (previousValue == null) {
+      previousValue = curr;
+    } else {
+      previousValue = previousValue.or(curr).cast<MapEntry<String, T>>();
+    }
+    return previousValue;
+  });
+  return parser;
+}
+
+Parser<List<T>> tupleParser<T>(
+  List<Parser<T>> params, {
+  String optionalName,
+  int numberRequired,
+}) {
+  int index = 0;
+  final parser = (char("(").trim() &
+          params.fold<Parser<List<T>>>(null, (previousValue, element) {
+            Parser curr = element.trim();
+
+            if (index == params.length - 1) {
+              curr = (curr & char(",").trim().optional()).pick(0);
+            } else {
+              curr = (curr & char(",").trim()).pick(0);
+            }
+            if (numberRequired != null && index > numberRequired) {
+              curr = curr.optional();
+            }
+
+            if (previousValue == null) {
+              previousValue = curr.map((value) => [value as T]);
+            } else {
+              previousValue = previousValue
+                  .seq(curr)
+                  .map((v) => List.castFrom((v[0] as List)..add(v[1])));
+            }
+            index++;
+            return previousValue;
+          }) &
+          char(")").trim())
+      .pick<List<T>>(1);
+
+  if (optionalName != null) {
+    return (string(optionalName).trim().optional() & parser).pick(1);
+  }
+  return parser;
+}
+
+final boolParser =
+    (string('true') | string('false')).map((value) => value == 'true');
+
+final unsignedIntParser =
+    (char('0').or(digit().plus())).flatten().map((value) => int.parse(value));
+final intParser = (char('-').optional() & char('0').or(digit().plus()))
+    .flatten()
+    .map((value) => int.parse(value));
+final unsignedDoubleParser =
+    (char('0').or(digit().plus()) & char('.').seq(digit().plus()).optional())
+        .flatten()
+        .map((value) => double.parse(value));
+final doubleParser = (char('-').optional() &
+        char('0').or(digit().plus()) &
+        char('.').seq(digit().plus()).optional())
+    .flatten()
+    .map((value) => double.parse(value));
