@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/parsers/color_parser.dart';
+import 'package:snippet_generator/parsers/flutter_props_parsers.dart';
 import 'package:snippet_generator/parsers/parsers.dart';
+import 'package:test/test.dart' as test;
 
 class PParamValue {
   final String primitiveValue;
@@ -64,131 +66,33 @@ class PParams {
   }
 }
 
-// class PSizedBox implements WidgetParser {
-//   @override
-//   final SizedBox widget;
-//   final Token<List<dynamic>> token;
-//   PSizedBox(this.token, this.widget);
-
-//   static final parser =
-//       (string("SizedBox").trim() & PParams.parser.trim()).trim().token().map(
-//     (token) {
-//       final params = (token.value[1] as PParams).toMap();
-
-//       return PSizedBox(
-//         token,
-//         SizedBox(
-//           height: params["height"]?.toDouble(),
-//           width: params["width"]?.toDouble(),
-//           child: params["child"]?.toWidget(),
-//         ),
-//       );
-//     },
-//   );
-// }
-
-enum AlignmentEnum {
-  topLeft,
-  topCenter,
-  topRight,
-  centerLeft,
-  center,
-  centerRight,
-  bottomLeft,
-  bottomCenter,
-  bottomRight,
-}
-
-const Map<AlignmentEnum, Alignment> _alignmentEnumMap = {
-  AlignmentEnum.topLeft: Alignment.topLeft,
-  AlignmentEnum.topCenter: Alignment.topCenter,
-  AlignmentEnum.topRight: Alignment.topRight,
-  AlignmentEnum.centerLeft: Alignment.centerLeft,
-  AlignmentEnum.center: Alignment.center,
-  AlignmentEnum.centerRight: Alignment.centerRight,
-  AlignmentEnum.bottomLeft: Alignment.bottomLeft,
-  AlignmentEnum.bottomCenter: Alignment.bottomCenter,
-  AlignmentEnum.bottomRight: Alignment.bottomRight,
-};
-
-final boolParser =
-    (string('true') | string('false')).map((value) => value == 'true');
-
-final unsignedIntParser =
-    (char('0').or(digit().plus())).flatten().map((value) => int.parse(value));
-final intParser = (char('-').optional() & char('0').or(digit().plus()))
-    .flatten()
-    .map((value) => int.parse(value));
-final unsignedDoubleParser =
-    (char('0').or(digit().plus()) & char('.').seq(digit().plus()).optional())
-        .flatten()
-        .map((value) => double.parse(value));
-final doubleParser = (char('-').optional() &
-        char('0').or(digit().plus()) &
-        char('.').seq(digit().plus()).optional())
-    .flatten()
-    .map((value) => double.parse(value));
-
-final mainAxisAlignmentParser =
-    enumParser(MainAxisAlignment.values, optionalPrefix: "MainAxisAlignment");
-final crossAxisAlignmentParser =
-    enumParser(CrossAxisAlignment.values, optionalPrefix: "CrossAxisAlignment");
-final mainAxisSizeParser =
-    enumParser(MainAxisSize.values, optionalPrefix: "MainAxisSize");
-final axisParser = enumParser(Axis.values, optionalPrefix: "Axis");
-final flexFitParser = enumParser(FlexFit.values, optionalPrefix: "FlexFit");
-final textOverflowParser =
-    enumParser(TextOverflow.values, optionalPrefix: "TextOverflow");
-final textAlignParser =
-    enumParser(TextAlign.values, optionalPrefix: "TextAlign");
-final textDirectionParser =
-    enumParser(TextDirection.values, optionalPrefix: "TextDirection");
-final clipParser = enumParser(Clip.values, optionalPrefix: "Clip");
-final stackFitParser = enumParser(StackFit.values, optionalPrefix: "StackFit");
-final overflowParser = enumParser(Overflow.values, optionalPrefix: "Overflow");
-
-final _alignmentEnumParser =
-    enumParser(AlignmentEnum.values, optionalPrefix: "Alignment");
-final alignmentParser = (_alignmentEnumParser |
-        (string("Alignment").optional() &
-            char("(").trim() &
-            doubleParser &
-            char(",").trim() &
-            doubleParser &
-            char(")").trim()))
-    .map((value) {
-  if (value is AlignmentEnum) {
-    return _alignmentEnumMap[value];
-  } else if (value is List) {
-    return Alignment(value[2] as double, value[4] as double);
-  }
-  throw Error();
-});
-
-// final pContainer = WidgetParser.create("Container", (params) {
-//   return Container(
-//     alignment: _alignmentEnumMap[parseEnum(
-//       params["alignment"]?.primitiveValue,
-//       AlignmentEnum.values,
-//     )],
-//     height: params["height"]?.toDouble(),
-//     width: params["width"]?.toDouble(),
-//     child: params["child"]?.toWidget(),
-//   );
-// });
-
 final pContainer = WidgetParser.createWithParams("Container", {
   "alignment": alignmentParser,
+  "transformAlignment": alignmentParser,
   "width": doubleParser,
   "height": doubleParser,
+  "margin": edgeInsetsParser,
+  "padding": edgeInsetsParser,
   "child": WidgetParser.parser,
-  "color": colorParser.trim(),
+  "clipBehavior": clipParser,
+  "constraints": boxConstraintsParser,
+  "color": colorParser,
+  "decoration": decorationParser,
+  "foregroundDecoration": decorationParser,
 }, (params) {
   return Container(
-    alignment: params["alignment"] as Alignment,
+    alignment: params["alignment"] as AlignmentGeometry,
+    padding: params["padding"] as EdgeInsetsGeometry ?? EdgeInsets.zero,
+    margin: params["margin"] as EdgeInsetsGeometry ?? EdgeInsets.zero,
     height: params["height"] as double,
+    clipBehavior: params["clipBehavior"] as Clip ?? Clip.none,
     width: params["width"] as double,
     color: params["color"] as Color,
+    constraints: params["constraints"] as BoxConstraints,
+    transformAlignment: params["transformAlignment"] as AlignmentGeometry,
+    decoration: params["decoration"] as Decoration,
+    // UnderlineTabIndicator, ShapeDecoration, BoxDecoration
+    foregroundDecoration: params["foregroundDecoration"] as Decoration,
     child: (params["child"] as WidgetParser)?.widget,
   );
 });
@@ -219,18 +123,33 @@ final pCenter = WidgetParser.createWithParams("Center", {
   );
 });
 
-final pColumn = WidgetParser.createWithParams("Column", {
+final _flexParams = {
   "crossAxisAlignment": crossAxisAlignmentParser,
   "mainAxisAlignment": mainAxisAlignmentParser,
   "mainAxisSize": mainAxisSizeParser,
+  "cross": crossAxisAlignmentParser,
+  "main": mainAxisAlignmentParser,
+  "size": mainAxisSizeParser,
+  "textBaseline": textBaselineParser,
+  "textDirection": textDirectionParser,
+  "verticalDirection": verticalDirectionParser,
   "children": separatedParser(WidgetParser.parser),
-}, (params) {
+};
+
+final pColumn = WidgetParser.createWithParams("Column", _flexParams, (params) {
   return Column(
-    crossAxisAlignment: params["crossAxisAlignment"] as CrossAxisAlignment ??
+    crossAxisAlignment: (params["cross"] ?? params["crossAxisAlignment"])
+            as CrossAxisAlignment ??
         CrossAxisAlignment.center,
-    mainAxisAlignment: params["mainAxisAlignment"] as MainAxisAlignment ??
-        MainAxisAlignment.start,
-    mainAxisSize: params["mainAxisSize"] as MainAxisSize ?? MainAxisSize.max,
+    mainAxisAlignment:
+        (params["main"] ?? params["mainAxisAlignment"]) as MainAxisAlignment ??
+            MainAxisAlignment.start,
+    mainAxisSize: (params["size"] ?? params["mainAxisSize"]) as MainAxisSize ??
+        MainAxisSize.max,
+    textBaseline: params["textBaseline"] as TextBaseline,
+    textDirection: params["textDirection"] as TextDirection,
+    verticalDirection: params["verticalDirection"] as VerticalDirection ??
+        VerticalDirection.down,
     children: (params["children"] as List)
             ?.map((w) => w.widget as Widget)
             ?.toList() ??
@@ -238,18 +157,47 @@ final pColumn = WidgetParser.createWithParams("Column", {
   );
 });
 
-final pRow = WidgetParser.createWithParams("Row", {
-  "crossAxisAlignment": crossAxisAlignmentParser,
-  "mainAxisAlignment": mainAxisAlignmentParser,
-  "mainAxisSize": mainAxisSizeParser,
-  "children": separatedParser(WidgetParser.parser),
-}, (params) {
+final pRow = WidgetParser.createWithParams("Row", _flexParams, (params) {
   return Row(
-    crossAxisAlignment: params["crossAxisAlignment"] as CrossAxisAlignment ??
+    crossAxisAlignment: (params["cross"] ?? params["crossAxisAlignment"])
+            as CrossAxisAlignment ??
         CrossAxisAlignment.center,
-    mainAxisAlignment: params["mainAxisAlignment"] as MainAxisAlignment ??
-        MainAxisAlignment.start,
-    mainAxisSize: params["mainAxisSize"] as MainAxisSize ?? MainAxisSize.max,
+    mainAxisAlignment:
+        (params["main"] ?? params["mainAxisAlignment"]) as MainAxisAlignment ??
+            MainAxisAlignment.start,
+    mainAxisSize: (params["size"] ?? params["mainAxisSize"]) as MainAxisSize ??
+        MainAxisSize.max,
+    textBaseline: params["textBaseline"] as TextBaseline,
+    textDirection: params["textDirection"] as TextDirection,
+    verticalDirection: params["verticalDirection"] as VerticalDirection ??
+        VerticalDirection.down,
+    children: (params["children"] as List)
+            ?.map((w) => w.widget as Widget)
+            ?.toList() ??
+        [],
+  );
+});
+
+final pFlex = WidgetParser.createWithParams("Flex", {
+  ..._flexParams,
+  "direction": axisParser,
+  "clipBehavior": clipParser,
+}, (params) {
+  return Flex(
+    direction: params["direction"] as Axis,
+    clipBehavior: params["clipBehavior"] as Clip ?? Clip.none,
+    crossAxisAlignment: (params["cross"] ?? params["crossAxisAlignment"])
+            as CrossAxisAlignment ??
+        CrossAxisAlignment.center,
+    mainAxisAlignment:
+        (params["main"] ?? params["mainAxisAlignment"]) as MainAxisAlignment ??
+            MainAxisAlignment.start,
+    mainAxisSize: (params["size"] ?? params["mainAxisSize"]) as MainAxisSize ??
+        MainAxisSize.max,
+    textBaseline: params["textBaseline"] as TextBaseline,
+    textDirection: params["textDirection"] as TextDirection,
+    verticalDirection: params["verticalDirection"] as VerticalDirection ??
+        VerticalDirection.down,
     children: (params["children"] as List)
             ?.map((w) => w.widget as Widget)
             ?.toList() ??
@@ -366,6 +314,16 @@ final pSizedBox = WidgetParser.createWithParams("SizedBox", {
   );
 });
 
+final pPadding = WidgetParser.createWithParams("Padding", {
+  "padding": edgeInsetsParser,
+  "child": WidgetParser.parser,
+}, (params) {
+  return Padding(
+    padding: params["padding"] as EdgeInsetsGeometry ?? EdgeInsets.zero,
+    child: (params["child"] as WidgetParser)?.widget,
+  );
+});
+
 final pText = WidgetParser.createWithParams("Text", {
   "text": word().plus().flatten(),
   "maxLines": intParser,
@@ -399,9 +357,11 @@ class WidgetParser {
             pFlexible |
             pRow |
             pColumn |
+            pFlex |
             pText |
             pStack |
-            pPositioned)
+            pPositioned |
+            pPadding)
         .map(
       (value) => value as WidgetParser,
     ));
@@ -424,19 +384,11 @@ class WidgetParser {
     Map<String, Parser<Object>> params,
     Widget Function(Map<String, Object>) create,
   ) {
-    final paramParsers = params.entries
-        .fold<Parser<MapEntry<String, Object>>>(null, (previousValue, element) {
-      final curr =
-          (string(element.key).trim() & char(":").trim() & element.value.trim())
-              .map((value) => MapEntry(value[0] as String, value[2] as Object));
-      if (previousValue == null) {
-        previousValue = curr;
-      } else {
-        previousValue =
-            previousValue.or(curr).map((v) => v as MapEntry<String, Object>);
-      }
-      return previousValue;
-    });
+    final paramParsers = separatedParser(
+      structParamsParser(params),
+      left: char("("),
+      right: char(")"),
+    ).map((entries) => Map.fromEntries(entries));
 
     Parser nameParser = string(name).trim();
     final hasFactory = params["factory"] is Parser;
@@ -445,12 +397,7 @@ class WidgetParser {
           (char(".").trim() & params["factory"]).pick(1).optional();
     }
 
-    var nameAndPropParser = nameParser &
-        separatedParser(
-          paramParsers,
-          left: char("("),
-          right: char(")"),
-        );
+    Parser<List> nameAndPropParser = nameParser & paramParsers;
 
     if (params["child"] == WidgetParser.parser) {
       nameAndPropParser = nameAndPropParser &
@@ -462,10 +409,7 @@ class WidgetParser {
 
     return nameAndPropParser.trim().map(
       (value) {
-        final entries = List.castFrom<dynamic, MapEntry<String, Object>>(
-          value[hasFactory ? 2 : 1] as List,
-        );
-        final params = Map.fromEntries(entries);
+        final params = value[hasFactory ? 2 : 1] as Map<String, Object>;
 
         if (hasFactory && value[1] != null) {
           params["factory"] = value[1];
@@ -487,4 +431,50 @@ class WidgetParser {
 
   static final SettableParser<WidgetParser> _parser = undefined<WidgetParser>();
   static Parser<WidgetParser> get parser => _parser;
+}
+
+void expectIs<T>(dynamic value, [void Function(T) callback]) {
+  test.expect(value is T, true);
+  if (callback != null && value is T) {
+    callback(value);
+  }
+}
+
+void main() {
+  WidgetParser.init();
+
+  test.test("", () {
+    final result = pContainer.parse(
+      "Container(alignment: center, width: 102, margin: (3.4, 10,), "
+      "decoration: (shape: circle, color: red[200], border: (style: solid, color: red[300], width: 3)),) "
+      ".Padding (padding: 3, ).Text(text: 3)",
+    );
+    print(result);
+    test.expect(result.isSuccess, true);
+
+    expectIs<Container>(result.value.widget, (widget) {
+      test.expect(
+        widget.margin,
+        const EdgeInsets.symmetric(vertical: 3.4, horizontal: 10),
+      );
+      expectIs<BoxDecoration>(widget.decoration, (decor) {
+        test.expect(decor.color, Colors.red[200]);
+        test.expect(decor.shape, BoxShape.circle);
+        test.expect(
+          decor.border,
+          Border.all(
+            color: Colors.red[300],
+            width: 3,
+            style: BorderStyle.solid,
+          ),
+        );
+      });
+      expectIs<Padding>(widget.child, (padding) {
+        test.expect(padding.padding, const EdgeInsets.all(3));
+        expectIs<Text>(padding.child, (text) {
+          test.expect(text.data, "3");
+        });
+      });
+    });
+  });
 }
