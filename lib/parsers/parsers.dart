@@ -62,7 +62,7 @@ Parser<String> stringsParser(Iterable<String> enumValues) {
     if (value == null) {
       value = curr;
     } else {
-      value = value.or(curr).map((v) => v as String);
+      value = value.or(curr).cast<String>();
     }
     return value;
   });
@@ -134,6 +134,41 @@ Parser<MapEntry<String, T>> structParamsParser<T>(
       previousValue = curr;
     } else {
       previousValue = previousValue.or(curr).cast<MapEntry<String, T>>();
+    }
+    return previousValue;
+  });
+  return parser;
+}
+
+Parser<String> orManyString(Iterable<String> params) {
+  return orMany<String, String>(params, (s) => string(s));
+}
+
+Parser<T> orMany<T, V>(Iterable<V> params, Parser<T> Function(V) parserFn) {
+  final parser = params.fold<Parser<T>>(null, (previousValue, element) {
+    final curr = parserFn(element);
+    if (previousValue == null) {
+      previousValue = curr;
+    } else {
+      previousValue = previousValue.or(curr).cast<T>();
+    }
+    return previousValue;
+  });
+  return parser;
+}
+
+Parser<MapEntry<String, Token<T>>> structParamsParserToken<T>(
+    Map<String, Parser<T>> params) {
+  final parser = params.entries.fold<Parser<MapEntry<String, Token<T>>>>(null,
+      (previousValue, element) {
+    final curr = (string(element.key).trim() &
+            char(":").trim() &
+            element.value.trim().token())
+        .map((value) => MapEntry(value[0] as String, value[2] as Token<T>));
+    if (previousValue == null) {
+      previousValue = curr;
+    } else {
+      previousValue = previousValue.or(curr).cast<MapEntry<String, Token<T>>>();
     }
     return previousValue;
   });

@@ -1,10 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:meta/meta.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/parsers/color_parser.dart';
+import 'package:snippet_generator/parsers/dart_parser.dart';
 import 'package:snippet_generator/parsers/flutter_props_parsers.dart';
 import 'package:snippet_generator/parsers/parsers.dart';
+import 'package:snippet_generator/parsers/widget_child.dart';
 import 'package:test/test.dart' as test;
 
 class PParamValue {
@@ -91,11 +94,48 @@ final pContainer = WidgetParser.createWithParams("Container", {
     constraints: params["constraints"] as BoxConstraints,
     transformAlignment: params["transformAlignment"] as AlignmentGeometry,
     decoration: params["decoration"] as Decoration,
-    // UnderlineTabIndicator, ShapeDecoration, BoxDecoration
     foregroundDecoration: params["foregroundDecoration"] as Decoration,
     child: (params["child"] as WidgetParser)?.widget,
   );
+}, form: (params, controller) {
+  return ContainerForm(params: params, controller: controller);
 });
+
+class ContainerForm extends HookWidget {
+  final Token<Map<String, Token<Object>>> params;
+  final TextEditingController controller;
+  const ContainerForm({
+    Key key,
+    @required this.params,
+    @required this.controller,
+  }) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return WidgetFormState(params, controller).provide(
+      Scrollbar(
+        isAlwaysShown: true,
+        child: Padding(
+          padding: const EdgeInsets.only(right: 10.0),
+          child: SingleChildScrollView(
+            child: Wrap(
+              children: const [
+                AlignmentInput(
+                  key: ValueKey("alignment"),
+                ),
+                PaddingInput(
+                  key: ValueKey("padding"),
+                ),
+                ColorInput(
+                  key: ValueKey("color"),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 final pAlign = WidgetParser.createWithParams("Align", {
   "alignment": alignmentParser,
@@ -325,28 +365,45 @@ final pPadding = WidgetParser.createWithParams("Padding", {
 });
 
 final pText = WidgetParser.createWithParams("Text", {
-  "text": word().plus().flatten(),
+  "text": dartStringParser,
   "maxLines": intParser,
   "textScaleFactor": doubleParser,
   "softWrap": boolParser,
   "overflow": textOverflowParser,
   "textAlign": textAlignParser,
   "textDirection": textDirectionParser,
+  "style": textStyleParser,
 }, (params) {
   return Text(
-    params["text"] as String,
+    params["text"] as String ?? "",
     maxLines: params["maxLines"] as int,
     textScaleFactor: params["textScaleFactor"] as double,
     softWrap: params["softWrap"] as bool,
     overflow: params["overflow"] as TextOverflow,
     textAlign: params["textAlign"] as TextAlign,
     textDirection: params["textDirection"] as TextDirection,
+    style: params["style"] as TextStyle,
   );
 });
 
+typedef FormWidgetBuilder = Widget Function(
+    Token<Map<String, Token<Object>>>, TextEditingController);
+
 class WidgetParser {
   final Widget widget;
-  WidgetParser(this.widget);
+  final Token<List> token;
+  final Token<Map<String, Token<Object>>> tokenParsedParams;
+  Map<String, Token<Object>> get parsedParams => tokenParsedParams.value;
+
+  final FormWidgetBuilder form;
+  final Nested<WidgetParser> child;
+  WidgetParser(
+    this.widget,
+    this.token,
+    this.tokenParsedParams, {
+    this.form,
+    this.child,
+  });
 
   static void init() {
     _parser.set((pSizedBox |
@@ -367,25 +424,26 @@ class WidgetParser {
     ));
   }
 
-  static Parser<WidgetParser> create(
-    String name,
-    Widget Function(Map<String, PParamValue>) create,
-  ) {
-    return (string(name).trim() & PParams.parser.trim()).trim().token().map(
-      (token) {
-        final params = (token.value[1] as PParams).toMap();
-        return WidgetParser(create(params));
-      },
-    );
-  }
+  // static Parser<WidgetParser> create(
+  //   String name,
+  //   Widget Function(Map<String, PParamValue>) create,
+  // ) {
+  //   return (string(name).trim() & PParams.parser.trim()).trim().token().map(
+  //     (token) {
+  //       final params = (token.value[1] as PParams).toMap();
+  //       return WidgetParser(create(params));
+  //     },
+  //   );
+  // }
 
   static Parser<WidgetParser> createWithParams(
     String name,
     Map<String, Parser<Object>> params,
-    Widget Function(Map<String, Object>) create,
-  ) {
+    Widget Function(Map<String, Object>) create, {
+    FormWidgetBuilder form,
+  }) {
     final paramParsers = separatedParser(
-      structParamsParser(params),
+      structParamsParserToken(params),
       left: char("("),
       right: char(")"),
     ).map((entries) => Map.fromEntries(entries));
@@ -393,38 +451,50 @@ class WidgetParser {
     Parser nameParser = string(name).trim();
     final hasFactory = params["factory"] is Parser;
     if (hasFactory) {
-      nameParser = nameParser &
-          (char(".").trim() & params["factory"]).pick(1).optional();
+      nameParser =
+          nameParser & prefixPoint(params["factory"].token()).optional();
     }
 
-    Parser<List> nameAndPropParser = nameParser & paramParsers;
+    Parser<List> nameAndPropParser = nameParser & paramParsers.token();
 
     if (params["child"] == WidgetParser.parser) {
-      nameAndPropParser = nameAndPropParser &
-          (char(".").trim() & params["child"]).pick(1).optional();
+      nameAndPropParser =
+          nameAndPropParser & prefixPoint(params["child"].token()).optional();
     } else if (params["children"] is Parser<List<WidgetParser>>) {
       nameAndPropParser = nameAndPropParser &
-          (char(".").trim() & params["children"]).pick(1).optional();
+          prefixPoint(params["children"].token()).optional();
     }
 
-    return nameAndPropParser.trim().map(
-      (value) {
-        final params = value[hasFactory ? 2 : 1] as Map<String, Object>;
+    return nameAndPropParser.trim().token().map(
+      (token) {
+        final value = token.value;
+        final paramsToken =
+            value[hasFactory ? 2 : 1] as Token<Map<String, Token<Object>>>;
+        final params = paramsToken.value;
 
         if (hasFactory && value[1] != null) {
-          params["factory"] = value[1];
+          params["factory"] = value[1] as Token;
         }
 
         final childIndex = hasFactory ? 3 : 2;
+        Nested<WidgetParser> _child;
         if (value.length > childIndex && value[childIndex] != null) {
           final widgets = value[childIndex];
-          if (widgets is List) {
+          if (widgets is Token<List>) {
             params["children"] = widgets;
+            _child = Nested.children(widgets.value.cast());
           } else if (widgets != null) {
-            params["child"] = widgets;
+            params["child"] = widgets as Token;
+            _child = Nested.child(widgets.value as WidgetParser);
           }
         }
-        return WidgetParser(create(params));
+        return WidgetParser(
+          create(params.map((key, value) => MapEntry(key, value.value))),
+          token,
+          paramsToken,
+          form: form,
+          child: _child,
+        );
       },
     );
   }
@@ -438,6 +508,10 @@ void expectIs<T>(dynamic value, [void Function(T) callback]) {
   if (callback != null && value is T) {
     callback(value);
   }
+}
+
+Parser<T> prefixPoint<T>(Parser<T> parser) {
+  return (char(".").trim() & parser).pick(1);
 }
 
 void main() {

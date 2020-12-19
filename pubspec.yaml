@@ -35,6 +35,14 @@ dependencies:
   
   dropdown_search:
   flutter_portal: ^0.3.0
+  flutter_colorpicker: ^0.3.4
+
+  # wasm:
+  #   path: C:/Users/jmanu/Downloads/sdk-master/sdk-master/pkg/wasm
+  #   # git:
+  #   #   url: https://github.com/dart-lang/sdk
+  #   #   path: pkg/wasm
+  #   #   ref: 1b94364da773700cb79723436f93291f1dcf7c82
 
   reorderables:
 

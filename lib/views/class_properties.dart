@@ -191,48 +191,24 @@ class ClassPropertiesTable extends HookWidget {
                   e.toLowerCase().contains(property.type.toLowerCase()) &&
                   property.type != e)
               .toList();
-          return PortalEntry(
-            visible:
-                typeNotifier.focusNode.hasPrimaryFocus && options.isNotEmpty,
-            portalAnchor: Alignment.topCenter,
-            childAnchor: Alignment.bottomCenter,
-            portal: Container(
-              constraints: const BoxConstraints(maxHeight: 300),
-              width: 100,
-              margin: const EdgeInsets.only(top: 5),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(5),
-                boxShadow: const [
-                  BoxShadow(
-                    blurRadius: 2,
-                    spreadRadius: 1,
-                    offset: Offset(0, 1.5),
-                    color: Colors.black12,
-                  )
-                ],
-              ),
-              child: ListView(
-                itemExtent: 32,
-                shrinkWrap: true,
-                children: [
-                  ...options.map(
-                    (e) => FlatButton(
-                      onPressed: () {
-                        typeNotifier.controller.value = TextEditingValue(
-                          text: e,
-                          selection: TextSelection.collapsed(
-                            offset: e.length,
-                          ),
-                        );
-                      },
-                      key: Key(e),
-                      child: Text(e),
-                    ),
-                  )
-                ],
-              ),
-            ),
+          return MenuPortalEntry<String>(
+            options: options
+                .map(
+                  (e) => FlatButton(
+                    onPressed: () {
+                      typeNotifier.controller.value = TextEditingValue(
+                        text: e,
+                        selection: TextSelection.collapsed(
+                          offset: e.length,
+                        ),
+                      );
+                    },
+                    key: Key(e),
+                    child: Text(e),
+                  ),
+                )
+                .toList(),
+            isVisible: typeNotifier.focusNode.hasPrimaryFocus,
             child: TextField(
               controller: typeNotifier.controller,
               focusNode: typeNotifier.focusNode,

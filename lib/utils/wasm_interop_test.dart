@@ -1,22 +1,22 @@
-import 'dart:io';
-import 'dart:typed_data';
-import 'dart:wasm';
-import 'package:test/test.dart';
+// import 'dart:io';
+// import 'dart:typed_data';
+// import 'package:test/test.dart';
+// import 'package:wasm/wasm.dart';
 
-WasmInstance createWasm(Uint8List bytes) {
-  final module = WasmModule(bytes);
-  final imports = WasmImports();
-  return module.instantiate(imports);
-}
+// WasmInstance createWasm(Uint8List bytes) {
+//   final module = WasmModule(bytes);
+//   return module.instantiate().build();
+// }
 
-Future<void> main() async {
-  final file = File("./lib/utils/main.wasm");
-  final moduleBytes = await file.readAsBytes();
+// Future<void> main() async {
+//   print(Platform.resolvedExecutable);
+//   final file = File("./lib/utils/main.wasm");
+//   final moduleBytes = await file.readAsBytes();
 
-  final instance = createWasm(moduleBytes);
-  final addFunc = instance.lookupFunction("add");
-  final result = addFunc.call([1, 2]);
-  test("", () {
-    expect(result, 3);
-  });
-}
+//   final instance = createWasm(moduleBytes);
+//   final addFunc = instance.lookupFunction("add");
+//   final result = addFunc.call([1, 2]);
+//   test("", () {
+//     expect(result, 3);
+//   });
+// }
