@@ -9,10 +9,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:snippet_generator/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/models/models.dart';
+import 'package:snippet_generator/models/rebuilder.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/parsers/widget_parser.dart';
-import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
 import 'package:snippet_generator/templates/templates.dart';
 import 'package:snippet_generator/utils/download_json.dart';
 import 'package:snippet_generator/utils/persistence.dart';
@@ -70,7 +70,26 @@ class MyHomePage extends HookWidget {
         appBar: const _HomePageAppBar(),
         body: RootStoreMessager(
           rootStore: rootStore,
-          child: const TypesTabView(),
+          child: Rebuilder(
+            builder: (context) {
+              int index = 0;
+              switch (rootStore.selectedTab) {
+                case AppTabs.types:
+                  index = 0;
+                  break;
+                case AppTabs.ui:
+                  index = 1;
+                  break;
+              }
+              return IndexedStack(
+                index: index,
+                children: const [
+                  TypesTabView(),
+                  ParsersView(),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -160,7 +179,36 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
     final rootStore = RootStore.of(context);
 
     return AppBar(
-      title: const Text('Flutter Snippet Generator'),
+      title: Rebuilder(builder: (context) {
+        return SizedBox(
+          height: 60,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Center(child: Text('Flutter Snippet Generator')),
+              const SizedBox(width: 30),
+              FlatButton(
+                colorBrightness: Brightness.dark,
+                onPressed: AppTabs.types == rootStore.selectedTab
+                    ? null
+                    : () {
+                        rootStore.setSelectedTab(AppTabs.types);
+                      },
+                child: const Text("Types"),
+              ),
+              FlatButton(
+                colorBrightness: Brightness.dark,
+                onPressed: AppTabs.ui == rootStore.selectedTab
+                    ? null
+                    : () {
+                        rootStore.setSelectedTab(AppTabs.ui);
+                      },
+                child: const Text("Widgets"),
+              ),
+            ],
+          ),
+        );
+      }),
       actions: [
         FlatButton.icon(
           colorBrightness: Brightness.dark,
@@ -240,13 +288,11 @@ class CodeGenerated extends HookWidget {
                 bottom: 12.0,
                 left: 12.0,
               ),
-              child: MultiScrollable(
-                builder: (context, controller) => SingleChildScrollView(
-                  controller: controller.vertical,
-                  child: SelectableText(
-                    sourceCode,
-                    style: GoogleFonts.cousine(),
-                  ),
+              child: Scrollbar(
+                isAlwaysShown: true,
+                child: SelectableText(
+                  sourceCode,
+                  style: GoogleFonts.cousine(),
                 ),
               ),
             ),

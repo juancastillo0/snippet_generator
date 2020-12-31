@@ -12,6 +12,8 @@ import 'package:snippet_generator/utils/download_json.dart';
 import 'package:snippet_generator/utils/persistence.dart';
 import 'package:snippet_generator/views/globals.dart';
 
+enum AppTabs { types, ui }
+
 class RootStore {
   TypeItem lastSelectedItem;
   TypeItem _selectedItem;
@@ -24,6 +26,8 @@ class RootStore {
   }
 
   TypeItem copiedItem;
+  final selectedTabNotifier = AppNotifier(AppTabs.ui);
+  AppTabs get selectedTab => selectedTabNotifier.value;
 
   final types = MapNotifier<String, TypeConfig>();
 
@@ -203,6 +207,10 @@ class RootStore {
     await propertyBox.clear();
     await propertyBox.addAll(
         types.values.expand((e) => e.classes).expand((e) => e.properties));
+  }
+
+  void setSelectedTab(AppTabs tab) {
+    this.selectedTabNotifier.value = tab;
   }
 }
 

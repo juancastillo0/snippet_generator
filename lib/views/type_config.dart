@@ -68,58 +68,55 @@ class TypeConfigView extends HookWidget {
       [typeConfig],
     );
 
-    return MultiScrollable(
-      builder: (ctx, controller) {
-        return Align(
-          alignment: Alignment.topCenter,
-          child: SingleChildScrollView(
-            controller: controller.vertical,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6.0),
-              child: Column(
-                children: <Widget>[
-                  TypeConfigTitleView(typeConfig: typeConfig),
-                  const SizedBox(height: 15),
-                  TypeSettingsView(typeConfig: typeConfig),
-                  const SizedBox(height: 15),
-                  variantListListenable.rebuild(
-                    () {
-                      if (typeConfig.isEnum) {
-                        return EnumTable(typeConfig: typeConfig);
-                      } else {
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: (typeConfig.hasVariants.value
-                                  ? typeConfig.classes
-                                  : typeConfig.classes.take(1))
-                              .map((e) => ClassPropertiesTable(data: e))
-                              .toList(),
-                        );
-                      }
-                    },
-                  ),
-                  variantListenable.rebuild(
-                    () => typeConfig.isSumType && !typeConfig.isEnum
-                        ? Align(
-                            alignment: Alignment.centerLeft,
-                            child: RaisedButton.icon(
-                              onPressed: typeConfig.addVariant,
-                              icon: const Icon(Icons.add),
-                              label: typeConfig.isEnum
-                                  ? const Text("Add Variant")
-                                  : const Text("Add Class"),
-                            ),
-                          )
-                        : const SizedBox(),
-                  ),
-                  const SizedBox(height: 15),
-                  controller.sizer(),
-                ],
-              ),
+    return Scrollbar(
+      isAlwaysShown: true,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.only(right: 15.0),
+            child: Column(
+              children: <Widget>[
+                TypeConfigTitleView(typeConfig: typeConfig),
+                const SizedBox(height: 15),
+                TypeSettingsView(typeConfig: typeConfig),
+                const SizedBox(height: 15),
+                variantListListenable.rebuild(
+                  () {
+                    if (typeConfig.isEnum) {
+                      return EnumTable(typeConfig: typeConfig);
+                    } else {
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: (typeConfig.hasVariants.value
+                                ? typeConfig.classes
+                                : typeConfig.classes.take(1))
+                            .map((e) => ClassPropertiesTable(data: e))
+                            .toList(),
+                      );
+                    }
+                  },
+                ),
+                variantListenable.rebuild(
+                  () => typeConfig.isSumType && !typeConfig.isEnum
+                      ? Align(
+                          alignment: Alignment.centerLeft,
+                          child: RaisedButton.icon(
+                            onPressed: typeConfig.addVariant,
+                            icon: const Icon(Icons.add),
+                            label: typeConfig.isEnum
+                                ? const Text("Add Variant")
+                                : const Text("Add Class"),
+                          ),
+                        )
+                      : const SizedBox(),
+                ),
+                const SizedBox(height: 15),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
