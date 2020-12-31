@@ -229,9 +229,10 @@ class WidgetFormState {
     String value;
     if (token == null) {
       // -1 for the ')'
-      start = tokenMap.stop - 1;
+      final _mapStr = tokenMap.buffer.substring(tokenMap.start, tokenMap.stop);
+      start = tokenMap.start + _mapStr.lastIndexOf(")");
       stop = start;
-      if (map.isNotEmpty) {
+      if (map.isNotEmpty && !RegExp(r",\s*\)\s*$").hasMatch(_mapStr)) {
         value = ", $key: $_value";
       } else {
         value = "$key: $_value";
