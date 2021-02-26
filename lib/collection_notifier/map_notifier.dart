@@ -1,6 +1,7 @@
 import 'package:meta/meta.dart';
 import 'package:snippet_generator/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/models/serializer.dart';
+import 'package:snippet_generator/notifiers/nested_notifier.dart';
 
 @immutable
 abstract class MapEvent<K, V> implements Event<MapEvent<K, V>> {
@@ -168,7 +169,7 @@ class MapManyEvent<K, V> extends MapEvent<K, V> {
   }
 
   Map<String, dynamic> toJson() {
-    // TODO: 
+    // TODO:
     return {
       'events': events,
     };
@@ -220,10 +221,28 @@ class MapNotifier<K, V> extends EventConsumer<MapEvent<K, V>>
   final Map<K, V> Function() _mapCreator;
   Map<K, V> _inner;
 
-  MapNotifier({int maxHistoryLength, Map<K, V> Function() mapCreator})
-      : _mapCreator = mapCreator ?? _defaultMapCreator,
-        super(maxHistoryLength: maxHistoryLength) {
+  MapNotifier({
+    int maxHistoryLength,
+    Map<K, V> Function() mapCreator,
+    NestedNotifier parent,
+    String propKey,
+  })  : _mapCreator = mapCreator ?? _defaultMapCreator,
+        super(
+          maxHistoryLength: maxHistoryLength,
+          parent: parent,
+          propKey: propKey,
+        ) {
     _inner = _mapCreator();
+  }
+
+  @override
+  dynamic toJson() {
+    return Serializers.toJsonMap(_inner);
+  }
+
+  @override
+  void fromJson(dynamic json) {
+    this._inner = Serializers.fromJsonMap(json);
   }
 
   @protected

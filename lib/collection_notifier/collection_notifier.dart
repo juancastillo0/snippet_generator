@@ -3,6 +3,7 @@ import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
+import 'package:snippet_generator/notifiers/nested_notifier.dart';
 
 @immutable
 abstract class Event<E extends Event<E>> {
@@ -17,9 +18,17 @@ class EventData<V extends Event<V>> {
 }
 
 abstract class EventConsumer<E extends Event<E>> extends ChangeNotifier {
+  final String propKey;
   EventConsumer({
     int maxHistoryLength,
-  }) : _history = EventHistory(maxHistoryLength: maxHistoryLength);
+    NestedNotifier parent,
+    this.propKey,
+  }) : _history = EventHistory(maxHistoryLength: maxHistoryLength){
+    parent?.registerCollection(this);
+  }
+
+  void fromJson(dynamic json);
+  dynamic toJson();
 
   EventHistory<E> _history;
   EventHistory<E> get history => _history;

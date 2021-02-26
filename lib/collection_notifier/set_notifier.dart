@@ -1,6 +1,7 @@
 import 'package:meta/meta.dart';
 import 'package:snippet_generator/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/models/serializer.dart';
+import 'package:snippet_generator/notifiers/nested_notifier.dart';
 
 enum SetEventManyType { insert, remove }
 
@@ -220,9 +221,29 @@ class ManySetEvent<V> extends SetEvent<V> {
 }
 
 class SetNotifier<V> extends EventConsumer<SetEvent<V>> implements Set<V> {
-  SetNotifier([Set<V> inner]) : _inner = inner ?? <V>{};
+  SetNotifier({
+    Set<V> inner,
+    NestedNotifier parent,
+    String propKey,
+    int maxHistoryLength,
+  })  : _inner = inner ?? <V>{},
+        super(
+          maxHistoryLength: maxHistoryLength,
+          parent: parent,
+          propKey: propKey,
+        );
 
-  final Set<V> _inner;
+  Set<V> _inner;
+
+  @override
+  dynamic toJson() {
+    return Serializers.toJsonList(_inner);
+  }
+
+  @override
+  void fromJson(dynamic json) {
+    this._inner = Serializers.fromJsonList<V>(json).toSet();
+  }
 
   @override
   @protected

@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 import 'package:snippet_generator/collection_notifier/collection_notifier.dart';
+import 'package:snippet_generator/models/serializer.dart';
+import 'package:snippet_generator/notifiers/nested_notifier.dart';
 
 enum ListEventEnum { change, insert, remove, many, recreate }
 
@@ -103,7 +105,7 @@ class ManyListEvent<E> extends ListEvent<E> {
   @override
   ListEvent<E> revert() {
     return ListEvent<E>.many(
-      events.map((e) => e.revert()).toList().reversed.toList(),
+      events.reversed.map((e) => e.revert()).toList(),
     );
   }
 }
@@ -127,10 +129,26 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E>> implements List<E> {
   ListNotifier(
     List<E> inner, {
     int maxHistoryLength,
+    NestedNotifier parent,
+    String propKey,
   })  : _inner = inner,
-        super(maxHistoryLength: maxHistoryLength);
+        super(
+          maxHistoryLength: maxHistoryLength,
+          parent: parent,
+          propKey: propKey,
+        );
 
   List<E> _inner;
+
+  @override
+  dynamic toJson() {
+    return Serializers.toJsonList(_inner);
+  }
+
+  @override
+  void fromJson(dynamic json) {
+    this._inner = Serializers.fromJsonList(json);
+  }
 
   @override
   @protected
