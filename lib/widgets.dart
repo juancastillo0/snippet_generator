@@ -37,36 +37,55 @@ class RowTextField extends StatelessWidget {
     @required this.controller,
     @required this.label,
     this.inputFormatters,
-    this.width = 165.0,
-  }) : super(key: key);
+    double width,
+    this.rowLayout = true,
+  })  : this.width = width ?? (rowLayout ? 165.0 : 120.0),
+        super(key: key);
 
   final TextEditingController controller;
   final List<TextInputFormatter> inputFormatters;
   final String label;
   final double width;
+  final bool rowLayout;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.subtitle1.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        const SizedBox(width: 15),
-        SizedBox(
-          width: width,
-          child: TextField(
-            controller: controller,
-            textCapitalization: TextCapitalization.sentences,
-            inputFormatters: inputFormatters,
+    if (rowLayout) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.subtitle1.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
           ),
+          const SizedBox(width: 15),
+          SizedBox(
+            width: width,
+            child: TextField(
+              controller: controller,
+              textCapitalization: TextCapitalization.sentences,
+              inputFormatters: inputFormatters,
+            ),
+          ),
+        ],
+      );
+    } else {
+      return SizedBox(
+        width: width,
+        child: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            isDense: true,
+            labelText: label,
+            border: const OutlineInputBorder(),
+          ),
+          textCapitalization: TextCapitalization.sentences,
+          inputFormatters: inputFormatters,
         ),
-      ],
-    );
+      );
+    }
   }
 }
 
