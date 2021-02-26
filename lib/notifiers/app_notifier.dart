@@ -1,9 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:mobx/mobx.dart' hide Computed;
+import 'package:mobx/mobx.dart';
 import 'package:snippet_generator/models/rebuilder.dart';
 import 'package:snippet_generator/models/serializer.dart';
-import 'package:snippet_generator/notifiers/computed_notifier.dart';
 
 class AppNotifier<T> implements ValueListenable<T> {
   String get name => observable.name;
@@ -18,7 +17,10 @@ class AppNotifier<T> implements ValueListenable<T> {
     return observable.value;
   }
 
-  set value(T value) => observable.value = value;
+  set value(T value) => runInAction(
+        () => observable.value = value,
+        name: "${name}Setter",
+      );
 
   void set(T value) => this.value = value;
 
@@ -36,17 +38,17 @@ class AppNotifier<T> implements ValueListenable<T> {
     return Serializers.toJson<T>(this.value);
   }
 
-  bool trySetFromMap(Map<String, dynamic> map) {
+  bool trySetFromMap(Map<String, dynamic> map, {bool mutate = true}) {
     if (map.containsKey(this.name)) {
-      return this._trySet(map[this.name]);
+      return this._trySet(map[this.name], mutate: mutate);
     }
     return !this.required;
   }
 
-  bool _trySet(dynamic value) {
+  bool _trySet(dynamic value, {bool mutate = true}) {
     final _value = Serializers.fromJson<T>(value);
     final success = _value != null;
-    if (success) {
+    if (success && mutate) {
       this.value = _value;
     }
     return success;

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_portal/flutter_portal.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -340,16 +341,21 @@ class TypeCodeGenerated extends HookWidget {
     useListenable(typeConfig.deepListenable);
     useListenable(rootStore.isCodeGenNullSafeNotifier);
 
-    String sourceCode;
-    if (typeConfig.isEnum) {
-      sourceCode = typeConfig.templateEnum();
-    } else if (typeConfig.isSumType) {
-      sourceCode = typeConfig.templateSumType();
-    } else {
-      final _class = typeConfig.classes[0];
-      sourceCode = _class.templateClass();
-    }
-    return CodeGenerated(sourceCode: sourceCode);
+    return Observer(builder: (context) {
+      String sourceCode;
+      if (typeConfig.isEnum) {
+        sourceCode = typeConfig.templateEnum();
+      } else if (typeConfig.isSumType) {
+        sourceCode = typeConfig.templateSumType();
+      } else {
+        final _class = typeConfig.classes[0];
+        sourceCode = _class.templateClass();
+      }
+      try {
+        sourceCode = rootStore.formatter.format(sourceCode);
+      } catch (_) {}
+      return CodeGenerated(sourceCode: sourceCode);
+    });
   }
 }
 

@@ -96,7 +96,7 @@ static $classNameWithGenericIds fromJson${typeConfig.generics}(Map<String, dynam
 ${typeConfig.isSumType ? "@override" : ""}
 Map<String, dynamic> toJson() {
     return {
-      ${typeConfig.isSumType ? '"runtimeType": "$className",' : ""}
+      ${typeConfig.isSumType ? '"${typeConfig.serializableConfig.discriminator.value}": "$className",' : ""}
       ${properties.map((e) => '"${e.name}": ${parseFieldToJson(e)},').join("\n      ")}
     };
   }
@@ -253,7 +253,7 @@ abstract class $signature {
   String _templateSymTypeFromJson() {
     return """
 static $name$genericIds fromJson$generics(Map<String, dynamic> map) {
-  switch (map["runtimeType"] as String) {
+  switch (map["${serializableConfig.discriminator.value}"] as String) {
     ${classes.map((e) => 'case "${e.name}": return ${e.className}.fromJson$genericIds(map);').join("\n    ")}
     default:
       return null;
