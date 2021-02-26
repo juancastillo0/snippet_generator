@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/collection_notifier/list_notifier.dart';
-import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/type_models.dart';
+import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/parsers/widget_parser.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/widgets.dart';
@@ -185,7 +185,7 @@ class _ParsersViewBody extends HookWidget {
       [componentWidget, controller.value],
     );
 
-    final _form = selected?.value?.form(
+    final _form = selected?.value == null ? null : selected.value.form(
       selected?.value?.tokenParsedParams,
       controller,
     );

@@ -105,6 +105,56 @@ class MultiScrollController {
   }
 }
 
+class SingleScrollable extends StatelessWidget {
+  final Widget child;
+  final Widget Function(BuildContext, ScrollController) builder;
+  final Axis scrollDirection;
+  final AlignmentGeometry alignment;
+  final EdgeInsetsGeometry padding;
+
+  const SingleScrollable({
+    Key key,
+    this.child,
+    this.builder,
+    this.scrollDirection = Axis.vertical,
+    this.alignment,
+    this.padding,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiScrollable(
+      builder: (context, controller) {
+        final _controller = scrollDirection == Axis.vertical
+            ? controller.vertical
+            : controller.horizontal;
+        if (child != null) {
+          Widget _child = SingleChildScrollView(
+            scrollDirection: scrollDirection,
+            controller: _controller,
+            child: child,
+          );
+          if (alignment != null) {
+            _child = Align(
+              alignment: alignment,
+              child: _child,
+            );
+          }
+          if (padding != null) {
+            _child = Padding(
+              padding: padding,
+              child: _child,
+            );
+          }
+          return _child;
+        } else {
+          return builder(context, _controller);
+        }
+      },
+    );
+  }
+}
+
 class MultiScrollable extends StatefulWidget {
   const MultiScrollable({
     this.builder,

@@ -8,6 +8,7 @@ import 'package:snippet_generator/parsers/dart_parser.dart';
 import 'package:snippet_generator/parsers/flutter_props_parsers.dart';
 import 'package:snippet_generator/parsers/parsers.dart';
 import 'package:snippet_generator/parsers/widget_child.dart';
+import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
 import 'package:test/test.dart' as test;
 
 class PParamValue {
@@ -112,25 +113,20 @@ class ContainerForm extends HookWidget {
   @override
   Widget build(BuildContext context) {
     return WidgetFormState(params, controller).provide(
-      Scrollbar(
-        isAlwaysShown: true,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 10.0),
-          child: SingleChildScrollView(
-            child: Wrap(
-              children: const [
-                AlignmentInput(
-                  key: ValueKey("alignment"),
-                ),
-                PaddingInput(
-                  key: ValueKey("padding"),
-                ),
-                ColorInput(
-                  key: ValueKey("color"),
-                ),
-              ],
+      SingleScrollable(
+        padding: const EdgeInsets.only(right: 10.0),
+        child: Wrap(
+          children: const [
+            AlignmentInput(
+              key: ValueKey("alignment"),
             ),
-          ),
+            PaddingInput(
+              key: ValueKey("padding"),
+            ),
+            ColorInput(
+              key: ValueKey("color"),
+            ),
+          ],
         ),
       ),
     );
