@@ -46,6 +46,9 @@ dependencies:
 
   reorderables:
 
+  mobx:
+  flutter_mobx:
+
   meta:
   flutter_hooks:
   petitparser: 
@@ -62,10 +65,10 @@ dependencies:
   file_download_web:
     path: ./plugins/file_download_web
   file_chooser:
-    git:
-      url: git://github.com/google/flutter-desktop-embedding.git
-      path: plugins/file_chooser
-      ref: 5b3b930da18244ecf2a7140a0e33a9892273797c
+    # git:
+    #   url: git://github.com/google/flutter-desktop-embedding.git
+    #   path: plugins/file_chooser
+    #   ref: 5b3b930da18244ecf2a7140a0e33a9892273797c
 
 dev_dependencies:
   flutter_test:
