@@ -32,6 +32,7 @@ class ManyGeneric<T> {
           if (list[2] != null) {
             int index = 0;
             out.addAll((list[2] as List)
+                .expand((l) => l as List)
                 .where((e) => (index++ % 2) == 1)
                 .map((e) => e as T));
           }
