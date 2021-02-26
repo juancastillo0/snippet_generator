@@ -5,6 +5,9 @@ import 'package:snippet_generator/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/models/serializer.dart';
+import 'package:snippet_generator/models/sum_type_config.dart';
+import 'package:snippet_generator/notifiers/app_notifier.dart';
+import 'package:snippet_generator/notifiers/computed_notifier.dart';
 import 'package:snippet_generator/parsers/signature_parser.dart';
 import 'package:snippet_generator/parsers/type_parser.dart';
 import 'package:uuid/uuid.dart';
@@ -27,10 +30,11 @@ class AdvancedTypeConfig implements Serializable<AdvancedTypeConfig> {
     bool overrideConstructor,
     bool isConst,
   }) {
-    overrideConstructorNotifier =
-        AppNotifier(overrideConstructor ?? false, parent: this);
+    overrideConstructorNotifier = AppNotifier(overrideConstructor ?? false,
+        parent: this, name: "overrideConstructor");
     customCodeNotifier = TextNotifier(initialText: customCode, parent: this);
-    isConstNotifier = AppNotifier(isConst ?? true, parent: this);
+    isConstNotifier =
+        AppNotifier(isConst ?? true, parent: this, name: "isConst");
 
     _listenable = Listenable.merge([
       overrideConstructorNotifier,
@@ -65,7 +69,7 @@ class TypeConfig
   TextNotifier signatureNotifier;
   String get signature => signatureNotifier.text;
 
-  Computed<Result<SignatureParser>> signatureParserNotifier;
+  ComputedNotifier<Result<SignatureParser>> signatureParserNotifier;
   String get name {
     final result = signatureParserNotifier.value;
     if (result.isSuccess) {
@@ -94,6 +98,8 @@ class TypeConfig
 
   // Sum type
 
+  SumTypeConfig sumTypeConfig;
+
   // Advanced
 
   AdvancedTypeConfig advancedConfig;
@@ -101,10 +107,10 @@ class TypeConfig
   // Enum
 
   AppNotifier<String> defaultEnumKeyNotifier;
-  Computed<ClassConfig> defaultEnumNotifier;
+  ComputedNotifier<ClassConfig> defaultEnumNotifier;
   ClassConfig get defaultEnum => defaultEnumNotifier.value;
 
-  Computed<bool> hasVariants;
+  ComputedNotifier<bool> hasVariants;
 
   final ListNotifier<ClassConfig> classes;
 
@@ -121,6 +127,8 @@ class TypeConfig
   Listenable _listenable;
   Listenable get listenable => _listenable;
 
+  RootStore get rootStore => Globals.get<RootStore>();
+
   TypeConfig({
     String key,
     String signature,
@@ -132,8 +140,10 @@ class TypeConfig
     String defaultEnumKey,
     List<ClassConfig> classes,
     AdvancedTypeConfig advancedConfig,
+    SumTypeConfig sumTypeConfig,
   })  : key = key ?? uuid.v4(),
-        classes = ListNotifier(classes ?? []) {
+        classes = ListNotifier(classes ?? []),
+        sumTypeConfig = sumTypeConfig ?? SumTypeConfig() {
     isEnumNotifier = AppNotifier(isEnum ?? false, parent: this);
     isDataValueNotifier = AppNotifier(isDataValue ?? false, parent: this);
     isSumTypeNotifier = AppNotifier(isSumType ?? false, parent: this);
@@ -142,11 +152,11 @@ class TypeConfig
     defaultEnumKeyNotifier = AppNotifier(defaultEnumKey, parent: this);
     this.advancedConfig = advancedConfig ?? AdvancedTypeConfig();
     signatureNotifier = TextNotifier(initialText: signature, parent: this);
-    signatureParserNotifier = Computed(
+    signatureParserNotifier = ComputedNotifier(
       () => SignatureParser.parser.parse(signatureNotifier.text),
       [signatureNotifier.textNotifier],
     );
-    defaultEnumNotifier = Computed(
+    defaultEnumNotifier = ComputedNotifier(
       () => defaultEnumKeyNotifier.value != null
           ? this.classes.firstWhere(
                 (e) => e.key == defaultEnumKeyNotifier.value,
@@ -168,7 +178,7 @@ class TypeConfig
       defaultEnumNotifier
     ]);
 
-    hasVariants = Computed(
+    hasVariants = ComputedNotifier(
       () => this.isEnum || this.isSumType,
       [
         isEnumNotifier,
@@ -214,6 +224,7 @@ class TypeConfig
       "isListenable": isListenable,
       "defaultEnumKey": defaultEnum?.key,
       "advancedConfig": advancedConfig.toJson(),
+      "sumTypeConfig": sumTypeConfig.toJson(),
     };
   }
 
@@ -235,6 +246,7 @@ class TypeConfig
               "isConst": json["isConst"] as bool,
             },
       ),
+      sumTypeConfig: SumTypeConfig.fromJson(json["sumTypeConfig"] as Map<String, dynamic>)
     );
   }
 
@@ -282,7 +294,7 @@ class ClassConfig
   bool get isDefault => this == typeConfig.defaultEnum;
 
   final ListNotifier<PropertyField> properties;
-  Computed<List<PropertyField>> propertiesSortedNotifier;
+  ComputedNotifier<List<PropertyField>> propertiesSortedNotifier;
   List<PropertyField> get propertiesSorted => propertiesSortedNotifier.value;
 
   final String typeConfigKey;
@@ -311,7 +323,7 @@ class ClassConfig
       this.properties,
     ]);
 
-    propertiesSortedNotifier = Computed(
+    propertiesSortedNotifier = ComputedNotifier(
       () {
         final list = [...this.properties];
         list.sort();
@@ -400,7 +412,7 @@ class PropertyField
   TextNotifier typeNotifier;
   String get type => typeNotifier.text;
 
-  Computed<Result<JsonTypeParser>> parsedTypeNotifier;
+  ComputedNotifier<Result<JsonTypeParser>> parsedTypeNotifier;
   Result<JsonTypeParser> get parsedType => parsedTypeNotifier.value;
 
   AppNotifier<bool> isRequiredNotifier;
@@ -442,7 +454,7 @@ class PropertyField
       isRequiredNotifier,
       isPositionalNotifier
     ]);
-    parsedTypeNotifier = Computed(
+    parsedTypeNotifier = ComputedNotifier(
       () => JsonTypeParser.parser.parse(this.type),
       [typeNotifier.textNotifier],
     );
