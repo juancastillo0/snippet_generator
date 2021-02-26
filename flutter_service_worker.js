@@ -3,19 +3,19 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 const RESOURCES = {
-  "icons/Icon-512.png": "96e752610906ba2a93c65f8abe1645f1",
-"icons/Icon-192.png": "ac9a721a12bbc803b44f645561ecb1e1",
-"manifest.json": "f327d6c3ac03e4e02f45a7854aa92ae3",
-"assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "b14fcf3ee94e3ace300b192e9e7c8c5d",
-"assets/NOTICES": "9b416fbfbdf617433b378d261e58010b",
+  "assets/NOTICES": "00ffd3c3fd4147149a04b902e03fb7fc",
 "assets/AssetManifest.json": "2efbb41d7877d10aac9d091f58ccd7b9",
-"assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
 "assets/fonts/MaterialIcons-Regular.otf": "1288c9e28052e028aba623321f7826ac",
-"index.html": "29b89c49f88094e9ddbc38c671c995f4",
-"/": "29b89c49f88094e9ddbc38c671c995f4",
+"assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "b14fcf3ee94e3ace300b192e9e7c8c5d",
+"assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
 "version.json": "479ca84fb350de76102ed1d9911e3d0a",
-"main.dart.js": "2d8766c01eac2d84ce95595203e0141d",
-"favicon.png": "5dcef449791fa27946b3d35ad8803796"
+"manifest.json": "f327d6c3ac03e4e02f45a7854aa92ae3",
+"index.html": "4e5cca8a4b5e93232d69476793cbf028",
+"/": "4e5cca8a4b5e93232d69476793cbf028",
+"favicon.png": "5dcef449791fa27946b3d35ad8803796",
+"main.dart.js": "6c25c1fdff394957ed57b5c53c699f5d",
+"icons/Icon-192.png": "ac9a721a12bbc803b44f645561ecb1e1",
+"icons/Icon-512.png": "96e752610906ba2a93c65f8abe1645f1"
 };
 
 // The application shell files that are downloaded before a service worker can
@@ -33,7 +33,7 @@ self.addEventListener("install", (event) => {
   return event.waitUntil(
     caches.open(TEMP).then((cache) => {
       return cache.addAll(
-        CORE.map((value) => new Request(value + '?revision=' + RESOURCES[value], {'cache': 'reload'})));
+        CORE.map((value) => new Request(value, {'cache': 'reload'})));
     })
   );
 });
@@ -159,7 +159,7 @@ async function downloadOffline() {
     }
     currentContent[key] = true;
   }
-  for (var resourceKey in Object.keys(RESOURCES)) {
+  for (var resourceKey of Object.keys(RESOURCES)) {
     if (!currentContent[resourceKey]) {
       resources.push(resourceKey);
     }
