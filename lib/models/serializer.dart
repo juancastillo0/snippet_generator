@@ -16,7 +16,7 @@ class Serializers {
     if (json is T) {
       return json;
     } else {
-      return Serializers.of<T>().fromJson(json);
+      return Serializers.of<T>()?.fromJson(json);
     }
   }
 
@@ -29,21 +29,40 @@ class Serializers {
         ),
       );
     }
-    throw "";
+    throw Error();
+  }
+
+  static Map<String, dynamic> toJsonMap<K, V>(Map<K, V> map) {
+    return map.map(
+      (key, value) => MapEntry(
+        Serializers.toJson<K>(key).toString(),
+        Serializers.toJson<V>(value),
+      ),
+    );
   }
 
   static List<V> fromJsonList<V>(dynamic json) {
-    if (json is List) {
+    if (json is Iterable) {
       return json.map((value) => Serializers.fromJson<V>(value)).toList();
     }
-    throw "";
+    throw Error();
+  }
+
+  static List<dynamic> toJsonList<V>(Iterable<V> list) {
+    return list.map((value) => Serializers.toJson<V>(value)).toList();
   }
 
   static dynamic toJson<T>(T instance) {
     try {
       return Serializers.of<T>().toJson(instance);
     } catch (_) {
-      return (instance as dynamic).toJson();
+      if (instance is Map) {
+        return toJsonMap(instance);
+      } else if (instance is List || instance is Set) {
+        return toJsonList(instance as Iterable);
+      } else {
+        return (instance as dynamic).toJson();
+      }
     }
   }
 
