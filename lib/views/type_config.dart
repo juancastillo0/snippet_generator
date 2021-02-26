@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/models/root_store.dart';
+import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
 import 'package:snippet_generator/views/class_properties.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/utils/extensions.dart';
-import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/views/enum_config.dart';
 import 'package:snippet_generator/widgets.dart';
 import 'package:snippet_generator/collection_notifier/list_notifier.dart';
@@ -68,53 +68,48 @@ class TypeConfigView extends HookWidget {
       [typeConfig],
     );
 
-    return Scrollbar(
-      isAlwaysShown: true,
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.only(right: 15.0),
-            child: Column(
-              children: <Widget>[
-                TypeConfigTitleView(typeConfig: typeConfig),
-                const SizedBox(height: 15),
-                TypeSettingsView(typeConfig: typeConfig),
-                const SizedBox(height: 15),
-                variantListListenable.rebuild(
-                  () {
-                    if (typeConfig.isEnum) {
-                      return EnumTable(typeConfig: typeConfig);
-                    } else {
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: (typeConfig.hasVariants.value
-                                ? typeConfig.classes
-                                : typeConfig.classes.take(1))
-                            .map((e) => ClassPropertiesTable(data: e))
-                            .toList(),
-                      );
-                    }
-                  },
-                ),
-                variantListenable.rebuild(
-                  () => typeConfig.isSumType && !typeConfig.isEnum
-                      ? Align(
-                          alignment: Alignment.centerLeft,
-                          child: RaisedButton.icon(
-                            onPressed: typeConfig.addVariant,
-                            icon: const Icon(Icons.add),
-                            label: typeConfig.isEnum
-                                ? const Text("Add Variant")
-                                : const Text("Add Class"),
-                          ),
-                        )
-                      : const SizedBox(),
-                ),
-                const SizedBox(height: 15),
-              ],
+    return SingleScrollable(
+      alignment: Alignment.topCenter,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 10.0),
+        child: Column(
+          children: <Widget>[
+            TypeConfigTitleView(typeConfig: typeConfig),
+            const SizedBox(height: 15),
+            TypeSettingsView(typeConfig: typeConfig),
+            const SizedBox(height: 15),
+            variantListListenable.rebuild(
+              () {
+                if (typeConfig.isEnum) {
+                  return EnumTable(typeConfig: typeConfig);
+                } else {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: (typeConfig.hasVariants.value
+                            ? typeConfig.classes
+                            : typeConfig.classes.take(1))
+                        .map((e) => ClassPropertiesTable(data: e))
+                        .toList(),
+                  );
+                }
+              },
             ),
-          ),
+            variantListenable.rebuild(
+              () => typeConfig.isSumType && !typeConfig.isEnum
+                  ? Align(
+                      alignment: Alignment.centerLeft,
+                      child: RaisedButton.icon(
+                        onPressed: typeConfig.addVariant,
+                        icon: const Icon(Icons.add),
+                        label: typeConfig.isEnum
+                            ? const Text("Add Variant")
+                            : const Text("Add Class"),
+                      ),
+                    )
+                  : const SizedBox(),
+            ),
+            const SizedBox(height: 15),
+          ],
         ),
       ),
     );
@@ -156,7 +151,33 @@ class TypeSettingsView extends HookWidget {
         "Data Value": () => Text("d"),
         "Listenable": () => Text("l"),
         "Serializable": () => Text("ser"),
-        "Sum Type": () => Text("sum"),
+        "Sum Type": () {
+          final sumTypeConfig = typeConfig.sumTypeConfig;
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                RowBoolField(
+                  label: "Enum",
+                  notifier: sumTypeConfig.enumDiscriminant,
+                ),
+                RowBoolField(
+                  label: "Bool Getters",
+                  notifier: sumTypeConfig.boolGetters,
+                ),
+                RowTextField(
+                  controller: sumTypeConfig.discriminator.controller,
+                  label: "Discriminator",
+                ),
+                // RowBoolField(
+                //   label: "bool getters",
+                //   notifier: sumTypeConfig.isConstNotifier,
+                // ),
+              ],
+            ),
+          );
+        },
         "Enum": () => Text("enum"),
         "Advanced": () {
           final advancedConfig = typeConfig.advancedConfig;

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_portal/flutter_portal.dart';
+import 'package:snippet_generator/models/json_type.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/formatters.dart';
-import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/rebuilder.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/models/type_models.dart';
