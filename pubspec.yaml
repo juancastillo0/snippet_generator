@@ -49,6 +49,8 @@ dependencies:
   mobx:
   flutter_mobx:
 
+  dart_style:
+
   meta:
   flutter_hooks:
   petitparser: 
