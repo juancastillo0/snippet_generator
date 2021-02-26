@@ -4,6 +4,7 @@ import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/root_store.dart';
+import 'package:snippet_generator/models/serializable_config.dart';
 import 'package:snippet_generator/models/serializer.dart';
 import 'package:snippet_generator/models/sum_type_config.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
@@ -86,19 +87,17 @@ class TypeConfig
 
   AppNotifier<bool> isSumTypeNotifier;
   bool get isSumType => isSumTypeNotifier.value;
+  SumTypeConfig sumTypeConfig;
 
   AppNotifier<bool> isSerializableNotifier;
   bool get isSerializable => isSerializableNotifier.value;
+  SerializableConfig serializableConfig;
 
   AppNotifier<bool> isListenableNotifier;
   bool get isListenable => isListenableNotifier.value;
 
   AppNotifier<bool> isEnumNotifier;
   bool get isEnum => isEnumNotifier.value;
-
-  // Sum type
-
-  SumTypeConfig sumTypeConfig;
 
   // Advanced
 
@@ -141,9 +140,11 @@ class TypeConfig
     List<ClassConfig> classes,
     AdvancedTypeConfig advancedConfig,
     SumTypeConfig sumTypeConfig,
+    SerializableConfig serializableConfig,
   })  : key = key ?? uuid.v4(),
         classes = ListNotifier(classes ?? []),
-        sumTypeConfig = sumTypeConfig ?? SumTypeConfig() {
+        sumTypeConfig = sumTypeConfig ?? SumTypeConfig(),
+        serializableConfig = serializableConfig ?? SerializableConfig() {
     isEnumNotifier = AppNotifier(isEnum ?? false, parent: this);
     isDataValueNotifier = AppNotifier(isDataValue ?? false, parent: this);
     isSumTypeNotifier = AppNotifier(isSumType ?? false, parent: this);
@@ -224,7 +225,8 @@ class TypeConfig
       "isListenable": isListenable,
       "defaultEnumKey": defaultEnum?.key,
       "advancedConfig": advancedConfig.toJson(),
-      "sumTypeConfig": sumTypeConfig.toJson(),
+      "sumTypeConfig": sumTypeConfig.toMap(),
+      "serializableConfig": serializableConfig.toMap(),
     };
   }
 
@@ -246,7 +248,10 @@ class TypeConfig
               "isConst": json["isConst"] as bool,
             },
       ),
-      sumTypeConfig: SumTypeConfig.fromJson(json["sumTypeConfig"] as Map<String, dynamic>)
+      sumTypeConfig: SumTypeConfig()
+        ..tryFromMap(json["sumTypeConfig"] as Map<String, dynamic>),
+      serializableConfig: SerializableConfig()
+        ..tryFromMap(json["serializableConfig"] as Map<String, dynamic>),
     );
   }
 

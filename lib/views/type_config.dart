@@ -146,85 +146,6 @@ class TypeSettingsView extends HookWidget {
     useListenable(isExpandedList);
     useMergedListenable(() => typeConfig.allSettings.values, [typeConfig]);
 
-    final Map<String, Widget Function()> _expansionPanelBuilders = useMemoized(
-      () => {
-        "Data Value": () => Text("d"),
-        "Listenable": () => Text("l"),
-        "Serializable": () => Text("ser"),
-        "Sum Type": () {
-          final sumTypeConfig = typeConfig.sumTypeConfig;
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                RowBoolField(
-                  label: "Enum",
-                  notifier: sumTypeConfig.enumDiscriminant,
-                ),
-                RowBoolField(
-                  label: "Bool Getters",
-                  notifier: sumTypeConfig.boolGetters,
-                ),
-                RowTextField(
-                  controller: sumTypeConfig.discriminator.controller,
-                  label: "Discriminator",
-                ),
-                // RowBoolField(
-                //   label: "bool getters",
-                //   notifier: sumTypeConfig.isConstNotifier,
-                // ),
-              ],
-            ),
-          );
-        },
-        "Enum": () => Text("enum"),
-        "Advanced": () {
-          final advancedConfig = typeConfig.advancedConfig;
-          return ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 420),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text("Custom Code"),
-                      RowBoolField(
-                        label: "Const",
-                        notifier: advancedConfig.isConstNotifier,
-                      ),
-                      RowBoolField(
-                        label: "Override Constructor",
-                        notifier: advancedConfig.overrideConstructorNotifier,
-                      )
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  TextField(
-                    controller: advancedConfig.customCodeNotifier.controller,
-                    focusNode: advancedConfig.customCodeNotifier.focusNode,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 5,
-                      ),
-                    ),
-                    maxLines: 6,
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ),
-            ),
-          );
-        }
-      },
-      [typeConfig],
-    );
-
     int gIndex = -1;
     final _map = <int>[];
     return ExpansionPanelList(
@@ -246,7 +167,7 @@ class TypeSettingsView extends HookWidget {
               canTapOnHeader: true,
               headerBuilder: (context, isExpanded) =>
                   Center(child: Text(e.key)),
-              body: _expansionPanelBuilders[e.key](),
+              body: _expansionPanelBuilders[e.key](typeConfig),
             );
           })
           .where((panel) => panel != null)
@@ -254,3 +175,108 @@ class TypeSettingsView extends HookWidget {
     );
   }
 }
+
+final Map<String, Widget Function(TypeConfig)> _expansionPanelBuilders = {
+  "Data Value": (typeConfig) => Text("d"),
+  "Listenable": (typeConfig) => Text("l"),
+  "Serializable": (typeConfig) {
+    final serializableConfig = typeConfig.serializableConfig;
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Wrap(
+        spacing: 15,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          RowBoolField(
+            label: "from/to String",
+            notifier: serializableConfig.returnString,
+          ),
+          RowBoolField(
+            label: "Static Function",
+            notifier: serializableConfig.staticFunction,
+          ),
+          RowTextField(
+            rowLayout: false,
+            controller: serializableConfig.suffix.controller,
+            label: "Suffix",
+          ),
+          RowTextField(
+            rowLayout: false,
+            controller: serializableConfig.discriminator.controller,
+            label: "Discriminator",
+          ),
+          // RowBoolField(
+          //   label: "bool getters",
+          //   notifier: sumTypeConfig.isConstNotifier,
+          // ),
+        ],
+      ),
+    );
+  },
+  "Sum Type": (typeConfig) {
+    final sumTypeConfig = typeConfig.sumTypeConfig;
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          RowBoolField(
+            label: "Enum",
+            notifier: sumTypeConfig.enumDiscriminant,
+          ),
+          RowBoolField(
+            label: "Bool Getters",
+            notifier: sumTypeConfig.boolGetters,
+          ),
+          RowBoolField(
+            label: "Generic Mappers",
+            notifier: sumTypeConfig.genericMappers,
+          ),
+        ],
+      ),
+    );
+  },
+  "Enum": (typeConfig) => Text("enum"),
+  "Advanced": (typeConfig) {
+    final advancedConfig = typeConfig.advancedConfig;
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 420),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Custom Code"),
+                RowBoolField(
+                  label: "Const",
+                  notifier: advancedConfig.isConstNotifier,
+                ),
+                RowBoolField(
+                  label: "Override Constructor",
+                  notifier: advancedConfig.overrideConstructorNotifier,
+                )
+              ],
+            ),
+            const SizedBox(height: 3),
+            TextField(
+              controller: advancedConfig.customCodeNotifier.controller,
+              focusNode: advancedConfig.customCodeNotifier.focusNode,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 5,
+                ),
+              ),
+              maxLines: 6,
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+};
