@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_portal/flutter_portal.dart';
@@ -13,6 +14,7 @@ import 'package:snippet_generator/models/rebuilder.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/parsers/widget_parser.dart';
+import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
 import 'package:snippet_generator/templates/templates.dart';
 import 'package:snippet_generator/utils/download_json.dart';
 import 'package:snippet_generator/utils/persistence.dart';
@@ -21,6 +23,7 @@ import 'package:snippet_generator/views/globals.dart';
 import 'package:snippet_generator/views/parsers_view.dart';
 import 'package:snippet_generator/views/type_config.dart';
 import 'package:snippet_generator/views/types_menu.dart';
+import 'package:snippet_generator/widgets.dart';
 
 final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 
@@ -171,12 +174,21 @@ class RootStoreMessager extends HookWidget {
   }
 }
 
+ButtonStyle _actionButton(BuildContext context) => TextButton.styleFrom(
+      primary: Colors.white,
+      onSurface: Colors.white,
+      disabledMouseCursor: MouseCursor.defer,
+      enabledMouseCursor: SystemMouseCursors.click,
+      padding: const EdgeInsets.symmetric(horizontal: 17),
+    );
+
 class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
   const _HomePageAppBar({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final rootStore = RootStore.of(context);
+    // print(Platform.resolvedExecutable);
 
     return AppBar(
       title: Rebuilder(builder: (context) {
@@ -187,8 +199,8 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
             children: [
               const Center(child: Text('Flutter Snippet Generator')),
               const SizedBox(width: 30),
-              FlatButton(
-                colorBrightness: Brightness.dark,
+              TextButton(
+                style: _actionButton(context),
                 onPressed: AppTabs.types == rootStore.selectedTab
                     ? null
                     : () {
@@ -196,8 +208,8 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
                       },
                 child: const Text("Types"),
               ),
-              FlatButton(
-                colorBrightness: Brightness.dark,
+              TextButton(
+                style: _actionButton(context),
                 onPressed: AppTabs.ui == rootStore.selectedTab
                     ? null
                     : () {
@@ -210,8 +222,8 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
         );
       }),
       actions: [
-        FlatButton.icon(
-          colorBrightness: Brightness.dark,
+        TextButton.icon(
+          style: _actionButton(context),
           onPressed: () async {
             await rootStore.saveHive();
             ScaffoldMessenger.of(context).showSnackBar(
@@ -225,8 +237,8 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
           icon: const Icon(Icons.save),
           label: const Text("Save"),
         ),
-        FlatButton.icon(
-          colorBrightness: Brightness.dark,
+        TextButton.icon(
+          style: _actionButton(context),
           onPressed: () async {
             final jsonString = await importFromClient();
             if (jsonString != null) {
@@ -246,8 +258,8 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
           icon: const Icon(Icons.file_upload),
           label: const Text("Import"),
         ),
-        FlatButton.icon(
-          colorBrightness: Brightness.dark,
+        TextButton.icon(
+          style: _actionButton(context),
           onPressed: () {
             rootStore.downloadJson();
           },
@@ -272,12 +284,28 @@ class CodeGenerated extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final rootStore = useRootStore(context);
+
     return Column(
       children: [
-        RaisedButton.icon(
-          onPressed: () => Clipboard.setData(ClipboardData(text: sourceCode)),
-          icon: const Icon(Icons.copy),
-          label: const Text("Copy Source Code"),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () =>
+                  Clipboard.setData(ClipboardData(text: sourceCode)),
+              style: ElevatedButton.styleFrom(
+                primary: Colors.white,
+                onPrimary: Colors.black,
+              ),
+              icon: const Icon(Icons.copy),
+              label: const Text("Copy Source Code"),
+            ),
+            RowBoolField(
+              label: "Null Safe",
+              notifier: rootStore.isCodeGenNullSafeNotifier,
+            ),
+          ],
         ),
         const SizedBox(height: 10),
         Expanded(
@@ -288,8 +316,7 @@ class CodeGenerated extends HookWidget {
                 bottom: 12.0,
                 left: 12.0,
               ),
-              child: Scrollbar(
-                isAlwaysShown: true,
+              child: SingleScrollable(
                 child: SelectableText(
                   sourceCode,
                   style: GoogleFonts.cousine(),
@@ -308,8 +335,10 @@ class TypeCodeGenerated extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final rootStore = useRootStore(context);
     final TypeConfig typeConfig = useSelectedType(context);
     useListenable(typeConfig.deepListenable);
+    useListenable(rootStore.isCodeGenNullSafeNotifier);
 
     String sourceCode;
     if (typeConfig.isEnum) {

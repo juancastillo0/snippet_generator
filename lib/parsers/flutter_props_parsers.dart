@@ -228,7 +228,6 @@ class WidgetFormState {
     int start;
     String value;
     if (token == null) {
-      // -1 for the ')'
       final _mapStr = tokenMap.buffer.substring(tokenMap.start, tokenMap.stop);
       start = tokenMap.start + _mapStr.lastIndexOf(")");
       stop = start;
