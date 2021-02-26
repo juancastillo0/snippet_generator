@@ -1,3 +1,4 @@
+import 'package:meta/meta.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/templates/serde_templates.dart';
 
@@ -15,6 +16,10 @@ extension TemplateClassConfig on ClassConfig {
     return className;
   }
 
+  String get _required {
+    return typeConfig.rootStore.isCodeGenNullSafe ? "required" : "@required";
+  }
+
   String get classNameWithGenericIds => "$className${typeConfig.genericIds}";
 
   String get signature => typeConfig.isSumType
@@ -27,6 +32,8 @@ class $signature {
   ${properties.map((p) => 'final ${p.type} ${p.name};').join('\n  ')}
 
   ${typeConfig._const} $_classConstructor(${_templateClassParams()})${typeConfig.isSumType ? ": super._()" : ""};
+
+  ${typeConfig.isSumType && typeConfig.sumTypeConfig.enumDiscriminant.value ? "@override\nType${typeConfig.name} get typeEnum => Type${typeConfig.name}.${name.asVariableName()};" : ""}
 
   ${typeConfig.isDataValue ? _templateClassCopyWith() : ""}
   ${typeConfig.isDataValue ? _templateClassClone() : ""}
@@ -118,7 +125,7 @@ Map<String, dynamic> toJson() {
         .join(_join);
     final _namedReq = properties
         .where((p) => !p.isPositional && p.isRequired)
-        .map((p) => "@required ${accessor(p)}${p.name},")
+        .map((p) => "$_required ${accessor(p)}${p.name},")
         .join(_join);
     final _namedNotReq = properties
         .where((p) => !p.isPositional && !p.isRequired)
@@ -164,8 +171,14 @@ extension TemplateTypeConfig on TypeConfig {
     return advancedConfig.isConst ? "const" : "";
   }
 
+  String get _required {
+    return this.rootStore.isCodeGenNullSafe ? "required" : "@required";
+  }
+
   String templateSumType() {
     return """
+import 'package:meta/meta.dart';
+
 abstract class $signature {
   ${advancedConfig.overrideConstructor ? '' : '$_const $name._();'}
 
@@ -173,41 +186,95 @@ abstract class $signature {
   
   ${classes.map((c) => "$_const factory $name.${c.name.asVariableName()}(${c.templateFactoryParams()}) = ${c._classConstructor};").join("\n  ")}
   
-  T when<T>({${classes.map((c) => "@required T Function(${_funcParams(c)}) ${c.name.asVariableName()},").join("\n    ")}}){
+  _T when<_T>({${classes.map((c) => "$_required _T Function(${_funcParams(c)}) ${c.name.asVariableName()},").join("\n    ")}}){
     final v = this;
     ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) return ${c.name.asVariableName()}(${_funcParamsCall(c)});").join("\n    ")}
     throw "";
   }
 
-  T maybeWhen<T>({T Function() orElse, ${classes.map((c) => "T Function(${_funcParams(c)}) ${c.name.asVariableName()},").join("\n    ")}}){
+  _T maybeWhen<_T>({$_required _T Function() orElse, ${classes.map((c) => "_T Function(${_funcParams(c)}) ${c.name.asVariableName()},").join("\n    ")}}){
     final v = this;
-    ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) return ${c.name.asVariableName()} != null ? ${c.name.asVariableName()}(${_funcParamsCall(c)}) : orElse?.call();").join("\n    ")}
+    ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) return ${c.name.asVariableName()} != null ? ${c.name.asVariableName()}(${_funcParamsCall(c)}) : orElse.call();").join("\n    ")}
     throw "";
   }
 
-  T map<T>({${classes.map((c) => "@required T Function(${c.className} value) ${c.name.asVariableName()},").join("\n    ")}}){
+  _T map<_T>({${classes.map((c) => "$_required _T Function(${c.className} value) ${c.name.asVariableName()},").join("\n    ")}}){
     final v = this;
     ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) return ${c.name.asVariableName()}(v);").join("\n    ")}
     throw "";
   }
 
-  T maybeMap<T>({T Function() orElse, ${classes.map((c) => "T Function(${c.className} value) ${c.name.asVariableName()},").join("\n    ")}}){
+  _T maybeMap<_T>({$_required _T Function() orElse, ${classes.map((c) => "_T Function(${c.className} value) ${c.name.asVariableName()},").join("\n    ")}}){
     final v = this;
-    ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) return ${c.name.asVariableName()} != null ? ${c.name.asVariableName()}(v) : orElse?.call();").join("\n    ")}
+    ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) return ${c.name.asVariableName()} != null ? ${c.name.asVariableName()}(v) : orElse.call();").join("\n    ")}
     throw "";
   }
+
+  ${sumTypeConfig.boolGetters.value ? templateBoolGetters() : ""}
+  ${sumTypeConfig.enumDiscriminant.value ? "Type$name get typeEnum;" : ""}
+
   ${isSerializable ? _templateSymTypeFromJson() : ""}
   ${isSerializable ? "Map<String, dynamic> toJson();" : ""}
   }
+
+  ${sumTypeConfig.enumDiscriminant.value ? templateTypeEnum() : ""}
   
   ${classes.map((c) => c.templateClass()).join("\n")}
+
+  
   """;
   }
 
-  String templateEnum() {
+  String templateBoolGetters() {
     return """
+    ${classes.map(
+              (c) =>
+                  "bool get is${c.name.replaceFirst("_", "").firstToUpperCase()} => this is ${c.name};",
+            ).join("\n")}
+    """;
+  }
+
+  String templateTypeEnum() {
+    return globalTemplateEnum(
+      name: "Type$name",
+      variants: classes.map((e) => e.name.asVariableName()).toList(),
+      nullSafe: rootStore.isCodeGenNullSafe,
+    );
+  }
+
+  String templateEnum() {
+    return globalTemplateEnum(
+      name: name,
+      variants: classes.map((e) => e.name).toList(),
+      nullSafe: rootStore.isCodeGenNullSafe,
+    );
+  }
+
+  String _templateSymTypeFromJson() {
+    return """
+static $name$genericIds fromJson$generics(Map<String, dynamic> map) {
+  switch (map["runtimeType"] as String) {
+    ${classes.map((e) => 'case "${e.name}": return ${e.className}.fromJson$genericIds(map);').join("\n    ")}
+    default:
+      return null;
+  }
+}
+""";
+  }
+}
+
+// String _required(bool isRequired) => isRequired ? "@required " : "";
+
+String globalTemplateEnum({
+  @required String name,
+  @required List<String> variants,
+  @required bool nullSafe,
+}) {
+  final _required = nullSafe ? "required " : "@required ";
+
+  return """
 enum $name {
-  ${classes.map((e) => "${e.name},").join("\n  ")}
+  ${variants.map((e) => "$e,").join("\n  ")}
 }
 
 $name parse$name(String rawString, {$name defaultValue}) {
@@ -223,49 +290,34 @@ extension ${name}Extension on $name {
   String toEnumString() => toString().split(".")[1];
   String enumType() => toString().split(".")[0];
 
-  ${classes.map((e) => "bool get is${e.name.firstToUpperCase()} => this == $name.${e.name};").join("\n  ")}
+  ${variants.map((e) => "bool get is${e.firstToUpperCase()} => this == $name.$e;").join("\n  ")}
 
-  T when<T>({
-    ${classes.map((e) => "@required T Function() ${e.name.firstToLowerCase()},").join("\n    ")}
+  _T when<_T>({
+    ${variants.map((e) => "$_required _T Function() ${e.firstToLowerCase()},").join("\n    ")}
   }) {
     switch (this) {
-      ${classes.map((e) => """
-case $name.${e.name}:
-        return ${e.name}();
+      ${variants.map((e) => """
+case $name.$e:
+        return $e();
       """).join()}
     }
     throw "";
   }
 
-  T maybeWhen<T>({
-    ${classes.map((e) => "T Function() ${e.name.firstToLowerCase()},").join("\n    ")}
-    T Function() orElse,
+  _T maybeWhen<_T>({
+    ${variants.map((e) => "_T Function() ${e.firstToLowerCase()},").join("\n    ")}
+    $_required _T Function() orElse,
   }) {
-    T Function() c;
+    _T Function() c;
     switch (this) {
-      ${classes.map((e) => """
-case $name.${e.name}:
-        c = ${e.name};
+      ${variants.map((e) => """
+case $name.$e:
+        c = $e;
         break;   
       """).join()}
     }
-    return (c ?? orElse)?.call();
+    return (c ?? orElse).call();
   }
 }
 """;
-  }
-
-  String _templateSymTypeFromJson() {
-    return """
-static $name$genericIds fromJson$generics(Map<String, dynamic> map) {
-  switch (map["runtimeType"] as String) {
-    ${classes.map((e) => "case '${e.name}': return ${e.className}.fromJson$genericIds(map);").join("\n    ")}
-    default:
-      return null;
-  }
 }
-""";
-  }
-}
-
-String _required(bool isRequired) => isRequired ? "@required " : "";
