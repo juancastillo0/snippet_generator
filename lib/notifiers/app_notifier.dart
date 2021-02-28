@@ -4,11 +4,11 @@ import 'package:mobx/mobx.dart';
 import 'package:snippet_generator/models/rebuilder.dart';
 import 'package:snippet_generator/models/serializer.dart';
 
-class AppNotifier<T> implements ValueListenable<T /*!*/ > {
+class AppNotifier<T> implements ValueListenable<T > {
   String get name => observable.name;
 
   final bool required;
-  final Observable<T /*!*/ > observable;
+  final Observable<T > observable;
   final _subs = <void Function(), void Function()>{};
 
   @override
@@ -17,7 +17,7 @@ class AppNotifier<T> implements ValueListenable<T /*!*/ > {
     return observable.value;
   }
 
-  set value(T /*!*/ value) => runInAction(
+  set value(T value) => runInAction(
         () => observable.value = value,
         name: "${name}Setter",
       );
@@ -27,14 +27,14 @@ class AppNotifier<T> implements ValueListenable<T /*!*/ > {
   AppNotifier(
     T value, {
     dynamic parent,
-    String name,
-    bool required,
+    String? name,
+    bool? required,
   })  : required = required ?? true,
         observable = Observable(value, name: name) {
     // parent?.registerValue(this);
   }
 
-  Object toJson() {
+  Object? toJson() {
     return Serializers.toJson<T>(this.value);
   }
 
@@ -85,10 +85,10 @@ class AppNotifier<T> implements ValueListenable<T /*!*/ > {
 
 class TextNotifier extends AppNotifier<String> {
   TextNotifier({
-    String initialText,
+    String? initialText,
     dynamic parent,
-    String name,
-    bool required,
+    String? name,
+    bool? required,
   })  : controller = TextEditingController(text: initialText),
         super(initialText ?? '', name: name, required: required) {
     controller.addListener(() {

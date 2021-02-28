@@ -1,5 +1,3 @@
-import 'package:meta/meta.dart';
-
 abstract class Nested<V> {
   const Nested._();
 
@@ -11,21 +9,21 @@ abstract class Nested<V> {
   ) = _Children;
 
   T when<T>({
-    @required T Function(V child) child,
-    @required T Function(List<V> children) children,
+    required T Function(V child) child,
+    required T Function(List<V> children) children,
   }) {
-    final v = this;
+    final Nested<V> v = this;
     if (v is _Child<V>) return child(v.child);
     if (v is _Children<V>) return children(v.children);
     throw "";
   }
 
-  T maybeWhen<T>({
-    T Function() orElse,
-    T Function(V child) child,
-    T Function(List<V> children) children,
+  T? maybeWhen<T>({
+    T Function()? orElse,
+    T Function(V child)? child,
+    T Function(List<V> children)? children,
   }) {
-    final v = this;
+    final Nested<V> v = this;
     if (v is _Child<V>) return child != null ? child(v.child) : orElse?.call();
     if (v is _Children<V>)
       return children != null ? children(v.children) : orElse?.call();
@@ -33,21 +31,21 @@ abstract class Nested<V> {
   }
 
   T map<T>({
-    @required T Function(_Child value) child,
-    @required T Function(_Children value) children,
+    required T Function(_Child value) child,
+    required T Function(_Children value) children,
   }) {
-    final v = this;
+    final Nested<V> v = this;
     if (v is _Child<V>) return child(v);
     if (v is _Children<V>) return children(v);
     throw "";
   }
 
-  T maybeMap<T>({
-    T Function() orElse,
-    T Function(_Child value) child,
-    T Function(_Children value) children,
+  T? maybeMap<T>({
+    T Function()? orElse,
+    T Function(_Child value)? child,
+    T Function(_Children value)? children,
   }) {
-    final v = this;
+    final Nested<V> v = this;
     if (v is _Child<V>) return child != null ? child(v) : orElse?.call();
     if (v is _Children<V>)
       return children != null ? children(v) : orElse?.call();

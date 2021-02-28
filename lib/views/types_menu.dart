@@ -4,7 +4,7 @@ import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 
 class TypesMenu extends HookWidget {
-  const TypesMenu({Key key}) : super(key: key);
+  const TypesMenu({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

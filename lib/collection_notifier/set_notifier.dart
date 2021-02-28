@@ -9,26 +9,26 @@ abstract class SetEvent<V> implements Event<SetEvent<V>> {
   const SetEvent._();
 
   factory SetEvent.insert({
-    @required V value,
+    required V value,
   }) = InsertSetEvent;
   factory SetEvent.manyTyped({
-    @required List<V> values,
-    @required SetEventManyType type,
+    required List<V> values,
+    required SetEventManyType type,
   }) = ManyTypedSetEvent;
   factory SetEvent.remove({
-    @required V value,
+    required V value,
   }) = RemoveSetEvent;
   factory SetEvent.many({
-    @required List<SetEvent<V>> events,
+    required List<SetEvent<V>> events,
   }) = ManySetEvent;
 
   T when<T>({
-    @required T Function(V value) insert,
-    @required T Function(List<V> values, SetEventManyType type) manyTyped,
-    @required T Function(V value) remove,
-    @required T Function(List<SetEvent<V>> events) many,
+    required T Function(V value) insert,
+    required T Function(List<V> values, SetEventManyType type) manyTyped,
+    required T Function(V value) remove,
+    required T Function(List<SetEvent<V>> events) many,
   }) {
-    final v = this;
+    final SetEvent<V> v = this;
     if (v is InsertSetEvent<V>) return insert(v.value);
     if (v is ManyTypedSetEvent<V>) return manyTyped(v.values, v.type);
     if (v is RemoveSetEvent<V>) return remove(v.value);
@@ -36,14 +36,14 @@ abstract class SetEvent<V> implements Event<SetEvent<V>> {
     throw "";
   }
 
-  T maybeWhen<T>({
-    T Function() orElse,
-    T Function(V value) insert,
-    T Function(List<V> values, SetEventManyType type) manyTyped,
-    T Function(V value) remove,
-    T Function(List<SetEvent<V>> events) many,
+  T? maybeWhen<T>({
+    T Function()? orElse,
+    T Function(V value)? insert,
+    T Function(List<V> values, SetEventManyType type)? manyTyped,
+    T Function(V value)? remove,
+    T Function(List<SetEvent<V>> events)? many,
   }) {
-    final v = this;
+    final SetEvent<V> v = this;
     if (v is InsertSetEvent<V>)
       return insert != null ? insert(v.value) : orElse?.call();
     if (v is ManyTypedSetEvent<V>)
@@ -56,12 +56,12 @@ abstract class SetEvent<V> implements Event<SetEvent<V>> {
   }
 
   T map<T>({
-    @required T Function(InsertSetEvent<V> value) insert,
-    @required T Function(ManyTypedSetEvent<V> value) manyTyped,
-    @required T Function(RemoveSetEvent<V> value) remove,
-    @required T Function(ManySetEvent<V> value) many,
+    required T Function(InsertSetEvent<V> value) insert,
+    required T Function(ManyTypedSetEvent<V> value) manyTyped,
+    required T Function(RemoveSetEvent<V> value) remove,
+    required T Function(ManySetEvent<V> value) many,
   }) {
-    final v = this;
+    final SetEvent<V> v = this;
     if (v is InsertSetEvent<V>) return insert(v);
     if (v is ManyTypedSetEvent<V>) return manyTyped(v);
     if (v is RemoveSetEvent<V>) return remove(v);
@@ -69,14 +69,14 @@ abstract class SetEvent<V> implements Event<SetEvent<V>> {
     throw "";
   }
 
-  T maybeMap<T>({
-    T Function() orElse,
-    T Function(InsertSetEvent<V> value) insert,
-    T Function(ManyTypedSetEvent<V> value) manyTyped,
-    T Function(RemoveSetEvent<V> value) remove,
-    T Function(ManySetEvent<V> value) many,
+  T? maybeMap<T>({
+    T Function()? orElse,
+    T Function(InsertSetEvent<V> value)? insert,
+    T Function(ManyTypedSetEvent<V> value)? manyTyped,
+    T Function(RemoveSetEvent<V> value)? remove,
+    T Function(ManySetEvent<V> value)? many,
   }) {
-    final v = this;
+    final SetEvent<V> v = this;
     if (v is InsertSetEvent<V>)
       return insert != null ? insert(v) : orElse?.call();
     if (v is ManyTypedSetEvent<V>)
@@ -87,8 +87,8 @@ abstract class SetEvent<V> implements Event<SetEvent<V>> {
     throw "";
   }
 
-  static SetEvent fromJson(Map<String, dynamic> map) {
-    switch (map["runtimeType"] as String) {
+  static SetEvent? fromJson(Map<String, dynamic> map) {
+    switch (map["runtimeType"] as String?) {
       case 'InsertSetEvent':
         return InsertSetEvent.fromJson(map);
       case 'ChangeSetEvent':
@@ -107,7 +107,7 @@ class InsertSetEvent<V> extends SetEvent<V> {
   final V value;
 
   const InsertSetEvent({
-    @required this.value,
+    required this.value,
   }) : super._();
 
   static InsertSetEvent<V> fromJson<V>(Map<String, dynamic> map) {
@@ -134,8 +134,8 @@ class ManyTypedSetEvent<V> extends SetEvent<V> {
   final SetEventManyType type;
 
   const ManyTypedSetEvent({
-    @required this.values,
-    @required this.type,
+    required this.values,
+    required this.type,
   }) : super._();
 
   static ManyTypedSetEvent<V> fromJson<V>(Map<String, dynamic> map) {
@@ -170,7 +170,7 @@ class RemoveSetEvent<V> extends SetEvent<V> {
   final V value;
 
   const RemoveSetEvent({
-    @required this.value,
+    required this.value,
   }) : super._();
 
   static RemoveSetEvent<V> fromJson<V>(Map<String, dynamic> map) {
@@ -196,7 +196,7 @@ class ManySetEvent<V> extends SetEvent<V> {
   final List<SetEvent<V>> events;
 
   const ManySetEvent({
-    @required this.events,
+    required this.events,
   }) : super._();
 
   static ManySetEvent<V> fromJson<V>(Map<String, dynamic> map) {
@@ -220,12 +220,12 @@ class ManySetEvent<V> extends SetEvent<V> {
   }
 }
 
-class SetNotifier<V> extends EventConsumer<SetEvent<V/*!*/>> implements Set<V/*!*/> {
+class SetNotifier<V> extends EventConsumer<SetEvent<V>> implements Set<V> {
   SetNotifier({
-    Set<V> inner,
-    NestedNotifier parent,
-    String propKey,
-    int maxHistoryLength,
+    Set<V>? inner,
+    NestedNotifier? parent,
+    String? propKey,
+    int? maxHistoryLength,
   })  : _inner = inner ?? <V>{},
         super(
           maxHistoryLength: maxHistoryLength,
@@ -233,7 +233,7 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V/*!*/>> implements Set<V/*!
           propKey: propKey,
         );
 
-  Set<V/*!*/> _inner;
+  Set<V> _inner;
 
   @override
   dynamic toJson() {
@@ -300,7 +300,7 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V/*!*/>> implements Set<V/*!
         .where((e) => e != null)
         .toList();
     if (values.isNotEmpty) {
-      apply(SetEvent.manyTyped(values: values, type: SetEventManyType.insert));
+      apply(SetEvent.manyTyped(values: values.cast(), type: SetEventManyType.insert));
     }
   }
 
@@ -308,7 +308,7 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V/*!*/>> implements Set<V/*!
   // REMOVE SINGLE
 
   @override
-  bool remove(Object value) {
+  bool remove(Object? value) {
     final isInSet = _inner.contains(value);
     if (isInSet) {
       apply(SetEvent.remove(value: value as V));
@@ -320,12 +320,12 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V/*!*/>> implements Set<V/*!
   // REMOVE MANY
 
   @override
-  void removeAll(Iterable<Object> elements) {
+  void removeAll(Iterable<Object?> elements) {
     final values = elements
         .map((e) {
           final isInSet = _inner.contains(e);
           if (isInSet) {
-            return e as V;
+            return e as V?;
           } else {
             return null;
           }
@@ -333,7 +333,7 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V/*!*/>> implements Set<V/*!
         .where((e) => e != null)
         .toList();
     if (values.isNotEmpty) {
-      apply(SetEvent.manyTyped(values: values, type: SetEventManyType.insert));
+      apply(SetEvent.manyTyped(values: values.cast(), type: SetEventManyType.insert));
     }
   }
 
@@ -350,12 +350,12 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V/*!*/>> implements Set<V/*!
         .where((e) => e != null)
         .toList();
     if (values.isNotEmpty) {
-      apply(SetEvent.manyTyped(values: values, type: SetEventManyType.remove));
+      apply(SetEvent.manyTyped(values: values.cast(), type: SetEventManyType.remove));
     }
   }
 
   @override
-  void retainAll(Iterable<Object> elements) {
+  void retainAll(Iterable<Object?> elements) {
     final newSet = elements.where((e) => _inner.contains(e)).toSet();
     if (newSet.length != _inner.length) {}
   }
@@ -381,19 +381,19 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V/*!*/>> implements Set<V/*!
   // OVERRIDES
 
   @override
-  Set<V> difference(Set<Object> other) => _inner.difference(other);
+  Set<V> difference(Set<Object?> other) => _inner.difference(other);
 
   @override
   Set<V> union(Set<V> other) => _inner.union(other);
 
   @override
-  Set<V> intersection(Set<Object> other) => _inner.intersection(other);
+  Set<V> intersection(Set<Object?> other) => _inner.intersection(other);
 
   @override
   V get single => _inner.single;
 
   @override
-  V singleWhere(bool Function(V element) test, {V Function() orElse}) =>
+  V singleWhere(bool Function(V element) test, {V Function()? orElse}) =>
       _inner.singleWhere(test, orElse: orElse);
 
   @override
@@ -427,10 +427,10 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V/*!*/>> implements Set<V/*!
   Set<R> cast<R>() => _inner.cast<R>();
 
   @override
-  bool contains(Object value) => _inner.contains(value);
+  bool contains(Object? value) => _inner.contains(value);
 
   @override
-  bool containsAll(Iterable<Object> other) => _inner.containsAll(other);
+  bool containsAll(Iterable<Object?> other) => _inner.containsAll(other);
 
   @override
   V elementAt(int index) => _inner.elementAt(index);
@@ -445,7 +445,7 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V/*!*/>> implements Set<V/*!
   V get first => _inner.first;
 
   @override
-  V firstWhere(bool Function(V element) test, {V Function() orElse}) =>
+  V firstWhere(bool Function(V element) test, {V Function()? orElse}) =>
       _inner.firstWhere(test, orElse: orElse);
 
   @override
@@ -474,14 +474,14 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V/*!*/>> implements Set<V/*!
   V get last => _inner.last;
 
   @override
-  V lastWhere(bool Function(V element) test, {V Function() orElse}) =>
+  V lastWhere(bool Function(V element) test, {V Function()? orElse}) =>
       _inner.lastWhere(test, orElse: orElse);
 
   @override
   int get length => _inner.length;
 
   @override
-  V lookup(Object object) => _inner.lookup(object);
+  V? lookup(Object? object) => _inner.lookup(object);
 
   @override
   Iterable<T> map<T>(T Function(V e) f) => _inner.map(f);

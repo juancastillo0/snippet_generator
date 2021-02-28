@@ -18,12 +18,12 @@ class EventData<V extends Event<V>> {
 }
 
 abstract class EventConsumer<E extends Event<E>> extends ChangeNotifier {
-  final String propKey;
+  final String? propKey;
   EventConsumer({
-    int maxHistoryLength,
-    NestedNotifier parent,
+    int? maxHistoryLength,
+    NestedNotifier? parent,
     this.propKey,
-  }) : _history = EventHistory(maxHistoryLength: maxHistoryLength){
+  }) : _history = EventHistory(maxHistoryLength: maxHistoryLength) {
     parent?.registerCollection(this);
   }
 
@@ -38,7 +38,7 @@ abstract class EventConsumer<E extends Event<E>> extends ChangeNotifier {
   Stream<EventData<E>> get events => _eventStreamController.stream;
   final _eventStreamController = StreamController<EventData<E>>.broadcast();
 
-  List<EventData<E>> _transactionEvents;
+  List<EventData<E>>? _transactionEvents;
 
   void syncTransaction(void Function() execute) {
     if (_transactionEvents != null) {
@@ -49,9 +49,9 @@ abstract class EventConsumer<E extends Event<E>> extends ChangeNotifier {
 
     _transactionEvents = [];
     execute();
-    if (_transactionEvents.isNotEmpty) {
+    if (_transactionEvents!.isNotEmpty) {
       notifyListeners();
-      for (final event in _transactionEvents) {
+      for (final event in _transactionEvents!) {
         _eventStreamController.add(event);
       }
     }
@@ -66,7 +66,7 @@ abstract class EventConsumer<E extends Event<E>> extends ChangeNotifier {
   void undo() {
     assert(canUndo);
     if (canUndo) {
-      final e = _history.current;
+      final E e = _history.current!;
       _history = _history.undo();
       _callConsume(e.revert(), EventType.undo);
     }
@@ -75,18 +75,18 @@ abstract class EventConsumer<E extends Event<E>> extends ChangeNotifier {
   void redo() {
     assert(canRedo);
     if (canRedo) {
-      final e = _history.next;
+      final E e = _history.next!;
       _history = _history.redo();
       _callConsume(e, EventType.redo);
     }
   }
 
-  void _callConsume(E/*!*/ event, EventType type) {
+  void _callConsume(E event, EventType type) {
     consume(event);
 
     final data = EventData(event, type);
     if (_transactionEvents != null) {
-      _transactionEvents.add(data);
+      _transactionEvents!.add(data);
     } else {
       notifyListeners();
       _eventStreamController.add(data);
@@ -122,9 +122,9 @@ abstract class EventConsumer<E extends Event<E>> extends ChangeNotifier {
 @immutable
 class EventHistory<V extends Event<V>> {
   EventHistory({
-    int maxHistoryLength,
-    ListQueue<V> events,
-    int position,
+    int? maxHistoryLength,
+    ListQueue<V>? events,
+    int? position,
   })  : assert(maxHistoryLength == null || maxHistoryLength >= 0),
         assert(position == null || position >= -1),
         assert(events == null || position == null || position < events.length),
@@ -136,8 +136,8 @@ class EventHistory<V extends Event<V>> {
   final ListQueue<V> events;
   final int position;
 
-  V get current => position == -1 ? null : events.elementAt(position);
-  V get next => canRedo ? events.elementAt(position + 1) : null;
+  V? get current => position == -1 ? null : events.elementAt(position);
+  V? get next => canRedo ? events.elementAt(position + 1) : null;
   bool get canUndo => position >= 0;
   bool get canRedo => position < events.length - 1;
 
@@ -181,9 +181,9 @@ class EventHistory<V extends Event<V>> {
   }
 
   EventHistory<V> copyWith({
-    int maxHistoryLength,
-    ListQueue<V> events,
-    int position,
+    int? maxHistoryLength,
+    ListQueue<V>? events,
+    int? position,
   }) {
     return EventHistory<V>(
       events: events ?? this.events,
@@ -214,7 +214,7 @@ enum EventType {
   redo,
 }
 
-EventType parseEventType(String rawString, {EventType defaultValue}) {
+EventType? parseEventType(String rawString, {EventType? defaultValue}) {
   for (final variant in EventType.values) {
     if (rawString == variant.toEnumString()) {
       return variant;
@@ -232,9 +232,9 @@ extension EventTypeExtension on EventType {
   bool get isRedo => this == EventType.redo;
 
   T when<T>({
-    @required T Function() apply,
-    @required T Function() undo,
-    @required T Function() redo,
+    required T Function() apply,
+    required T Function() undo,
+    required T Function() redo,
   }) {
     switch (this) {
       case EventType.apply:
@@ -244,16 +244,15 @@ extension EventTypeExtension on EventType {
       case EventType.redo:
         return redo();
     }
-    throw "";
   }
 
-  T maybeWhen<T>({
-    T Function() apply,
-    T Function() undo,
-    T Function() redo,
-    T Function() orElse,
+  T? maybeWhen<T>({
+    T Function()? apply,
+    T Function()? undo,
+    T Function()? redo,
+    T Function()? orElse,
   }) {
-    T Function() c;
+    T Function()? c;
     switch (this) {
       case EventType.apply:
         c = apply;

@@ -5,7 +5,7 @@ import 'package:snippet_generator/utils/json_type.dart';
 
 String _parseJsonTypeFromJson(
   String getter,
-  JsonTypeParser t,
+  JsonTypeParser? t,
   List<SignatureGeneric> generics,
 ) {
   if (t == null) {
@@ -40,7 +40,7 @@ String parseFieldFromJson(PropertyField e) {
     return "map['${e.name}'] as ${e.type}";
   }
   final generics =
-      e.classConfig.typeConfig.signatureParserNotifier.value.value?.generics ??
+      e.classConfig!.typeConfig.signatureParserNotifier.value.value?.generics ??
           [];
 
   return _parseJsonTypeFromJson("map['${e.name}']", result.value, generics);
@@ -48,7 +48,7 @@ String parseFieldFromJson(PropertyField e) {
 
 String _parseJsonTypeToJson(
   String getter,
-  JsonTypeParser t,
+  JsonTypeParser? t,
   List<SignatureGeneric> generics,
 ) {
   if (t == null) {
@@ -64,7 +64,7 @@ String _parseJsonTypeToJson(
     primitiveParser: (v) {
       if (v.type.isCustom) {
         if (generics.any((g) => g.id == v.raw)) {
-          return "Serializers.toJson<${v.raw}>($getter)";//"($getter as dynamic).toJson()";
+          return "Serializers.toJson<${v.raw}>($getter)"; //"($getter as dynamic).toJson()";
         } else {
           return "$getter.toJson()";
         }
@@ -81,7 +81,7 @@ String parseFieldToJson(PropertyField e) {
     return "${e.name}'.toJson()";
   }
   final generics =
-      e.classConfig.typeConfig.signatureParserNotifier.value.value?.generics ??
+      e.classConfig!.typeConfig.signatureParserNotifier.value.value?.generics ??
           [];
   return _parseJsonTypeToJson(e.name, result.value, generics);
 }

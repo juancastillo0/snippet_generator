@@ -34,7 +34,7 @@ Future<void> _downloadToClientNative(
   }
 }
 
-Future<String> importFromClient() async {
+Future<String?> importFromClient() async {
   final file = await FileSelectorPlatform.instance.openFile(
     acceptedTypeGroups: _jsonFileType,
     // allowsMultipleSelection: false,

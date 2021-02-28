@@ -9,8 +9,8 @@ import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/widgets.dart';
 
 class ClassPropertiesTable extends HookWidget {
-  const ClassPropertiesTable({Key key, @required this.data}) : super(key: key);
-  final ClassConfig/*!*/ data;
+  const ClassPropertiesTable({Key? key, required this.data}) : super(key: key);
+  final ClassConfig data;
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +92,7 @@ class ClassPropertiesTable extends HookWidget {
                                     selected: p.isSelected,
                                     onSelectChanged: (value) {
                                       assert(value != null);
-                                      p.isSelectedNotifier.value = value;
+                                      p.isSelectedNotifier.value = value!;
                                     },
                                     cells: _makeRowChildren(p)
                                         .map((e) => DataCell(e))
@@ -224,7 +224,7 @@ class ClassPropertiesTable extends HookWidget {
             value: isRequired,
             onChanged: (value) {
               assert(value != null);
-              property.isRequiredNotifier.value = value;
+              property.isRequiredNotifier.value = value!;
             },
           ),
         ),
@@ -236,7 +236,7 @@ class ClassPropertiesTable extends HookWidget {
             value: isPositional,
             onChanged: (value) {
               assert(value != null);
-              property.isPositionalNotifier.value = value;
+              property.isPositionalNotifier.value = value!;
             },
           ),
         ),
@@ -255,13 +255,13 @@ class ClassPropertiesTable extends HookWidget {
 }
 
 class _MoreOptions extends HookWidget {
-  final ClassConfig/*!*/ data;
+  final ClassConfig data;
   final PropertyField property;
 
   const _MoreOptions({
-    Key key,
-    @required this.data,
-    @required this.property,
+    Key? key,
+    required this.data,
+    required this.property,
   }) : super(key: key);
 
   @override

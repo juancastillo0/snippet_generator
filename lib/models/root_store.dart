@@ -16,9 +16,9 @@ import 'package:dart_style/dart_style.dart';
 enum AppTabs { types, ui }
 
 class RootStore {
-  TypeItem lastSelectedItem;
-  TypeItem _selectedItem;
-  TypeItem get selectedItem => _selectedItem;
+  TypeItem? lastSelectedItem;
+  TypeItem? _selectedItem;
+  TypeItem? get selectedItem => _selectedItem;
   void setSelectedItem(TypeItem item) {
     lastSelectedItem = item;
     Future.delayed(Duration.zero, () {
@@ -28,14 +28,15 @@ class RootStore {
 
   final formatter = DartFormatter();
 
-  TypeItem copiedItem;
+  TypeItem? copiedItem;
   final selectedTabNotifier = AppNotifier(AppTabs.ui);
   AppTabs get selectedTab => selectedTabNotifier.value;
 
-  final MapNotifier<String, TypeConfig/*!*/> types = MapNotifier<String, TypeConfig/*!*/>();
+  final MapNotifier<String, TypeConfig> types =
+      MapNotifier<String, TypeConfig>();
 
-  final selectedTypeNotifier = AppNotifier<TypeConfig>(null);
-  TypeConfig get selectedType => selectedTypeNotifier.value;
+  final selectedTypeNotifier = AppNotifier<TypeConfig?>(null);
+  TypeConfig? get selectedType => selectedTypeNotifier.value;
 
   final isCodeGenNullSafeNotifier = AppNotifier<bool>(false);
   bool get isCodeGenNullSafe => isCodeGenNullSafeNotifier.value;
@@ -48,7 +49,7 @@ class RootStore {
     GlobalKeyboardListener.addTapListener(_handleGlobalTap);
     types.events.listen((data) {
       if (selectedType != null &&
-          !types.containsKey(selectedType.key) &&
+          !types.containsKey(selectedType!.key) &&
           types.isNotEmpty) {
         selectedTypeNotifier.value = types.values.first;
       }
@@ -79,23 +80,23 @@ class RootStore {
         }
       } else if (event.logicalKey == LogicalKeyboardKey.keyV) {
         if (copiedItem != null && lastSelectedItem != null) {
-          copiedItem.when(
+          copiedItem!.when(
             classI: (c) {
-              final t = lastSelectedItem.parentType();
+              final t = lastSelectedItem!.parentType();
               t.classes.add(c.clone().copyWith(typeConfigKey: t.key));
             },
             typeI: (t) {
               selectedTypeNotifier.value = t.clone();
-              types[selectedType.key] = selectedType;
+              types[selectedType!.key] = selectedType!;
             },
             propertyI: (p) {
-              final c = lastSelectedItem.parentClass();
+              final c = lastSelectedItem!.parentClass();
               if (c != null) {
                 c.properties.add(p.copyWith(classConfigKey: c.key));
               }
             },
             propertyListI: (pList) {
-              final c = lastSelectedItem.parentClass();
+              final c = lastSelectedItem!.parentClass();
               if (c != null) {
                 c.properties.addAll(
                   pList.map((e) => e.copyWith(classConfigKey: c.key)),
@@ -111,7 +112,7 @@ class RootStore {
   void addType() {
     final type = TypeConfig();
     selectedTypeNotifier.value = type;
-    types[selectedTypeNotifier.value.key] = type;
+    types[selectedTypeNotifier.value!.key] = type;
     type.addVariant();
   }
 
@@ -137,14 +138,15 @@ class RootStore {
     setSelectedItem(TypeItem.propertyI(type));
   }
 
-  static RootStore/*!*/ of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<RootStoreProvider>().rootStore;
+  static RootStore of(BuildContext context) => context
+      .dependOnInheritedWidgetOfExactType<RootStoreProvider>()!
+      .rootStore;
 
   void downloadJson() {
     final json = {
-      "type": selectedType.toJson(),
-      "classes": selectedType.classes.map((e) => e.toJson()).toList(),
-      "fields": selectedType.classes
+      "type": selectedType!.toJson(),
+      "classes": selectedType!.classes.map((e) => e.toJson()).toList(),
+      "fields": selectedType!.classes
           .expand((e) => e.properties)
           .map((e) => e.toJson())
           .toList()
@@ -154,14 +156,15 @@ class RootStore {
   }
 
   void importJson(Map<String, dynamic> json) {
-    final type = TypeConfig.fromJson(json["type"] as Map<String, dynamic>);
-    if (type != null) {
+    try {
+      final type = TypeConfig.fromJson(json["type"] as Map<String, dynamic>);
+
       types[type.key] = type;
       for (final _classJson in json["classes"] as List<dynamic>) {
         final c = ClassConfig.fromJson(_classJson as Map<String, dynamic>);
         _loadItem<ClassConfig>(
           c,
-          c.typeConfig?.classes,
+          c.typeConfig.classes,
         );
       }
       for (final _propertyJson in json["fields"] as List<dynamic>) {
@@ -171,6 +174,8 @@ class RootStore {
           p.classConfig?.properties,
         );
       }
+    } catch (e, s) {
+      print("error $e\n$s");
     }
   }
 
@@ -192,7 +197,7 @@ class RootStore {
     final propertyBox = getBox<PropertyField>();
     for (final c in propertyBox.values) {
       if (c.classConfig != null) {
-        _loadItem(c, c.classConfig.properties);
+        _loadItem(c, c.classConfig!.properties);
       } else {
         _toDeleteProps.add(c.key);
       }
@@ -203,7 +208,7 @@ class RootStore {
     } else {
       final type = types.values.first;
       selectedTypeNotifier.value = type;
-      types[selectedTypeNotifier.value.key] = type;
+      types[selectedTypeNotifier.value!.key] = type;
     }
 
     await Future.wait([
@@ -234,9 +239,9 @@ class RootStore {
 
 void _loadItem<T extends Keyed>(
   T item,
-  List<T> list,
+  List<T>? list,
 ) {
-  if (item == null || list == null) {
+  if (list == null) {
     return;
   }
   final index = list.indexWhere((e) => e.key == item.key);
@@ -247,23 +252,23 @@ void _loadItem<T extends Keyed>(
   }
 }
 
-RootStore/*!*/ useRootStore([BuildContext context]) {
+RootStore useRootStore([BuildContext? context]) {
   return RootStore.of(context ?? useContext());
 }
 
-TypeConfig/*!*/ useSelectedType([BuildContext context]) {
+TypeConfig useSelectedType([BuildContext? context]) {
   final rootStore = RootStore.of(context ?? useContext());
   useListenable(rootStore.selectedTypeNotifier);
-  return rootStore.selectedType;
+  return rootStore.selectedType!;
 }
 
 class RootStoreProvider extends InheritedWidget {
   const RootStoreProvider({
-    Key key,
-    @required this.rootStore,
-    @required Widget child,
+    Key? key,
+    required this.rootStore,
+    required Widget child,
   }) : super(child: child, key: key);
-  final RootStore/*!*/ rootStore;
+  final RootStore rootStore;
 
   @override
   bool updateShouldNotify(RootStoreProvider oldWidget) {
@@ -276,7 +281,8 @@ enum MessageEvent {
   typesSaved,
 }
 
-MessageEvent parseMessageEvent(String rawString, {MessageEvent defaultValue}) {
+MessageEvent? parseMessageEvent(String rawString,
+    {MessageEvent? defaultValue}) {
   for (final variant in MessageEvent.values) {
     if (rawString == variant.toEnumString()) {
       return variant;
@@ -293,8 +299,8 @@ extension MessageEventExtension on MessageEvent {
   bool get isTypesSaved => this == MessageEvent.typesSaved;
 
   T when<T>({
-    @required T Function() typeCopied,
-    @required T Function() typesSaved,
+    required T Function() typeCopied,
+    required T Function() typesSaved,
   }) {
     switch (this) {
       case MessageEvent.typeCopied:
@@ -302,15 +308,14 @@ extension MessageEventExtension on MessageEvent {
       case MessageEvent.typesSaved:
         return typesSaved();
     }
-    throw "";
   }
 
-  T maybeWhen<T>({
-    T Function() typeCopied,
-    T Function() typesSaved,
-    T Function() orElse,
+  T? maybeWhen<T>({
+    T Function()? typeCopied,
+    T Function()? typesSaved,
+    T Function()? orElse,
   }) {
-    T Function() c;
+    T Function()? c;
     switch (this) {
       case MessageEvent.typeCopied:
         c = typeCopied;

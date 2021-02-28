@@ -2,10 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 extension GlobalPaintBoundsExt on BuildContext {
-  Rect get globalPaintBounds {
+  Rect? get globalPaintBounds {
     final renderObject = findRenderObject();
-    final translation = renderObject?.getTransformTo(null)?.getTranslation();
-    if (translation != null && renderObject.paintBounds != null) {
+    final translation = renderObject?.getTransformTo(null).getTranslation();
+    if (translation != null && renderObject!.paintBounds != null) {
       return renderObject.paintBounds
           .shift(Offset(translation.x, translation.y));
     } else {
@@ -41,7 +41,7 @@ extension IndexedMap<T> on Iterable<T> {
   }
 }
 
-T parseEnum<T>(String rawString, List<T> enumValues) {
+T? parseEnum<T>(String rawString, List<T> enumValues) {
   for (final value in enumValues) {
     final str = value.toString();
     if (str == rawString || str.split(".")[1] == rawString) {
@@ -52,7 +52,7 @@ T parseEnum<T>(String rawString, List<T> enumValues) {
 }
 
 extension ValueListenableBuilderExtension<T> on ValueListenable<T> {
-  Widget rebuild(Widget Function(T value) fn, {Key key}) {
+  Widget rebuild(Widget Function(T value) fn, {Key? key}) {
     return ValueListenableBuilder<T>(
       key: key,
       valueListenable: this,
@@ -74,4 +74,4 @@ extension ListenableBuilder on Listenable {
   }
 }
 
-const importExtensions = null;
+const dynamic importExtensions = null;

@@ -5,9 +5,9 @@ import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
 
 class CustomScrollGestures extends HookWidget {
   const CustomScrollGestures({
-    Key key,
-    @required this.child,
-    @required this.controller,
+    Key? key,
+    required this.child,
+    required this.controller,
     this.allowDrag = true,
   }) : super(key: key);
   final Widget child;
@@ -71,9 +71,9 @@ class CustomScrollGestures extends HookWidget {
 
 class _CustomMultiScrollView extends StatelessWidget {
   const _CustomMultiScrollView({
-    Key key,
-    @required this.controller,
-    @required this.child,
+    Key? key,
+    required this.controller,
+    required this.child,
   }) : super(key: key);
 
   final MultiScrollController controller;
@@ -113,9 +113,9 @@ class _CustomMultiScrollView extends StatelessWidget {
 
 class MouseScrollListener extends StatefulWidget {
   const MouseScrollListener({
-    Key key,
-    @required this.controller,
-    @required this.child,
+    Key? key,
+    required this.controller,
+    required this.child,
   }) : super(key: key);
   final MultiScrollController controller;
   final Widget child;

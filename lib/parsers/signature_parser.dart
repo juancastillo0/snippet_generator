@@ -21,14 +21,14 @@ class SignatureParser {
 class SignatureGeneric {
   const SignatureGeneric(this.id, this.inherits);
   final String id;
-  final String inherits;
+  final String? inherits;
 
   static final parser =
       (identifier & (string("extends") & identifier.trim()).trim().optional())
           .map(
     (value) => SignatureGeneric(
       value[0] as String,
-      value[1] != null ? value[1][1] as String : null,
+      value[1] != null ? value[1][1] as String? : null,
     ),
   );
 }

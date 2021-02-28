@@ -40,8 +40,8 @@ class Formatters {
 
   static CustomFormatter onlyDigitsCustom({
     int minLenght = 0,
-    int maxLength,
-    String errorMessage,
+    int? maxLength,
+    String? errorMessage,
   }) {
     return CustomFormatter(onlyDigits, validate: (t) {
       if (t.length >= minLenght && (maxLength == null || t.length <= maxLength)
@@ -55,11 +55,11 @@ class Formatters {
   }
 }
 
-bool Function(String) convertValidate(String Function(String) validate) {
-  return (String v) => validate(v) != null;
+bool Function(String) convertValidate(String? Function(String)? validate) {
+  return (String v) => validate!(v) != null;
 }
 
-String Function(String) combineValidators(
+String? Function(String) combineValidators(
   List<String Function(String)> validators,
 ) {
   return (String v) {
@@ -76,11 +76,11 @@ String Function(String) combineValidators(
 class CustomFormatter {
   CustomFormatter(
     this.formatter, {
-    String Function(String) validate,
+    String? Function(String)? validate,
   })  : this.validateWithError = validate,
         this.validate = convertValidate(validate);
 
   final bool Function(String) validate;
-  final String Function(String) validateWithError;
+  final String? Function(String)? validateWithError;
   final TextInputFormatter formatter;
 }

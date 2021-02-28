@@ -1,20 +1,19 @@
-import 'package:meta/meta.dart';
 import 'package:snippet_generator/models/serializer.dart';
 import 'package:test/test.dart';
 
 class WorkingHoursModel implements Serializable<WorkingHoursModel> {
-  final int dayId;
-  final bool startHourId;
+  final int? dayId;
+  final bool? startHourId;
 
   const WorkingHoursModel({
-    @required this.dayId,
-    @required this.startHourId,
+    required this.dayId,
+    required this.startHourId,
   });
 
-  static WorkingHoursModel fromJson(Map<String, dynamic> map) {
+  static WorkingHoursModel fromJson(Map<String, dynamic>? map) {
     return WorkingHoursModel(
-      dayId: map['dayId'] as int,
-      startHourId: map['startHourId'] as bool,
+      dayId: map!['dayId'] as int?,
+      startHourId: map['startHourId'] as bool?,
     );
   }
 

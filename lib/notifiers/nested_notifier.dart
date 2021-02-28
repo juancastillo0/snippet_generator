@@ -9,12 +9,12 @@ class NestedNotifier extends ChangeNotifier {
   final _nestedNotifiers = <NestedNotifier>[];
   final _collectionNotifiers = <EventConsumer>[];
 
-  final String propKey;
+  final String? propKey;
 
   NestedNotifier({
-    NestedNotifier parent,
-    String key,
-    String parentKey,
+    NestedNotifier? parent,
+    String? key,
+    String? parentKey,
     this.propKey,
   }) {
     parent?.registerNested(this);
@@ -37,7 +37,7 @@ class NestedNotifier extends ChangeNotifier {
     }
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String?, dynamic> toJson() {
     return Map.fromEntries(
       _notifiers
           .map(
@@ -45,33 +45,33 @@ class NestedNotifier extends ChangeNotifier {
           )
           .followedBy(
             _nestedNotifiers.map(
-              (e) => MapEntry(e.propKey, e.toJson()),
+              ((e) => MapEntry(e.propKey!, e.toJson())) as MapEntry<String, Object?> Function(NestedNotifier),
             ),
           )
           .followedBy(
             _collectionNotifiers.map(
-              (e) => MapEntry(e.propKey, e.toJson()),
+              ((e) => MapEntry(e.propKey!, e.toJson())) as MapEntry<String, Object?> Function(EventConsumer<Event<dynamic>>),
             ),
           ),
     );
   }
 
-  void fromJson(Map<String, dynamic> json) {
+  void fromJson(Map<String, dynamic>? json) {
     for (final notifier in _notifiers) {
-      if (json.containsKey(notifier.name)) {
+      if (json!.containsKey(notifier.name)) {
         notifier.trySetFromMap(json);
       }
     }
 
     for (final notifier in _nestedNotifiers) {
-      if (json.containsKey(notifier.propKey)) {
-        notifier.fromJson(json[notifier.propKey] as Map<String, dynamic>);
+      if (json!.containsKey(notifier.propKey)) {
+        notifier.fromJson(json[notifier.propKey!] as Map<String, dynamic>?);
       }
     }
 
     for (final notifier in _collectionNotifiers) {
-      if (json.containsKey(notifier.propKey)) {
-        notifier.fromJson(json[notifier.propKey] as Map<String, dynamic>);
+      if (json!.containsKey(notifier.propKey)) {
+        notifier.fromJson(json[notifier.propKey!] as Map<String, dynamic>?);
       }
     }
   }

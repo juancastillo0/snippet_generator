@@ -4,7 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 void useValueListenableEffect<T>(
   void Function(T) callback,
   ValueListenable<T> listenable, [
-  List<Object> keys,
+  List<Object>? keys,
 ]) {
   useEffect(
     () {
@@ -22,7 +22,7 @@ void useValueListenableEffect<T>(
 void useStreamEffect<T>(
   void Function(T) callback,
   Stream<T> listenable, [
-  List<Object> keys,
+  List<Object>? keys,
 ]) {
   useEffect(
     () {

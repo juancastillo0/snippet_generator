@@ -12,8 +12,8 @@ enum SupportedJsonType {
   Set,
 }
 
-SupportedJsonType parseSupportedJsonType(String rawString,
-    {SupportedJsonType defaultValue}) {
+SupportedJsonType? parseSupportedJsonType(String rawString,
+    {SupportedJsonType? defaultValue}) {
   for (final variant in SupportedJsonType.values) {
     if (rawString == variant.toEnumString()) {
       return variant;
@@ -34,17 +34,17 @@ extension SupportedJsonTypeExtension on SupportedJsonType {
   bool get isMap => this == SupportedJsonType.Map;
   bool get isSet => this == SupportedJsonType.Set;
 
-  T when<T>({
-    T Function() String,
-    T Function() int,
-    T Function() double,
-    T Function() num,
-    T Function() List,
-    T Function() Map,
-    T Function() Set,
-    T Function() orElse,
+  T? when<T>({
+    T Function()? String,
+    T Function()? int,
+    T Function()? double,
+    T Function()? num,
+    T Function()? List,
+    T Function()? Map,
+    T Function()? Set,
+    T Function()? orElse,
   }) {
-    T Function() c;
+    T Function()? c;
     switch (this) {
       case SupportedJsonType.String:
         c = String;

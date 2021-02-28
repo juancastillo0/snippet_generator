@@ -12,7 +12,7 @@ class ComputedNotifier<T> extends ComputedNotifierBase<T> {
 
   final T Function() _computer;
   @override
-  final Iterable<Listenable> Function() derivedDependencies;
+  final Iterable<Listenable> Function()? derivedDependencies;
 
   @override
   T computer() {
@@ -21,39 +21,39 @@ class ComputedNotifier<T> extends ComputedNotifierBase<T> {
 }
 
 abstract class ComputedNotifierBase<T> extends ChangeNotifier
-    implements ValueListenable<T/*!*/> {
-  ComputedNotifierBase([List<Listenable> _primaryDependencyList]) {
+    implements ValueListenable<T> {
+  ComputedNotifierBase([List<Listenable>? _primaryDependencyList]) {
     _primaryDependencies = Listenable.merge(
-      _primaryDependencyList ?? dependencies,
+      _primaryDependencyList ?? dependencies!,
     );
 
     if (derivedDependencies != null) {
       _calculateDependencies();
-      _primaryDependencies.addListener(_calculateDependencies);
+      _primaryDependencies!.addListener(_calculateDependencies);
     } else {
       _dependencies = _primaryDependencies;
     }
   }
 
   T computer();
-  Iterable<Listenable> Function() get derivedDependencies => null;
-  List<Listenable> get dependencies => null;
+  Iterable<Listenable> Function()? get derivedDependencies => null;
+  List<Listenable>? get dependencies => null;
 
-  Listenable _primaryDependencies;
-  Listenable _dependencies;
+  Listenable? _primaryDependencies;
+  Listenable? _dependencies;
   bool _isUpToDate = false;
   bool _isListening = false;
-  T _value;
+  T? _value;
 
   @override
-  T/*!*/ get value {
+  T get value {
     RebuilderGlobalScope.instance.addToScope(this);
     if (!_isUpToDate) {
       _listenDependencies();
       _updateValue(initial: true);
       _isUpToDate = true;
     }
-    return _value;
+    return _value!;
   }
 
   void _compute() {
@@ -77,7 +77,7 @@ abstract class ComputedNotifierBase<T> extends ChangeNotifier
   //
   //
 
-  void _updateValue({@required bool initial}) {
+  void _updateValue({required bool initial}) {
     final newValue = computer();
     if (_value != newValue) {
       _value = newValue;
@@ -89,21 +89,21 @@ abstract class ComputedNotifierBase<T> extends ChangeNotifier
 
   void _listenDependencies() {
     if (!_isListening) {
-      _dependencies.addListener(_compute);
+      _dependencies!.addListener(_compute);
       _isListening = true;
     }
   }
 
   void _stopListeningDependencies() {
     if (_isListening) {
-      _dependencies.removeListener(_compute);
+      _dependencies!.removeListener(_compute);
       _isListening = false;
     }
   }
 
   void _calculateDependencies() {
     final deps = Listenable.merge(
-      [_primaryDependencies, ...derivedDependencies()],
+      [_primaryDependencies, ...derivedDependencies!()],
     );
     if (_isListening) {
       _compute();
@@ -122,7 +122,7 @@ abstract class ComputedNotifierBase<T> extends ChangeNotifier
   void dispose() {
     _stopListeningDependencies();
     if (derivedDependencies != null) {
-      _primaryDependencies.removeListener(_calculateDependencies);
+      _primaryDependencies!.removeListener(_calculateDependencies);
     }
     super.dispose();
   }

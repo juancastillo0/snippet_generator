@@ -29,16 +29,16 @@ extension PrimitiveJsonExtension on PrimitiveJson {
   bool get isCustom => this == PrimitiveJson.custom;
   bool get isBool => this == PrimitiveJson.bool;
 
-  T when<T>({
-    T Function() String,
-    T Function() int,
-    T Function() double,
-    T Function() num,
-    T Function() custom,
-    T Function() bool,
-    T Function() orElse,
+  T? when<T>({
+    T Function()? String,
+    T Function()? int,
+    T Function()? double,
+    T Function()? num,
+    T Function()? custom,
+    T Function()? bool,
+    T Function()? orElse,
   }) {
-    T Function() c;
+    T Function()? c;
     switch (this) {
       case PrimitiveJson.String:
         c = String;

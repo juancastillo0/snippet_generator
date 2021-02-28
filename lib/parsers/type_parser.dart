@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/parsers/parsers.dart';
 import 'package:snippet_generator/utils/json_type.dart';
@@ -6,8 +5,8 @@ import 'package:snippet_generator/utils/json_type.dart';
 // ignore: constant_identifier_names
 enum CollectionType { List, Set }
 
-CollectionType parseCollectionType(String rawString,
-    {CollectionType defaultValue}) {
+CollectionType? parseCollectionType(String rawString,
+    {CollectionType? defaultValue}) {
   for (final variant in CollectionType.values) {
     if (rawString == variant.toEnumString()) {
       return variant;
@@ -23,12 +22,12 @@ extension CollectionTypeExtension on CollectionType {
   bool get isList => this == CollectionType.List;
   bool get isSet => this == CollectionType.Set;
 
-  T when<T>({
-    T Function() List,
-    T Function() Set,
-    T Function() orElse,
+  T? when<T>({
+    T Function()? List,
+    T Function()? Set,
+    T Function()? orElse,
   }) {
-    T Function() c;
+    T Function()? c;
     switch (this) {
       case CollectionType.List:
         c = List;
@@ -47,7 +46,7 @@ extension CollectionTypeExtension on CollectionType {
 class CollectionParser extends JsonTypeParser {
   const CollectionParser(this.collectionType, this.genericType);
   final CollectionType collectionType;
-  final JsonTypeParser genericType;
+  final JsonTypeParser? genericType;
 
   static CollectionParser _collect(dynamic parserOutput) {
     if (parserOutput is String) {
@@ -73,7 +72,7 @@ class CollectionParser extends JsonTypeParser {
 
 class MapParser extends JsonTypeParser {
   const MapParser(this.genericType);
-  final DoubleGeneric<PrimitiveParser, JsonTypeParser> genericType;
+  final DoubleGeneric<PrimitiveParser, JsonTypeParser>? genericType;
 
   static final parser = (string("Map").trim() &
           DoubleGeneric.parser(
@@ -83,7 +82,7 @@ class MapParser extends JsonTypeParser {
       .map(_collect);
 
   static MapParser _collect(List<dynamic> parserOutput) => MapParser(
-        parserOutput[1] as DoubleGeneric<PrimitiveParser, JsonTypeParser>,
+        parserOutput[1] as DoubleGeneric<PrimitiveParser, JsonTypeParser>?,
       );
 }
 
@@ -94,7 +93,7 @@ class PrimitiveParser extends JsonTypeParser {
   final String raw;
   final List<String> genericIds;
 
-  static PrimitiveParser _collect(dynamic raw) {
+  static PrimitiveParser? _collect(dynamic raw) {
     if (raw is String) {
       final type = parsePrimitiveJson(raw);
       return PrimitiveParser(type, raw);
@@ -133,11 +132,11 @@ class JsonTypeParser {
   const JsonTypeParser();
 
   T when<T>({
-    @required T Function(MapParser value) mapParser,
-    @required T Function(CollectionParser value) collectionParser,
-    @required T Function(PrimitiveParser value) primitiveParser,
+    required T Function(MapParser value) mapParser,
+    required T Function(CollectionParser value) collectionParser,
+    required T Function(PrimitiveParser value) primitiveParser,
   }) {
-    final v = this;
+    final JsonTypeParser v = this;
     if (v is MapParser) return mapParser(v);
     if (v is CollectionParser) return collectionParser(v);
     if (v is PrimitiveParser) return primitiveParser(v);
@@ -149,10 +148,10 @@ class JsonTypeParser {
             CollectionParser.listParser |
             CollectionParser.setParser |
             PrimitiveParser.parser)
-        .map((value) => value as JsonTypeParser));
+        .map((value) => value as JsonTypeParser?));
   }
 
-  static final SettableParser<JsonTypeParser> _parser =
-      undefined<JsonTypeParser>();
-  static Parser<JsonTypeParser> get parser => _parser;
+  static final SettableParser<JsonTypeParser?> _parser =
+      undefined<JsonTypeParser?>();
+  static Parser<JsonTypeParser?> get parser => _parser;
 }

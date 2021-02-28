@@ -8,35 +8,35 @@ abstract class MapEvent<K, V> implements Event<MapEvent<K, V>> {
   const MapEvent._();
 
   const factory MapEvent.change({
-    @required K key,
-    @required V oldValue,
-    @required V newValue,
+    required K key,
+    required V oldValue,
+    required V newValue,
   }) = MapChangeEvent<K, V>._;
   const factory MapEvent.insert({
-    @required K key,
-    @required V value,
+    required K key,
+    required V value,
   }) = MapInsertEvent<K, V>._;
   const factory MapEvent.remove({
-    @required K key,
-    @required V value,
+    required K key,
+    required V value,
   }) = MapRemoveEvent._;
   const factory MapEvent.many({
-    @required List<MapEvent<K, V>> events,
+    required List<MapEvent<K, V>> events,
   }) = MapManyEvent._;
 
   const factory MapEvent.replace({
-    @required Map<K, V> oldMap,
-    @required Map<K, V> newMap,
+    required Map<K, V> oldMap,
+    required Map<K, V> newMap,
   }) = MapReplaceEvent._;
 
   T when<T>({
-    @required T Function(MapChangeEvent<K, V> value) change,
-    @required T Function(MapInsertEvent<K, V> value) insert,
-    @required T Function(MapRemoveEvent<K, V> value) remove,
-    @required T Function(MapManyEvent<K, V> value) many,
-    @required T Function(MapReplaceEvent<K, V> value) replace,
+    required T Function(MapChangeEvent<K, V> value) change,
+    required T Function(MapInsertEvent<K, V> value) insert,
+    required T Function(MapRemoveEvent<K, V> value) remove,
+    required T Function(MapManyEvent<K, V> value) many,
+    required T Function(MapReplaceEvent<K, V> value) replace,
   }) {
-    final v = this;
+    final MapEvent<K, V> v = this;
     if (v is MapChangeEvent<K, V>) return change(v);
     if (v is MapInsertEvent<K, V>) return insert(v);
     if (v is MapRemoveEvent<K, V>) return remove(v);
@@ -45,8 +45,8 @@ abstract class MapEvent<K, V> implements Event<MapEvent<K, V>> {
     throw "";
   }
 
-  static MapEvent fromJson(Map<String, dynamic> map) {
-    switch (map["runtimeType"] as String) {
+  static MapEvent? fromJson(Map<String, dynamic> map) {
+    switch (map["runtimeType"] as String?) {
       case 'Change':
         return MapChangeEvent.fromJson(map);
       case 'Insert':
@@ -69,9 +69,9 @@ class MapChangeEvent<K, V> extends MapEvent<K, V> {
   final V newValue;
 
   const MapChangeEvent._({
-    @required this.key,
-    @required this.oldValue,
-    @required this.newValue,
+    required this.key,
+    required this.oldValue,
+    required this.newValue,
   }) : super._();
 
   static MapChangeEvent<K, V> fromJson<K, V>(Map<String, dynamic> map) {
@@ -102,8 +102,8 @@ class MapInsertEvent<K, V> extends MapEvent<K, V> {
   final V value;
 
   const MapInsertEvent._({
-    @required this.key,
-    @required this.value,
+    required this.key,
+    required this.value,
   }) : super._();
 
   static MapInsertEvent<K, V> fromJson<K, V>(Map<String, dynamic> map) {
@@ -131,8 +131,8 @@ class MapRemoveEvent<K, V> extends MapEvent<K, V> {
   final V value;
 
   const MapRemoveEvent._({
-    @required this.key,
-    @required this.value,
+    required this.key,
+    required this.value,
   }) : super._();
 
   static MapRemoveEvent<K, V> fromJson<K, V>(Map<String, dynamic> map) {
@@ -159,7 +159,7 @@ class MapManyEvent<K, V> extends MapEvent<K, V> {
   final List<MapEvent<K, V>> events;
 
   const MapManyEvent._({
-    @required this.events,
+    required this.events,
   }) : super._();
 
   static MapManyEvent<K, V> fromJson<K, V>(Map<String, dynamic> map) {
@@ -188,8 +188,8 @@ class MapReplaceEvent<K, V> extends MapEvent<K, V> {
   final Map<K, V> newMap;
 
   const MapReplaceEvent._({
-    @required this.oldMap,
-    @required this.newMap,
+    required this.oldMap,
+    required this.newMap,
   }) : super._();
 
   static MapReplaceEvent<K, V> fromJson<K, V>(Map<String, dynamic> map) {
@@ -216,16 +216,16 @@ Map<K, V> _defaultMapCreator<K, V>() {
   return <K, V>{};
 }
 
-class MapNotifier<K, V> extends EventConsumer<MapEvent<K/*!*/, V/*!*/>>
-    implements Map<K, V/*!*/> {
-  final Map<K/*!*/, V/*!*/> Function() _mapCreator;
-  /*late final*/ Map<K/*!*/, V/*!*/> _inner;
+class MapNotifier<K, V> extends EventConsumer<MapEvent<K, V>>
+    implements Map<K, V> {
+  final Map<K, V> Function() _mapCreator;
+  late final Map<K, V> _inner;
 
   MapNotifier({
-    int maxHistoryLength,
-    Map<K, V> Function() mapCreator,
-    NestedNotifier parent,
-    String propKey,
+    int? maxHistoryLength,
+    Map<K, V> Function()? mapCreator,
+    NestedNotifier? parent,
+    String? propKey,
   })  : _mapCreator = mapCreator ?? _defaultMapCreator,
         super(
           maxHistoryLength: maxHistoryLength,
@@ -263,7 +263,7 @@ class MapNotifier<K, V> extends EventConsumer<MapEvent<K/*!*/, V/*!*/>>
 
   MapEvent<K, V> _updateOrInsertEvent(K key, V value) {
     if (containsKey(key)) {
-      return MapEvent.change(key: key, newValue: value, oldValue: this[key]);
+      return MapEvent.change(key: key, newValue: value, oldValue: this[key] as V);
     } else {
       return MapEvent.insert(key: key, value: value);
     }
@@ -273,15 +273,15 @@ class MapNotifier<K, V> extends EventConsumer<MapEvent<K/*!*/, V/*!*/>>
   // INSERT SINGLE
 
   @override
-  V/*!*/ putIfAbsent(K key, V/*!*/ Function() ifAbsent) {
-    V value;
+  V putIfAbsent(K key, V Function() ifAbsent) {
+    V? value;
     if (containsKey(key)) {
       value = _inner[key];
     } else {
       value = ifAbsent();
-      apply(MapEvent.insert(key: key, value: value));
+      apply(MapEvent.insert(key: key, value: value!));
     }
-    return value;
+    return value!;
   }
 
   //
@@ -293,14 +293,14 @@ class MapNotifier<K, V> extends EventConsumer<MapEvent<K/*!*/, V/*!*/>>
   }
 
   @override
-  V/*!*/ update(K key, V/*!*/ Function(V/*!*/ value) update, {V/*!*/ Function() ifAbsent}) {
+  V update(K key, V Function(V value) update, {V Function()? ifAbsent}) {
     V value;
     if (containsKey(key)) {
-      final oldValue = this[key];
+      final V oldValue = this[key]!;
       value = update(oldValue);
       apply(MapEvent.change(key: key, newValue: value, oldValue: oldValue));
     } else {
-      value = ifAbsent();
+      value = ifAbsent!();
       apply(MapEvent.insert(key: key, value: value));
     }
     return value;
@@ -342,11 +342,11 @@ class MapNotifier<K, V> extends EventConsumer<MapEvent<K/*!*/, V/*!*/>>
   // REMOVE SINGLE
 
   @override
-  V remove(Object key) {
-    V value;
+  V? remove(Object? key) {
+    V? value;
     if (containsKey(key)) {
-      value = _inner[key];
-      apply(MapEvent.remove(key: key as K, value: value));
+      value = _inner[key as K];
+      apply(MapEvent.remove(key: key, value: value as V));
     }
     return value;
   }
@@ -378,16 +378,16 @@ class MapNotifier<K, V> extends EventConsumer<MapEvent<K/*!*/, V/*!*/>>
   // OVERRIDES
 
   @override
-  V operator [](Object key) => _inner[key];
+  V? operator [](Object? key) => _inner[key as K];
 
   @override
   Map<RK, RV> cast<RK, RV>() => _inner.cast<RK, RV>();
 
   @override
-  bool containsKey(Object key) => _inner.containsKey(key);
+  bool containsKey(Object? key) => _inner.containsKey(key);
 
   @override
-  bool containsValue(Object value) => _inner.containsValue(value);
+  bool containsValue(Object? value) => _inner.containsValue(value);
 
   @override
   Iterable<MapEntry<K, V>> get entries => _inner.entries;

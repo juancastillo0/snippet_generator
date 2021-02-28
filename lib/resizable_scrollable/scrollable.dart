@@ -13,9 +13,9 @@ const _scrollIconPadding = EdgeInsets.all(0);
 
 class MultiScrollController {
   MultiScrollController({
-    ScrollController vertical,
-    ScrollController horizontal,
-    void Function(double) setScale,
+    ScrollController? vertical,
+    ScrollController? horizontal,
+    void Function(double)? setScale,
     this.canScale = false,
   })  : vertical = vertical ?? ScrollController(),
         horizontal = horizontal ?? ScrollController(),
@@ -23,9 +23,9 @@ class MultiScrollController {
 
   final ScrollController vertical;
   final ScrollController horizontal;
-  final void Function(double) _setScale;
+  final void Function(double)? _setScale;
   final bool canScale;
-  BuildContext _context;
+  late BuildContext _context;
 
   final scaleNotifier = ValueNotifier<double>(1);
   double get scale => scaleNotifier.value;
@@ -40,10 +40,10 @@ class MultiScrollController {
     );
   }
 
-  Rect get globalPaintBounds => _context.globalPaintBounds;
+  Rect? get globalPaintBounds => _context.globalPaintBounds;
 
   Offset toCanvasOffset(Offset offset) {
-    final _canvasOffset = offset + offset - globalPaintBounds.topLeft;
+    final _canvasOffset = offset + offset - globalPaintBounds!.topLeft;
     return _canvasOffset / scale;
   }
 
@@ -53,15 +53,14 @@ class MultiScrollController {
   void onDrag(Offset delta) {
     if (delta.dx != 0) {
       final hp = horizontal.position;
-      final dx = (horizontal.offset - delta.dx).clamp(0.0, hp.maxScrollExtent)
-          as double;
+      final dx = (horizontal.offset - delta.dx).clamp(0.0, hp.maxScrollExtent);
       horizontal.jumpTo(dx);
     }
 
     if (delta.dy != 0) {
       final vp = vertical.position;
       final dy =
-          (vertical.offset - delta.dy).clamp(0.0, vp.maxScrollExtent) as double;
+          (vertical.offset - delta.dy).clamp(0.0, vp.maxScrollExtent);
       vertical.jumpTo(dy);
     }
   }
@@ -70,7 +69,7 @@ class MultiScrollController {
     if (!canScale) {
       return;
     }
-    scaleNotifier.value = newScale.clamp(0.4, 2.5) as double;
+    scaleNotifier.value = newScale.clamp(0.4, 2.5);
     _setScale?.call(scale);
     notifyAll();
   }
@@ -83,7 +82,7 @@ class MultiScrollController {
   }
 
   void notifyAll() {
-    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+    SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
       if (horizontal.hasClients) {
         final multiplerH = horizontal.offset <= 0.01 ? 1 : -1;
         horizontal.jumpTo(horizontal.offset + multiplerH * 0.0001);
@@ -106,14 +105,14 @@ class MultiScrollController {
 }
 
 class SingleScrollable extends StatelessWidget {
-  final Widget child;
-  final Widget Function(BuildContext, ScrollController) builder;
+  final Widget? child;
+  final Widget Function(BuildContext, ScrollController)? builder;
   final Axis scrollDirection;
-  final AlignmentGeometry alignment;
-  final EdgeInsetsGeometry padding;
+  final AlignmentGeometry? alignment;
+  final EdgeInsetsGeometry? padding;
 
   const SingleScrollable({
-    Key key,
+    Key? key,
     this.child,
     this.builder,
     this.scrollDirection = Axis.vertical,
@@ -136,19 +135,19 @@ class SingleScrollable extends StatelessWidget {
           );
           if (alignment != null) {
             _child = Align(
-              alignment: alignment,
+              alignment: alignment!,
               child: _child,
             );
           }
           if (padding != null) {
             _child = Padding(
-              padding: padding,
+              padding: padding!,
               child: _child,
             );
           }
           return _child;
         } else {
-          return builder(context, _controller);
+          return builder!(context, _controller);
         }
       },
     );
@@ -158,30 +157,30 @@ class SingleScrollable extends StatelessWidget {
 class MultiScrollable extends StatefulWidget {
   const MultiScrollable({
     this.builder,
-    Key key,
+    Key? key,
     this.controller,
   }) : super(key: key);
   final Widget Function(
     BuildContext context,
     MultiScrollController controller,
-  ) builder;
-  final MultiScrollController controller;
+  )? builder;
+  final MultiScrollController? controller;
 
   @override
   _MultiScrollableState createState() => _MultiScrollableState();
 }
 
 class _MultiScrollableState extends State<MultiScrollable> with RouteAware {
-  MultiScrollController controller;
-  double innerWidth;
-  double innerHeight;
+  late final MultiScrollController controller;
+  double? innerWidth;
+  double? innerHeight;
 
   @override
   void initState() {
     super.initState();
     _initController();
 
-    SchedulerBinding.instance.addPostFrameCallback((_) {
+    SchedulerBinding.instance!.addPostFrameCallback((_) {
       _notifyAll();
     });
   }
@@ -208,7 +207,7 @@ class _MultiScrollableState extends State<MultiScrollable> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    final child = widget.builder(context, controller);
+    final child = widget.builder!(context, controller);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,7 +218,7 @@ class _MultiScrollableState extends State<MultiScrollable> with RouteAware {
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, box) {
-                    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+                    SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
                       if (innerWidth != box.maxWidth ||
                           innerHeight != box.maxHeight) {
                         setState(() {
@@ -252,7 +251,7 @@ class _MultiScrollableState extends State<MultiScrollable> with RouteAware {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    routeObserver.subscribe(this, ModalRoute.of(context));
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
   @override
@@ -271,15 +270,15 @@ class _MultiScrollableState extends State<MultiScrollable> with RouteAware {
 
 class ButtonScrollbar extends HookWidget {
   const ButtonScrollbar({
-    Key key,
-    @required this.controller,
-    @required this.maxSize,
-    @required this.horizontal,
+    Key? key,
+    required this.controller,
+    required this.maxSize,
+    required this.horizontal,
   }) : super(key: key);
 
   final ScrollController controller;
   final bool horizontal;
-  final double maxSize;
+  final double? maxSize;
 
   void onPressedScrollButtonStart() {
     controller.jumpTo(max(controller.offset - 20, 0));
@@ -298,7 +297,7 @@ class ButtonScrollbar extends HookWidget {
     if (!controller.hasClients ||
         controller.position == null ||
         !controller.position.hasViewportDimension ||
-        controller.position.viewportDimension < maxSize ||
+        controller.position.viewportDimension < maxSize! ||
         controller.position.maxScrollExtent == 0) {
       return const SizedBox(width: 0, height: 0);
     }
@@ -373,12 +372,12 @@ class _ScrollbarButton extends StatelessWidget {
   final bool isStart;
 
   const _ScrollbarButton({
-    Key key,
-    @required this.onLongPressStart,
-    @required this.onLongPressEnd,
-    @required this.onPressed,
-    @required this.horizontal,
-    @required this.isStart,
+    Key? key,
+    required this.onLongPressStart,
+    required this.onLongPressEnd,
+    required this.onPressed,
+    required this.horizontal,
+    required this.isStart,
   }) : super(key: key);
 
   @override
@@ -408,9 +407,9 @@ class _ScrollbarButton extends StatelessWidget {
 
 class MultiScrollbar extends HookWidget {
   const MultiScrollbar({
-    @required this.controller,
+    required this.controller,
     this.horizontal = false,
-    Key key,
+    Key? key,
   }) : super(key: key);
   final ScrollController controller;
   final bool horizontal;
@@ -454,11 +453,11 @@ class MultiScrollbar extends HookWidget {
 
 class _ScrollHandle extends HookWidget {
   const _ScrollHandle({
-    Key key,
-    @required this.horizontal,
-    @required this.handleSize,
-    @required this.controller,
-    @required this.rate,
+    Key? key,
+    required this.horizontal,
+    required this.handleSize,
+    required this.controller,
+    required this.rate,
   }) : super(key: key);
 
   final bool horizontal;
@@ -482,7 +481,7 @@ class _ScrollHandle extends HookWidget {
         onPanUpdate: (DragUpdateDetails p) {
           final _delta = horizontal ? p.delta.dx : p.delta.dy;
           final _offset = (controller.offset + _delta / rate)
-              .clamp(0.0, position.maxScrollExtent) as double;
+              .clamp(0.0, position.maxScrollExtent);
           controller.jumpTo(_offset);
         },
         child: SizedBox(
@@ -500,9 +499,9 @@ class _ScrollHandle extends HookWidget {
 }
 
 class _DummySizer extends SingleChildRenderObjectWidget {
-  final Function(Size)/*!*/ onBuild;
+  final Function(Size) onBuild;
 
-  const _DummySizer({Key key, this.onBuild}) : super(key: key);
+  const _DummySizer({Key? key, required this.onBuild}) : super(key: key);
 
   @override
   RenderObject createRenderObject(BuildContext context) {
@@ -513,13 +512,13 @@ class _DummySizer extends SingleChildRenderObjectWidget {
 class _TRenderBox extends RenderBox {
   _TRenderBox({this.onBuild});
 
-  final Function(Size) onBuild;
+  final Function(Size)? onBuild;
 
   @override
   void paint(PaintingContext context, Offset offset) {
     final _p = parent;
     if (_p is RenderFlex && _p.hasSize) {
-      onBuild(_p.size);
+      onBuild!(_p.size);
     }
     super.paint(context, offset);
   }

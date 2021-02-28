@@ -63,7 +63,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends HookWidget {
-  const MyHomePage({Key key}) : super(key: key);
+  const MyHomePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +101,7 @@ class MyHomePage extends HookWidget {
 }
 
 class TypesTabView extends HookWidget {
-  const TypesTabView({Key key}) : super(key: key);
+  const TypesTabView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -145,9 +145,9 @@ class TypesTabView extends HookWidget {
 
 class RootStoreMessager extends HookWidget {
   const RootStoreMessager({
-    Key key,
-    @required this.child,
-    @required this.rootStore,
+    Key? key,
+    required this.child,
+    required this.rootStore,
   }) : super(key: key);
   final Widget child;
   final RootStore rootStore;
@@ -184,7 +184,7 @@ ButtonStyle _actionButton(BuildContext context) => TextButton.styleFrom(
     );
 
 class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _HomePageAppBar({Key key}) : super(key: key);
+  const _HomePageAppBar({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -279,8 +279,8 @@ class CodeGenerated extends HookWidget {
   final String sourceCode;
 
   const CodeGenerated({
-    Key key,
-    @required this.sourceCode,
+    Key? key,
+    required this.sourceCode,
   }) : super(key: key);
 
   @override
@@ -332,7 +332,7 @@ class CodeGenerated extends HookWidget {
 }
 
 class TypeCodeGenerated extends HookWidget {
-  const TypeCodeGenerated({Key key}) : super(key: key);
+  const TypeCodeGenerated({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -360,8 +360,8 @@ class TypeCodeGenerated extends HookWidget {
 }
 
 class HistoryView extends HookWidget {
-  const HistoryView({Key key, @required this.eventConsumer}) : super(key: key);
-  final EventConsumer<Object> eventConsumer;
+  const HistoryView({Key? key, required this.eventConsumer}) : super(key: key);
+  final EventConsumer<Object?> eventConsumer;
 
   @override
   Widget build(BuildContext context) {

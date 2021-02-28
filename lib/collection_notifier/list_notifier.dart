@@ -14,19 +14,19 @@ abstract class ListEvent<E> implements Event<ListEvent<E>> {
 
   const factory ListEvent.change(
     int index, {
-    @required E oldValue,
-    @required E newValue,
+    required E oldValue,
+    required E newValue,
   }) = ChangeListEvent._;
   const factory ListEvent.insert(int index, E value) = InsertListEvent._;
   const factory ListEvent.remove(int index, E value) = RemoveListEvent._;
   const factory ListEvent.many(List<ListEvent<E>> events) = ManyListEvent._;
   const factory ListEvent.recreate({
-    @required List<E> newList,
-    @required List<E> oldList,
+    required List<E> newList,
+    required List<E> oldList,
   }) = RecreateListEvent._;
 
   ListEventEnum get typeId {
-    final v = this;
+    final ListEvent<E> v = this;
     if (v is ChangeListEvent<E>) {
       return ListEventEnum.change;
     } else if (v is InsertListEvent<E>) {
@@ -44,13 +44,13 @@ abstract class ListEvent<E> implements Event<ListEvent<E>> {
   bool isType(ListEventEnum type) => type == typeId;
 
   T when<T>({
-    @required T Function(ChangeListEvent<E>) change,
-    @required T Function(InsertListEvent<E>) insert,
-    @required T Function(RemoveListEvent<E>) remove,
-    @required T Function(ManyListEvent<E>) many,
-    @required T Function(RecreateListEvent<E>) recreate,
+    required T Function(ChangeListEvent<E>) change,
+    required T Function(InsertListEvent<E>) insert,
+    required T Function(RemoveListEvent<E>) remove,
+    required T Function(ManyListEvent<E>) many,
+    required T Function(RecreateListEvent<E>) recreate,
   }) {
-    final v = this;
+    final ListEvent<E> v = this;
     if (v is ChangeListEvent<E>) return change(v);
     if (v is InsertListEvent<E>) return insert(v);
     if (v is RemoveListEvent<E>) return remove(v);
@@ -63,8 +63,8 @@ abstract class ListEvent<E> implements Event<ListEvent<E>> {
 class ChangeListEvent<E> extends ListEvent<E> {
   const ChangeListEvent._(
     this.index, {
-    @required this.oldValue,
-    @required this.newValue,
+    required this.oldValue,
+    required this.newValue,
   }) : super._();
   final int index;
   final E oldValue;
@@ -111,7 +111,7 @@ class ManyListEvent<E> extends ListEvent<E> {
 }
 
 class RecreateListEvent<E> extends ListEvent<E> {
-  const RecreateListEvent._({@required this.oldList, @required this.newList})
+  const RecreateListEvent._({required this.oldList, required this.newList})
       : super._();
   final List<E> newList;
   final List<E> oldList;
@@ -125,12 +125,12 @@ class RecreateListEvent<E> extends ListEvent<E> {
   }
 }
 
-class ListNotifier<E> extends EventConsumer<ListEvent<E/*!*/>> implements List<E/*!*/> {
+class ListNotifier<E> extends EventConsumer<ListEvent<E>> implements List<E> {
   ListNotifier(
     List<E> inner, {
-    int maxHistoryLength,
-    NestedNotifier parent,
-    String propKey,
+    int? maxHistoryLength,
+    NestedNotifier? parent,
+    String? propKey,
   })  : _inner = inner,
         super(
           maxHistoryLength: maxHistoryLength,
@@ -138,7 +138,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E/*!*/>> implements List<E
           propKey: propKey,
         );
 
-  List<E/*!*/> _inner;
+  List<E> _inner;
 
   @override
   dynamic toJson() {
@@ -236,7 +236,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E/*!*/>> implements List<E
   // REMOVE SINGLE
 
   @override
-  bool remove(Object value) {
+  bool remove(Object? value) {
     if (value is E) {
       final index = _inner.indexOf(value);
       if (index != -1) {
@@ -285,7 +285,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E/*!*/>> implements List<E
   void removeWhere(bool Function(E element) test) {
     int index = 0;
     final events = map((e) {
-      ListEvent<E> event;
+      ListEvent<E>? event;
       if (test(e)) {
         event = ListEvent.remove(index, e);
       } else {
@@ -294,7 +294,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E/*!*/>> implements List<E
       index++;
       return event;
     }).where((event) => event != null).toList();
-    apply(ListEvent.many(events));
+    apply(ListEvent.many(events.cast()));
   }
 
   @override
@@ -341,18 +341,18 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E/*!*/>> implements List<E
   }
 
   @override
-  void fillRange(int start, int end, [E fillValue]) {
+  void fillRange(int start, int end, [E? fillValue]) {
     validateRange(start, end);
 
     final events = Iterable<int>.generate(end - start).map((index) {
-      final oldValue = this[index];
+      final E oldValue = this[index];
       return ListEvent.change(
         index + start,
         oldValue: oldValue,
         newValue: fillValue,
       );
     }).toList();
-    apply(ListEvent.many(events));
+    apply(ListEvent.many(events.cast()));
   }
 
   @override
@@ -367,7 +367,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E/*!*/>> implements List<E
 
     int offset = index;
     final events = iterable.map((v) {
-      final oldValue = this[offset];
+      final E oldValue = this[offset];
       return ListEvent.change(offset++, oldValue: oldValue, newValue: v);
     }).toList();
     apply(ListEvent.many(events));
@@ -377,7 +377,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E/*!*/>> implements List<E
   // REORDER
 
   @override
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     if (length > 1) {
       final newList = [..._inner];
       newList.shuffle(random);
@@ -386,7 +386,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E/*!*/>> implements List<E
   }
 
   @override
-  void sort([int Function(E a, E b) compare]) {
+  void sort([int Function(E a, E b)? compare]) {
     if (length > 1) {
       final newList = [..._inner];
       newList.sort(compare);
@@ -406,7 +406,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E/*!*/>> implements List<E
 
   /// lengthInclusive: 0 <= index <= length
   /// !lengthInclusive: 0 <= index < length
-  void validateIndex(int index, {@required bool lengthInclusive}) {
+  void validateIndex(int index, {required bool lengthInclusive}) {
     if (0 > index || (lengthInclusive ? index > length : index >= length)) {
       throw lengthInclusive ? "0 <= index <= length" : "0 <= index < length";
     }
@@ -426,7 +426,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E/*!*/>> implements List<E
   List<R> cast<R>() => _inner.cast();
 
   @override
-  bool contains(Object element) => _inner.contains(element);
+  bool contains(Object? element) => _inner.contains(element);
 
   @override
   E elementAt(int index) => _inner.elementAt(index);
@@ -438,7 +438,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E/*!*/>> implements List<E
   Iterable<T> expand<T>(Iterable<T> Function(E element) f) => _inner.expand(f);
 
   @override
-  E firstWhere(bool Function(E element) test, {E Function() orElse}) =>
+  E firstWhere(bool Function(E element) test, {E Function()? orElse}) =>
       _inner.firstWhere(test, orElse: orElse);
 
   @override
@@ -474,14 +474,14 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E/*!*/>> implements List<E
   String join([String separator = ""]) => _inner.join(separator);
 
   @override
-  int lastIndexOf(E element, [int start]) => _inner.lastIndexOf(element, start);
+  int lastIndexOf(E element, [int? start]) => _inner.lastIndexOf(element, start);
 
   @override
-  int lastIndexWhere(bool Function(E element) test, [int start]) =>
+  int lastIndexWhere(bool Function(E element) test, [int? start]) =>
       _inner.lastIndexWhere(test, start);
 
   @override
-  E lastWhere(bool Function(E element) test, {E Function() orElse}) =>
+  E lastWhere(bool Function(E element) test, {E Function()? orElse}) =>
       _inner.lastWhere(test, orElse: orElse);
 
   @override
@@ -497,7 +497,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E/*!*/>> implements List<E
   E get single => _inner.single;
 
   @override
-  E singleWhere(bool Function(E element) test, {E Function() orElse}) =>
+  E singleWhere(bool Function(E element) test, {E Function()? orElse}) =>
       _inner.singleWhere(test, orElse: orElse);
 
   @override
@@ -507,7 +507,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E/*!*/>> implements List<E
   Iterable<E> skipWhile(bool Function(E value) test) => _inner.skipWhile(test);
 
   @override
-  List<E> sublist(int start, [int end]) => _inner.sublist(start, end);
+  List<E> sublist(int start, [int? end]) => _inner.sublist(start, end);
 
   @override
   Iterable<E> take(int count) => _inner.take(count);

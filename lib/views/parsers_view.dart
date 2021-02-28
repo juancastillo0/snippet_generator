@@ -16,7 +16,7 @@ class ParsedState {
 }
 
 class ParsersView extends HookWidget {
-  const ParsersView({Key key}) : super(key: key);
+  const ParsersView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -88,10 +88,10 @@ class ParsersView extends HookWidget {
 
 class ComponentWidgetTab extends HookWidget {
   const ComponentWidgetTab({
-    Key key,
-    @required this.onTap,
-    @required this.onDelete,
-    @required this.componentWidget,
+    Key? key,
+    required this.onTap,
+    required this.onDelete,
+    required this.componentWidget,
   }) : super(key: key);
 
   final void Function() onTap;
@@ -136,16 +136,16 @@ class ComponentWidgetTab extends HookWidget {
 
 class _ParsersViewBody extends HookWidget {
   const _ParsersViewBody({
-    Key key,
-    this.componentWidget,
+    Key? key,
+    required this.componentWidget,
   }) : super(key: key);
-  final ParsedState/*!*/ componentWidget;
+  final ParsedState componentWidget;
 
   @override
   Widget build(BuildContext context) {
     final controller = componentWidget.controller;
     useListenable(controller);
-    final selected = useState<WidgetParser>(null);
+    final selected = useState<WidgetParser?>(null);
 
     final result = useMemoized(
       () {
@@ -153,7 +153,7 @@ class _ParsersViewBody extends HookWidget {
         if (result.isSuccess) {
           final position = controller.selection.start;
 
-          WidgetParser getTokenAtPos(WidgetParser value) {
+          WidgetParser? getTokenAtPos(WidgetParser value) {
             final Token<List<dynamic>> token = value.token;
             if (!(token.start <= position && token.stop >= position)) {
               return null;
@@ -185,8 +185,8 @@ class _ParsersViewBody extends HookWidget {
       [componentWidget, controller.value],
     );
 
-    final _form = selected?.value == null ? null : selected.value.form(
-      selected?.value?.tokenParsedParams,
+    final _form = selected.value == null ? null : selected.value!.form!(
+      selected.value?.tokenParsedParams,
       controller,
     );
 

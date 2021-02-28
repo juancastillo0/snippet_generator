@@ -77,25 +77,25 @@ final paintParser = structParser({
   "style": paintingStyleParser,
   // "shader": shaderParser,
 }, optionalName: "Paint")
-    .map((params) {
+    .map<Paint>((params) {
   final paint = Paint();
   return paint
-    ..blendMode = params["blendMode"] as BlendMode ?? paint.blendMode
-    ..color = params["color"] as Color ?? paint.color
-    ..colorFilter = params["colorFilter"] as ColorFilter ?? paint.colorFilter
+    ..blendMode = params["blendMode"] as BlendMode? ?? paint.blendMode
+    ..color = params["color"] as Color? ?? paint.color
+    ..colorFilter = params["colorFilter"] as ColorFilter? ?? paint.colorFilter
     ..filterQuality =
-        params["filterQuality"] as FilterQuality ?? paint.filterQuality
-    ..imageFilter = params["imageFilter"] as ImageFilter ?? paint.imageFilter
-    ..invertColors = params["invertColors"] as bool ?? paint.invertColors
-    ..isAntiAlias = params["isAntiAlias"] as bool ?? paint.isAntiAlias
-    ..maskFilter = params["maskFilter"] as MaskFilter ?? paint.maskFilter
-    ..strokeCap = params["strokeCap"] as StrokeCap ?? paint.strokeCap
-    ..strokeJoin = params["strokeJoin"] as StrokeJoin ?? paint.strokeJoin
+        params["filterQuality"] as FilterQuality? ?? paint.filterQuality
+    ..imageFilter = params["imageFilter"] as ImageFilter? ?? paint.imageFilter
+    ..invertColors = params["invertColors"] as bool? ?? paint.invertColors
+    ..isAntiAlias = params["isAntiAlias"] as bool? ?? paint.isAntiAlias
+    ..maskFilter = params["maskFilter"] as MaskFilter? ?? paint.maskFilter
+    ..strokeCap = params["strokeCap"] as StrokeCap? ?? paint.strokeCap
+    ..strokeJoin = params["strokeJoin"] as StrokeJoin? ?? paint.strokeJoin
     ..strokeMiterLimit =
-        params["strokeMiterLimit"] as double ?? paint.strokeMiterLimit
-    ..strokeWidth = params["strokeWidth"] as double ?? paint.strokeWidth
-    ..style = params["style"] as PaintingStyle ?? paint.style
-    ..shader = params["shader"] as Shader ?? paint.shader;
+        params["strokeMiterLimit"] as double? ?? paint.strokeMiterLimit
+    ..strokeWidth = params["strokeWidth"] as double? ?? paint.strokeWidth
+    ..style = params["style"] as PaintingStyle? ?? paint.style
+    ..shader = params["shader"] as Shader? ?? paint.shader;
 });
 
 final fontWeightParser =
@@ -110,7 +110,7 @@ final textDecorationParser =
     ((string("TextDecoration") & char(".").trim()).optional() &
             stringsParser(["none", "overline", "underline", "lineThrough"]))
         .pick<String>(2)
-        .map((value) {
+        .map<TextDecoration>((value) {
   switch (value) {
     case "none":
       return TextDecoration.none;
@@ -150,29 +150,29 @@ final textStyleParser = structParser({
   "package": dartStringParser,
 }).map(
   (params) => TextStyle(
-    inherit: params["inherit"] as bool ?? true,
-    color: params["color"] as Color,
-    backgroundColor: params["backgroundColor"] as Color,
-    fontSize: params["fontSize"] as double,
-    fontWeight: params["fontWeight"] as FontWeight,
-    fontStyle: params["fontStyle"] as FontStyle,
-    letterSpacing: params["letterSpacing"] as double,
-    wordSpacing: params["wordSpacing"] as double,
-    textBaseline: params["textBaseline"] as TextBaseline,
-    height: params["height"] as double,
-    locale: params["locale"] as Locale,
-    foreground: params["foreground"] as Paint,
-    background: params["background"] as Paint,
-    shadows: params["shadows"] as List<Shadow>,
-    fontFeatures: params["fontFeatures"] as List<FontFeature>,
-    decoration: params["decoration"] as TextDecoration,
-    decorationColor: params["decorationColor"] as Color,
-    decorationStyle: params["decorationStyle"] as TextDecorationStyle,
-    decorationThickness: params["decorationThickness"] as double,
-    debugLabel: params["debugLabel"] as String,
-    fontFamily: params["fontFamily"] as String,
-    fontFamilyFallback: params["fontFamilyFallback"] as List<String>,
-    package: params["package"] as String,
+    inherit: params["inherit"] as bool? ?? true,
+    color: params["color"] as Color?,
+    backgroundColor: params["backgroundColor"] as Color?,
+    fontSize: params["fontSize"] as double?,
+    fontWeight: params["fontWeight"] as FontWeight?,
+    fontStyle: params["fontStyle"] as FontStyle?,
+    letterSpacing: params["letterSpacing"] as double?,
+    wordSpacing: params["wordSpacing"] as double?,
+    textBaseline: params["textBaseline"] as TextBaseline?,
+    height: params["height"] as double?,
+    locale: params["locale"] as Locale?,
+    foreground: params["foreground"] as Paint?,
+    background: params["background"] as Paint?,
+    shadows: params["shadows"] as List<Shadow>?,
+    fontFeatures: params["fontFeatures"] as List<FontFeature>?,
+    decoration: params["decoration"] as TextDecoration?,
+    decorationColor: params["decorationColor"] as Color?,
+    decorationStyle: params["decorationStyle"] as TextDecorationStyle?,
+    decorationThickness: params["decorationThickness"] as double?,
+    debugLabel: params["debugLabel"] as String?,
+    fontFamily: params["fontFamily"] as String?,
+    fontFamilyFallback: params["fontFamilyFallback"] as List<String>?,
+    package: params["package"] as String?,
   ),
 );
 
@@ -213,23 +213,24 @@ class _ValuePropClass<T> implements PropClass<T> {
 
 class WidgetFormState {
   WidgetFormState(this.tokenMap, this.mainController);
-  final Token<Map<String, Token<Object>>> tokenMap;
-  Map<String, Token<Object>> get map => tokenMap.value;
+  final Token<Map<String, Token<Object>>>? tokenMap;
+  Map<String, Token<Object>> get map => tokenMap!.value;
   final TextEditingController mainController;
 
   static WidgetFormState of(BuildContext context) {
     return context
-        .dependOnInheritedWidgetOfExactType<_WidgetFormStateWidget>()
+        .dependOnInheritedWidgetOfExactType<_WidgetFormStateWidget>()!
         .state;
   }
 
-  void replace(String key, String _value, Token token) {
+  void replace(String key, String _value, Token? token) {
     int stop;
     int start;
     String value;
     if (token == null) {
-      final _mapStr = tokenMap.buffer.substring(tokenMap.start, tokenMap.stop);
-      start = tokenMap.start + _mapStr.lastIndexOf(")");
+      final _mapStr =
+          tokenMap!.buffer.substring(tokenMap!.start, tokenMap!.stop);
+      start = tokenMap!.start + _mapStr.lastIndexOf(")");
       stop = start;
       if (map.isNotEmpty && !RegExp(r",\s*\)\s*$").hasMatch(_mapStr)) {
         value = ", $key: $_value";
@@ -257,7 +258,7 @@ class WidgetFormState {
 
 class _WidgetFormStateWidget extends InheritedWidget {
   final WidgetFormState state;
-  const _WidgetFormStateWidget(this.state, {Widget child, Key key})
+  const _WidgetFormStateWidget(this.state, {required Widget child, Key? key})
       : super(child: child, key: key);
 
   @override
@@ -268,7 +269,7 @@ class _WidgetFormStateWidget extends InheritedWidget {
 
 class AlignmentInput extends HookWidget {
   const AlignmentInput({
-    @required ValueKey<String> key,
+    required ValueKey<String> key,
   }) : super(key: key);
 
   @override
@@ -276,9 +277,9 @@ class AlignmentInput extends HookWidget {
     final key = this.key as ValueKey<String>;
     final global = WidgetFormState.of(context);
     final token = global.map[key.value];
-    final value = token?.value as Alignment ?? const Alignment(0, 0);
-    final controllerL = useTextEditingController();
-    final controllerR = useTextEditingController();
+    final value = token?.value as Alignment? ?? const Alignment(0, 0);
+    final  controllerL = useTextEditingController();
+    final  controllerR = useTextEditingController();
 
     useEffect(() {
       if (double.tryParse(controllerL.text) != value.x) {
@@ -292,11 +293,11 @@ class AlignmentInput extends HookWidget {
       return () {};
     }, [value]);
 
-    void set(Alignment newValue) {
+    void set(Alignment? newValue) {
       String newStrValue = newValue.toString();
       newStrValue = newStrValue.startsWith("Alignment.")
           ? newStrValue.replaceRange(0, 10, "")
-          : "Alignment(${newValue.x}, ${newValue.y})";
+          : "Alignment(${newValue!.x}, ${newValue.y})";
 
       global.replace(key.value, newStrValue, token);
     }
@@ -367,13 +368,13 @@ class AlignmentInput extends HookWidget {
 class DoubleInput extends HookWidget {
   final String label;
   final void Function(double) onChanged;
-  final double value;
+  final double? value;
 
   const DoubleInput({
-    Key key,
-    @required this.label,
-    @required this.onChanged,
-    @required this.value,
+    Key? key,
+    required this.label,
+    required this.onChanged,
+    required this.value,
   }) : super(key: key);
 
   @override
@@ -409,7 +410,7 @@ extension ExtEdgeInsets on EdgeInsets {
 
 class ColorInput extends HookWidget {
   const ColorInput({
-    @required ValueKey<String> key,
+    required ValueKey<String> key,
   }) : super(key: key);
 
   @override
@@ -417,7 +418,7 @@ class ColorInput extends HookWidget {
     final key = this.key as ValueKey<String>;
     final global = WidgetFormState.of(context);
     final token = global.map[key.value];
-    final value = token?.value as Color ?? Colors.transparent;
+    final value = token?.value as Color? ?? Colors.transparent;
 
     void set(Color newValue) {
       global.replace(
@@ -455,7 +456,7 @@ class ColorInput extends HookWidget {
 
 class DecorationInput extends HookWidget {
   const DecorationInput({
-    @required ValueKey<String> key,
+    required ValueKey<String> key,
   }) : super(key: key);
 
   @override
@@ -463,7 +464,7 @@ class DecorationInput extends HookWidget {
     final key = this.key as ValueKey<String>;
     final global = WidgetFormState.of(context);
     final token = global.map[key.value];
-    final value = token?.value as Decoration ?? const BoxDecoration();
+    final value = token?.value as Decoration? ?? const BoxDecoration();
 
     void set(Decoration newValue) {
       if (newValue is ShapeDecoration) {
@@ -509,7 +510,7 @@ class DecorationInput extends HookWidget {
 
 class PaddingInput extends HookWidget {
   const PaddingInput({
-    @required ValueKey<String> key,
+    required ValueKey<String> key,
   }) : super(key: key);
 
   @override
@@ -517,7 +518,7 @@ class PaddingInput extends HookWidget {
     final key = this.key as ValueKey<String>;
     final global = WidgetFormState.of(context);
     final token = global.map[key.value];
-    final value = token?.value as EdgeInsets ?? EdgeInsets.zero;
+    final value = token?.value as EdgeInsets? ?? EdgeInsets.zero;
 
     void set(EdgeInsets newValue) {
       String _f(String v, double vd) => vd == 0 ? "" : "$v: $vd, ";
@@ -690,6 +691,7 @@ final edgeInsetsParser = (doubleParser.map((value) => EdgeInsets.all(value)) |
           optionalName: "EdgeInsets",
         ).map((value) {
           print(value);
+          // TODO:
           switch (value.where((v) => v != null).length) {
             case 4:
               return EdgeInsets.fromLTRB(
@@ -709,7 +711,7 @@ final edgeInsetsParser = (doubleParser.map((value) => EdgeInsets.all(value)) |
               return EdgeInsets.all(value[0]);
           }
         }))
-    .map((v) => v as EdgeInsetsGeometry);
+    .map((v) => v as EdgeInsetsGeometry?);
 
 final boxConstraintsParser = structParser(
   {
@@ -726,12 +728,12 @@ final boxConstraintsParser = structParser(
         string("tightForFinite")
   },
   optionalName: "EdgeInsets",
-).map((value) {
-  switch (value["factory"] as String) {
+).map<BoxConstraints>((value) {
+  switch (value["factory"] as String?) {
     case "expand":
       return BoxConstraints.expand(
-        height: value["height"] as double,
-        width: value["width"] as double,
+        height: value["height"] as double?,
+        width: value["width"] as double?,
       );
     case "loose":
       return BoxConstraints.loose(Size(
@@ -745,20 +747,20 @@ final boxConstraintsParser = structParser(
       ));
     case "tightFor":
       return BoxConstraints.tightFor(
-        height: value["height"] as double,
-        width: value["width"] as double,
+        height: value["height"] as double?,
+        width: value["width"] as double?,
       );
     case "tightForFinite":
       return BoxConstraints.tightForFinite(
-        height: value["height"] as double ?? double.infinity,
-        width: value["width"] as double ?? double.infinity,
+        height: value["height"] as double? ?? double.infinity,
+        width: value["width"] as double? ?? double.infinity,
       );
     default:
       return BoxConstraints(
-        maxHeight: value["maxHeight"] as double ?? double.infinity,
-        minHeight: value["minHeight"] as double ?? 0,
-        maxWidth: value["maxWidth"] as double ?? double.infinity,
-        minWidth: value["minWidth"] as double ?? 0,
+        maxHeight: value["maxHeight"] as double? ?? double.infinity,
+        minHeight: value["minHeight"] as double? ?? 0,
+        maxWidth: value["maxWidth"] as double? ?? double.infinity,
+        minWidth: value["minWidth"] as double? ?? 0,
       );
   }
 });
@@ -775,9 +777,9 @@ final borderSideParser =
             }, optionalName: "BorderSide")
                 .map((params) {
               return BorderSide(
-                color: params["color"] as Color ?? const Color(0xFF000000),
-                width: params["width"] as double ?? 1.0,
-                style: params["style"] as BorderStyle ?? BorderStyle.solid,
+                color: params["color"] as Color? ?? const Color(0xFF000000),
+                width: params["width"] as double? ?? 1.0,
+                style: params["style"] as BorderStyle? ?? BorderStyle.solid,
               );
             }))
         .cast<BorderSide>();
@@ -802,31 +804,31 @@ final borderParser =
             }, optionalName: "Border")
                 .map((params) {
               // TODO: BorderDirectional
-              switch (params["factory"] as String) {
+              switch (params["factory"] as String?) {
                 case "all":
                   return Border.all(
-                    color: params["color"] as Color ?? const Color(0xFF000000),
-                    width: params["width"] as double ?? 1.0,
-                    style: params["style"] as BorderStyle ?? BorderStyle.solid,
+                    color: params["color"] as Color? ?? const Color(0xFF000000),
+                    width: params["width"] as double? ?? 1.0,
+                    style: params["style"] as BorderStyle? ?? BorderStyle.solid,
                   );
                 case "symmetric":
                   return Border.symmetric(
                     horizontal:
-                        params["horizontal"] as BorderSide ?? BorderSide.none,
+                        params["horizontal"] as BorderSide? ?? BorderSide.none,
                     vertical:
-                        params["vertical"] as BorderSide ?? BorderSide.none,
+                        params["vertical"] as BorderSide? ?? BorderSide.none,
                   );
                 case "fromBorderSide":
                   return Border.fromBorderSide(
                     // TODO: unnecessary namedParam
-                    params["borderSide"] as BorderSide ?? BorderSide.none,
+                    params["borderSide"] as BorderSide? ?? BorderSide.none,
                   );
                 default:
                   return Border(
-                    top: params["top"] as BorderSide ?? BorderSide.none,
-                    bottom: params["bottom"] as BorderSide ?? BorderSide.none,
-                    left: params["left"] as BorderSide ?? BorderSide.none,
-                    right: params["right"] as BorderSide ?? BorderSide.none,
+                    top: params["top"] as BorderSide? ?? BorderSide.none,
+                    bottom: params["bottom"] as BorderSide? ?? BorderSide.none,
+                    left: params["left"] as BorderSide? ?? BorderSide.none,
+                    right: params["right"] as BorderSide? ?? BorderSide.none,
                   );
               }
             }))
@@ -836,7 +838,7 @@ final offsetParser = tupleParser(
   Iterable.generate(2).map((_) => doubleParser).toList(),
   numberRequired: 2,
   optionalName: "Offset",
-).map((value) {
+).map<Offset>((value) {
   return Offset(value[0], value[1]);
 });
 
@@ -874,20 +876,20 @@ final boxShadowParser = structParser({
   "offset": offsetParser,
   "blurStyle": blurStyleParser,
 }, optionalName: "BoxDecoration")
-    .map((params) {
+    .map<BoxShadow>((params) {
   if (params["blurStyle"] is BlurStyle) {
     return CustomBoxShadow(
-      color: params["color"] as Color ?? const Color(0xFF000000),
-      blurRadius: params["blurRadius"] as double ?? 0.0,
-      blurStyle: params["blurStyle"] as BlurStyle ?? BlurStyle.normal,
-      offset: params["offset"] as Offset ?? Offset.zero,
+      color: params["color"] as Color? ?? const Color(0xFF000000),
+      blurRadius: params["blurRadius"] as double? ?? 0.0,
+      blurStyle: params["blurStyle"] as BlurStyle? ?? BlurStyle.normal,
+      offset: params["offset"] as Offset? ?? Offset.zero,
     );
   }
   return BoxShadow(
-    color: params["color"] as Color ?? const Color(0xFF000000),
-    blurRadius: params["blurRadius"] as double ?? 0.0,
-    spreadRadius: params["spreadRadius"] as double ?? 0.0,
-    offset: params["offset"] as Offset ?? Offset.zero,
+    color: params["color"] as Color? ?? const Color(0xFF000000),
+    blurRadius: params["blurRadius"] as double? ?? 0.0,
+    spreadRadius: params["spreadRadius"] as double? ?? 0.0,
+    offset: params["offset"] as Offset? ?? Offset.zero,
   );
 });
 
@@ -907,9 +909,10 @@ final gradientParser = structParser({
 }).map((params) {
   Alignment.bottomCenter;
   // LinearGradient, RadialGradient, SweepGradient
-  RadialGradient();
-  SweepGradient();
-  return LinearGradient();
+  // RadialGradient();
+  // SweepGradient();
+  // return LinearGradient();
+  throw UnimplementedError();
 });
 
 final boxDecorationParser = structParser({
@@ -921,16 +924,16 @@ final boxDecorationParser = structParser({
   "backgroundBlendMode": blendModeParser,
   "gradient": gradientParser
 }, optionalName: "BoxDecoration")
-    .map((params) {
+    .map<BoxDecoration>((params) {
   // TODO: decoration image
   return BoxDecoration(
-    color: params["color"] as Color,
-    shape: params["shape"] as BoxShape ?? BoxShape.rectangle,
-    border: params["border"] as BoxBorder,
-    boxShadow: params["boxShadow"] as List<BoxShadow>,
-    borderRadius: params["borderRadius"] as BorderRadiusGeometry,
-    backgroundBlendMode: params["backgroundBlendMode"] as BlendMode,
-    gradient: params["gradient"] as Gradient,
+    color: params["color"] as Color?,
+    shape: params["shape"] as BoxShape? ?? BoxShape.rectangle,
+    border: params["border"] as BoxBorder?,
+    boxShadow: params["boxShadow"] as List<BoxShadow>?,
+    borderRadius: params["borderRadius"] as BorderRadiusGeometry?,
+    backgroundBlendMode: params["backgroundBlendMode"] as BlendMode?,
+    gradient: params["gradient"] as Gradient?,
   );
 });
 
@@ -964,23 +967,24 @@ final borderRadiusParser =
               "bottomRight": radiusParser,
             }, optionalName: "BorderRadius")
                 .map((params) {
-              switch (params["factory"] as String) {
+              switch (params["factory"] as String?) {
                 case "horizontal":
                   return BorderRadius.horizontal(
-                    left: params["left"] as Radius ?? Radius.zero,
-                    right: params["right"] as Radius ?? Radius.zero,
+                    left: params["left"] as Radius? ?? Radius.zero,
+                    right: params["right"] as Radius? ?? Radius.zero,
                   );
                 case "vertical":
                   return BorderRadius.vertical(
-                    bottom: params["bottom"] as Radius ?? Radius.zero,
-                    top: params["top"] as Radius ?? Radius.zero,
+                    bottom: params["bottom"] as Radius? ?? Radius.zero,
+                    top: params["top"] as Radius? ?? Radius.zero,
                   );
                 default:
                   return BorderRadius.only(
-                    topLeft: params["topLeft"] as Radius ?? Radius.zero,
-                    topRight: params["topRight"] as Radius ?? Radius.zero,
-                    bottomLeft: params["bottomLeft"] as Radius ?? Radius.zero,
-                    bottomRight: params["bottomRight"] as Radius ?? Radius.zero,
+                    topLeft: params["topLeft"] as Radius? ?? Radius.zero,
+                    topRight: params["topRight"] as Radius? ?? Radius.zero,
+                    bottomLeft: params["bottomLeft"] as Radius? ?? Radius.zero,
+                    bottomRight:
+                        params["bottomRight"] as Radius? ?? Radius.zero,
                   );
               }
             }))
@@ -1007,9 +1011,10 @@ final Parser<ShapeBorder> shapeBorderParser = (borderParser |
           if (!name.endsWith("Border")) {
             name = "${name}Border";
           }
-          final side = params["side"] as BorderSide ?? BorderSide.none;
-          final borderRadius = params["borderRadius"] as BorderRadiusGeometry ??
-              BorderRadius.zero;
+          final side = params["side"] as BorderSide? ?? BorderSide.none;
+          final borderRadius =
+              params["borderRadius"] as BorderRadiusGeometry? ??
+                  BorderRadius.zero;
           switch (name) {
             case "CircleBorder":
               return CircleBorder(
@@ -1048,11 +1053,11 @@ final shapeDecorationParser = structParser({
     return null;
   }
   return ShapeDecoration(
-    color: params["color"] as Color,
+    color: params["color"] as Color?,
     shape: params["shape"] as ShapeBorder,
-    shadows: params["shadows"] as List<BoxShadow>,
+    shadows: params["shadows"] as List<BoxShadow>?,
   );
-});
+} as ShapeDecoration Function(Map<String, Object>));
 
 final decorationParser =
     (boxDecorationParser | shapeDecorationParser).cast<Decoration>();

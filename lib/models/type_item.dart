@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:snippet_generator/models/type_models.dart';
 
 abstract class TypeItem implements Clonable<TypeItem> {
@@ -16,7 +15,7 @@ abstract class TypeItem implements Clonable<TypeItem> {
     );
   }
 
-  ClassConfig parentClass() {
+  ClassConfig? parentClass() {
     return this.when(
       classI: (c) => c,
       typeI: (t) => null,
@@ -29,8 +28,8 @@ abstract class TypeItem implements Clonable<TypeItem> {
     return this.when(
       classI: (c) => c.typeConfig,
       typeI: (t) => t,
-      propertyI: (p) => p.classConfig.typeConfig,
-      propertyListI: (p) => p.first.classConfig.typeConfig,
+      propertyI: (p) => p.classConfig!.typeConfig,
+      propertyListI: (p) => p.first.classConfig!.typeConfig,
     );
   }
 
@@ -48,12 +47,12 @@ abstract class TypeItem implements Clonable<TypeItem> {
   ) = _PropertyListI;
 
   T when<T>({
-    @required T Function(ClassConfig value) classI,
-    @required T Function(TypeConfig value) typeI,
-    @required T Function(PropertyField value) propertyI,
-    @required T Function(List<PropertyField> value) propertyListI,
+    required T Function(ClassConfig value) classI,
+    required T Function(TypeConfig value) typeI,
+    required T Function(PropertyField value) propertyI,
+    required T Function(List<PropertyField> value) propertyListI,
   }) {
-    final v = this;
+    final TypeItem v = this;
     if (v is _ClassI) return classI(v.value);
     if (v is _TypeI) return typeI(v.value);
     if (v is _PropertyI) return propertyI(v.value);
@@ -61,14 +60,14 @@ abstract class TypeItem implements Clonable<TypeItem> {
     throw "";
   }
 
-  T maybeWhen<T>({
-    T Function() orElse,
-    T Function(ClassConfig value) classI,
-    T Function(TypeConfig value) typeI,
-    T Function(PropertyField value) propertyI,
-    T Function(List<PropertyField> value) propertyListI,
+  T? maybeWhen<T>({
+    T Function()? orElse,
+    T Function(ClassConfig value)? classI,
+    T Function(TypeConfig value)? typeI,
+    T Function(PropertyField value)? propertyI,
+    T Function(List<PropertyField> value)? propertyListI,
   }) {
-    final v = this;
+    final TypeItem v = this;
     if (v is _ClassI) return classI != null ? classI(v.value) : orElse?.call();
     if (v is _TypeI) return typeI != null ? typeI(v.value) : orElse?.call();
     if (v is _PropertyI)
@@ -79,12 +78,12 @@ abstract class TypeItem implements Clonable<TypeItem> {
   }
 
   T map<T>({
-    @required T Function(_ClassI value) classI,
-    @required T Function(_TypeI value) typeI,
-    @required T Function(_PropertyI value) propertyI,
-    @required T Function(_PropertyListI value) propertyListI,
+    required T Function(_ClassI value) classI,
+    required T Function(_TypeI value) typeI,
+    required T Function(_PropertyI value) propertyI,
+    required T Function(_PropertyListI value) propertyListI,
   }) {
-    final v = this;
+    final TypeItem v = this;
     if (v is _ClassI) return classI(v);
     if (v is _TypeI) return typeI(v);
     if (v is _PropertyI) return propertyI(v);
@@ -92,14 +91,14 @@ abstract class TypeItem implements Clonable<TypeItem> {
     throw "";
   }
 
-  T maybeMap<T>({
-    T Function() orElse,
-    T Function(_ClassI value) classI,
-    T Function(_TypeI value) typeI,
-    T Function(_PropertyI value) propertyI,
-    T Function(_PropertyListI value) propertyListI,
+  T? maybeMap<T>({
+    T Function()? orElse,
+    T Function(_ClassI value)? classI,
+    T Function(_TypeI value)? typeI,
+    T Function(_PropertyI value)? propertyI,
+    T Function(_PropertyListI value)? propertyListI,
   }) {
-    final v = this;
+    final TypeItem v = this;
     if (v is _ClassI) return classI != null ? classI(v) : orElse?.call();
     if (v is _TypeI) return typeI != null ? typeI(v) : orElse?.call();
     if (v is _PropertyI)
@@ -109,8 +108,8 @@ abstract class TypeItem implements Clonable<TypeItem> {
     throw "";
   }
 
-  static TypeItem fromJson(Map<String, dynamic> map) {
-    switch (map["runtimeType"] as String) {
+  static TypeItem? fromJson(Map<String, dynamic> map) {
+    switch (map["runtimeType"] as String?) {
       case '_ClassI':
         return _ClassI.fromJson(map);
       case '_TypeI':

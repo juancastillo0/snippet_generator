@@ -24,7 +24,7 @@ class RebuilderGlobalScope {
 class Rebuilder extends StatefulWidget {
   final Widget Function(BuildContext) builder;
 
-  const Rebuilder({Key key, @required this.builder}) : super(key: key);
+  const Rebuilder({Key? key, required this.builder}) : super(key: key);
   @override
   _RebuilderState createState() => _RebuilderState();
 }

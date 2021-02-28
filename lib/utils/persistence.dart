@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:snippet_generator/models/serializer.dart';
@@ -14,7 +13,7 @@ final _boxesMap = {
 };
 
 Box<T> getBox<T>() {
-  return Hive.box<T>(_boxesMap[T].boxName);
+  return Hive.box<T>(_boxesMap[T]!.boxName);
 }
 
 Future<void> initHive() async {
@@ -30,7 +29,7 @@ Future<void> initHive() async {
 }
 
 class _JsonAdapter<T> extends TypeAdapter<T> {
-  _JsonAdapter({@required this.typeId, @required this.serializer});
+  _JsonAdapter({required this.typeId, required this.serializer});
 
   final Serializer<T> serializer;
 

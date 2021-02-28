@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:petitparser/petitparser.dart';
@@ -14,22 +15,22 @@ import 'package:snippet_generator/parsers/type_parser.dart';
 import 'package:uuid/uuid.dart';
 
 class AdvancedTypeConfig implements Serializable<AdvancedTypeConfig> {
-  /*late final*/ TextNotifier customCodeNotifier;
+  late final TextNotifier customCodeNotifier;
   String get customCode => customCodeNotifier.text;
 
-  /*late final*/ AppNotifier<bool> overrideConstructorNotifier;
+  late final AppNotifier<bool> overrideConstructorNotifier;
   bool get overrideConstructor => overrideConstructorNotifier.value;
 
-  /*late final*/ AppNotifier<bool> isConstNotifier;
+  late final AppNotifier<bool> isConstNotifier;
   bool get isConst => isConstNotifier.value;
 
-  /*late final*/ Listenable _listenable;
+  late final Listenable _listenable;
   Listenable get listenable => _listenable;
 
   AdvancedTypeConfig({
-    String customCode,
-    bool overrideConstructor,
-    bool isConst,
+    String? customCode,
+    bool? overrideConstructor,
+    bool? isConst,
   }) {
     overrideConstructorNotifier = AppNotifier(overrideConstructor ?? false,
         parent: this, name: "overrideConstructor");
@@ -55,9 +56,9 @@ class AdvancedTypeConfig implements Serializable<AdvancedTypeConfig> {
 
   static AdvancedTypeConfig fromJson(Map<String, dynamic> json) {
     return AdvancedTypeConfig(
-      customCode: json["customCode"] as String,
-      overrideConstructor: json["overrideConstructor"] as bool,
-      isConst: json["isConst"] as bool,
+      customCode: json["customCode"] as String?,
+      overrideConstructor: json["overrideConstructor"] as bool?,
+      isConst: json["isConst"] as bool?,
     );
   }
 }
@@ -67,12 +68,12 @@ class TypeConfig
   @override
   final String key;
 
-  /*late final*/ TextNotifier signatureNotifier;
+  late final TextNotifier signatureNotifier;
   String get signature => signatureNotifier.text;
 
-  /*late final*/ ComputedNotifier<Result<SignatureParser>> signatureParserNotifier;
+  late final ComputedNotifier<Result<SignatureParser>> signatureParserNotifier;
   String get name {
-    final result = signatureParserNotifier.value;
+    final Result<SignatureParser> result = signatureParserNotifier.value;
     if (result.isSuccess) {
       return result.value.name;
     } else {
@@ -82,36 +83,36 @@ class TypeConfig
 
   // Settings
 
-  /*late final*/ AppNotifier<bool> isDataValueNotifier;
+  late final AppNotifier<bool> isDataValueNotifier;
   bool get isDataValue => isDataValueNotifier.value;
 
-  /*late final*/ AppNotifier<bool> isSumTypeNotifier;
+  late final AppNotifier<bool> isSumTypeNotifier;
   bool get isSumType => isSumTypeNotifier.value;
-  /*late final*/ SumTypeConfig sumTypeConfig;
+  late final SumTypeConfig sumTypeConfig;
 
-  /*late final*/ AppNotifier<bool> isSerializableNotifier;
+  late final AppNotifier<bool> isSerializableNotifier;
   bool get isSerializable => isSerializableNotifier.value;
-  /*late final*/ SerializableConfig serializableConfig;
+  late final SerializableConfig serializableConfig;
 
-  /*late final*/ AppNotifier<bool> isListenableNotifier;
+  late final AppNotifier<bool> isListenableNotifier;
   bool get isListenable => isListenableNotifier.value;
 
-  /*late final*/ AppNotifier<bool> isEnumNotifier;
+  late final AppNotifier<bool> isEnumNotifier;
   bool get isEnum => isEnumNotifier.value;
 
   // Advanced
 
-  /*late final*/ AdvancedTypeConfig advancedConfig;
+  late final AdvancedTypeConfig advancedConfig;
 
   // Enum
 
-  /*late final*/ AppNotifier<String> defaultEnumKeyNotifier;
-  /*late final*/ ComputedNotifier<ClassConfig> defaultEnumNotifier;
-  ClassConfig get defaultEnum => defaultEnumNotifier.value;
+  late final AppNotifier<String?> defaultEnumKeyNotifier;
+  late final ComputedNotifier<ClassConfig?> defaultEnumNotifier;
+  ClassConfig? get defaultEnum => defaultEnumNotifier.value;
 
-  /*late final*/ ComputedNotifier<bool> hasVariants;
+  late final ComputedNotifier<bool> hasVariants;
 
-  final ListNotifier<ClassConfig/*!*/> classes;
+  final ListNotifier<ClassConfig> classes;
 
   Map<String, AppNotifier<bool>> get allSettings => {
         "Data Value": isDataValueNotifier,
@@ -121,26 +122,26 @@ class TypeConfig
         "Enum": isEnumNotifier,
       };
 
-  final _deepListenable = AppNotifier<Listenable>(null);
-  Listenable get deepListenable => _deepListenable.value;
-  Listenable _listenable;
-  Listenable get listenable => _listenable;
+  final _deepListenable = AppNotifier<Listenable?>(null);
+  Listenable get deepListenable => _deepListenable.value!;
+  Listenable? _listenable;
+  Listenable? get listenable => _listenable;
 
   RootStore get rootStore => Globals.get<RootStore>();
 
   TypeConfig({
-    String key,
-    String signature,
-    bool isEnum,
-    bool isDataValue,
-    bool isSumType,
-    bool isSerializable,
-    bool isListenable,
-    String defaultEnumKey,
-    List<ClassConfig> classes,
-    AdvancedTypeConfig advancedConfig,
-    SumTypeConfig sumTypeConfig,
-    SerializableConfig serializableConfig,
+    String? key,
+    String? signature,
+    bool? isEnum,
+    bool? isDataValue,
+    bool? isSumType,
+    bool? isSerializable,
+    bool? isListenable,
+    String? defaultEnumKey,
+    List<ClassConfig>? classes,
+    AdvancedTypeConfig? advancedConfig,
+    SumTypeConfig? sumTypeConfig,
+    SerializableConfig? serializableConfig,
   })  : key = key ?? uuid.v4(),
         classes = ListNotifier(classes ?? []),
         sumTypeConfig = sumTypeConfig ?? SumTypeConfig(),
@@ -159,9 +160,8 @@ class TypeConfig
     );
     defaultEnumNotifier = ComputedNotifier(
       () => defaultEnumKeyNotifier.value != null
-          ? this.classes.firstWhere(
+          ? this.classes.firstWhereOrNull(
                 (e) => e.key == defaultEnumKeyNotifier.value,
-                orElse: () => null,
               )
           : null,
       [defaultEnumKeyNotifier, this.classes],
@@ -194,7 +194,7 @@ class TypeConfig
     classes.add(ClassConfig(typeConfigKey: key));
   }
 
-  var __s = <AppNotifier<Listenable>>{};
+  Set<AppNotifier<Listenable?>> __s = <AppNotifier<Listenable>>{};
   void _setUpDeepListenable() {
     final _s = classes.map((e) => e._deepListenable).toSet();
 
@@ -230,42 +230,43 @@ class TypeConfig
     };
   }
 
-  static TypeConfig fromJson(Map<String, dynamic> json) {
+  static TypeConfig fromJson(Map<String, dynamic>? json) {
     return TypeConfig(
-      key: json["key"] as String,
-      signature: json["signature"] as String,
-      isEnum: json["isEnum"] as bool,
-      isDataValue: json["isDataValue"] as bool,
-      isSumType: json["isSumType"] as bool,
-      isSerializable: json["isSerializable"] as bool,
-      isListenable: json["isListenable"] as bool,
-      defaultEnumKey: json["defaultEnumKey"] as String,
+      key: json!["key"] as String?,
+      signature: json["signature"] as String?,
+      isEnum: json["isEnum"] as bool?,
+      isDataValue: json["isDataValue"] as bool?,
+      isSumType: json["isSumType"] as bool?,
+      isSerializable: json["isSerializable"] as bool?,
+      isListenable: json["isListenable"] as bool?,
+      defaultEnumKey: json["defaultEnumKey"] as String?,
       advancedConfig: AdvancedTypeConfig.fromJson(
-        json["advancedConfig"] as Map<String, dynamic> ??
+        json["advancedConfig"] as Map<String, dynamic>? ??
             {
-              "customCode": json["customCode"] as String,
-              "overrideConstructor": json["overrideConstructor"] as bool,
-              "isConst": json["isConst"] as bool,
+              "customCode": json["customCode"] as String?,
+              "overrideConstructor": json["overrideConstructor"] as bool?,
+              "isConst": json["isConst"] as bool?,
             },
       ),
       sumTypeConfig: SumTypeConfig()
-        ..tryFromMap(json["sumTypeConfig"] as Map<String, dynamic>),
+        ..tryFromMap(json["sumTypeConfig"] as Map<String, dynamic>?),
       serializableConfig: SerializableConfig()
-        ..tryFromMap(json["serializableConfig"] as Map<String, dynamic>),
+        ..tryFromMap(json["serializableConfig"] as Map<String, dynamic>?),
     );
   }
 
   static final serializer = SerializerFunc<TypeConfig>(fromJson: fromJson);
 
   TypeConfig copyWith({
-    String name,
-    bool isEnum,
-    bool isDataValue,
-    bool isSumType,
-    bool isSerializable,
-    bool isListenable,
-    String defaultEnumKey,
-    List<ClassConfig> classes,
+    String? name,
+    bool? isEnum,
+    bool? isDataValue,
+    bool? isSumType,
+    bool? isSerializable,
+    bool? isListenable,
+    String? defaultEnumKey,
+    String? signature,
+    List<ClassConfig>? classes,
   }) {
     return TypeConfig(
       signature: signature ?? this.signature,
@@ -290,34 +291,34 @@ class ClassConfig
   @override
   final String key;
 
-  /*late final*/ TextNotifier nameNotifier;
+  late final TextNotifier nameNotifier;
   String get name => nameNotifier.text;
 
-  /*late final*/ AppNotifier<bool> isReorderingNotifier;
+  late final AppNotifier<bool> isReorderingNotifier;
   bool get isReordering => isReorderingNotifier.value;
 
   bool get isDefault => this == typeConfig.defaultEnum;
 
-  final ListNotifier<PropertyField/*!*/> properties;
-  /*late final*/ComputedNotifier<List<PropertyField>> propertiesSortedNotifier;
-  List<PropertyField>/*!*/ get propertiesSorted => propertiesSortedNotifier.value;
+  final ListNotifier<PropertyField> properties;
+  late final ComputedNotifier<List<PropertyField>> propertiesSortedNotifier;
+  List<PropertyField> get propertiesSorted => propertiesSortedNotifier.value;
 
   final String typeConfigKey;
-  TypeConfig _typeConfig;
-  TypeConfig/*!*/ get typeConfig {
-    return _typeConfig ??= Globals.get<RootStore>().types[typeConfigKey];
+  TypeConfig? _typeConfig;
+  TypeConfig get typeConfig {
+    return (_typeConfig ??= Globals.get<RootStore>().types[typeConfigKey])!;
   }
 
-  final _deepListenable = AppNotifier<Listenable>(null);
-  Listenable get deepListenable => _deepListenable.value;
-  Listenable _listenable;
-  Listenable get listenable => _listenable;
+  final _deepListenable = AppNotifier<Listenable?>(null);
+  Listenable? get deepListenable => _deepListenable.value;
+  Listenable? _listenable;
+  Listenable? get listenable => _listenable;
 
   ClassConfig({
-    @required this.typeConfigKey,
-    String name,
-    String key,
-    List<PropertyField> properties,
+    required this.typeConfigKey,
+    String? name,
+    String? key,
+    List<PropertyField>? properties,
   })  : key = key ?? uuid.v4(),
         properties =
             ListNotifier<PropertyField>(properties ?? <PropertyField>[]) {
@@ -370,24 +371,24 @@ class ClassConfig
     };
   }
 
-  static ClassConfig fromJson(Map<String, dynamic> json) {
-    final typeKey = json["typeKey"] as String;
+  static ClassConfig fromJson(Map<String, dynamic>? json) {
+    final typeKey = json!["typeKey"] as String?;
     if (typeKey == null) {
       throw Exception("PropertyField fromJson parsing error. input: $json");
     }
     return ClassConfig(
       typeConfigKey: typeKey,
-      key: json["key"] as String,
-      name: json["name"] as String,
+      key: json["key"] as String?,
+      name: json["name"] as String?,
     );
   }
 
   static final serializer = SerializerFunc<ClassConfig>(fromJson: fromJson);
 
   ClassConfig copyWith({
-    String typeConfigKey,
-    String name,
-    List<PropertyField> properties,
+    String? typeConfigKey,
+    String? name,
+    List<PropertyField>? properties,
   }) {
     return ClassConfig(
       typeConfigKey: typeConfigKey ?? this.typeConfigKey,
@@ -411,41 +412,41 @@ class PropertyField
   @override
   final String key;
 
-  /*late final*/ TextNotifier nameNotifier;
+  late final TextNotifier nameNotifier;
   String get name => nameNotifier.text;
 
-  /*late final*/ TextNotifier typeNotifier;
+  late final TextNotifier typeNotifier;
   String get type => typeNotifier.text;
 
-  /*late final*/ ComputedNotifier<Result<JsonTypeParser>> parsedTypeNotifier;
-  Result<JsonTypeParser> get parsedType => parsedTypeNotifier.value;
+  late final ComputedNotifier<Result<JsonTypeParser?>> parsedTypeNotifier;
+  Result<JsonTypeParser?> get parsedType => parsedTypeNotifier.value;
 
-  /*late final*/ AppNotifier<bool/*!*/> isRequiredNotifier;
+  late final AppNotifier<bool> isRequiredNotifier;
   bool get isRequired => isRequiredNotifier.value;
 
-  /*late final*/ AppNotifier<bool/*!*/> isPositionalNotifier;
+  late final AppNotifier<bool> isPositionalNotifier;
   bool get isPositional => isPositionalNotifier.value;
 
-  /*late final*/ AppNotifier<bool/*!*/> isSelectedNotifier;
+  late final AppNotifier<bool> isSelectedNotifier;
   bool get isSelected => isSelectedNotifier.value;
 
   final String classConfigKey;
-  ClassConfig _classConfig;
-  ClassConfig get classConfig {
+  ClassConfig? _classConfig;
+  ClassConfig? get classConfig {
     return _classConfig ??= Globals.get<RootStore>()
         .types
         .values
         .expand((e) => e.classes)
-        .firstWhere((e) => e.key == classConfigKey, orElse: () => null);
+        .firstWhereOrNull((e) => e.key == classConfigKey);
   }
 
   PropertyField({
-    @required this.classConfigKey,
-    String key,
-    String name,
-    String type,
-    bool isRequired,
-    bool isPositional,
+    required this.classConfigKey,
+    String? key,
+    String? name,
+    String? type,
+    bool? isRequired,
+    bool? isPositional,
   }) : key = _s.init(key) {
     typeNotifier = TextNotifier(initialText: type, parent: this);
     nameNotifier = TextNotifier(initialText: name, parent: this);
@@ -466,13 +467,13 @@ class PropertyField
     _s.collect(this.key);
   }
 
-  Listenable _listenable;
-  Listenable get listenable => _listenable;
+  Listenable? _listenable;
+  Listenable? get listenable => _listenable;
 
   @override
   Map<String, dynamic> toJson() {
     return {
-      "classKey": classConfig.key,
+      "classKey": classConfig!.key,
       "key": key,
       "name": name,
       "type": type,
@@ -481,18 +482,19 @@ class PropertyField
     };
   }
 
-  static PropertyField fromJson(Map<String, dynamic> json) {
-    final classKey = json["classKey"] as String;
+  static PropertyField fromJson(Map<String, dynamic>? json) {
+    final classKey = json!["classKey"] as String?;
     if (classKey == null) {
-      return throw Exception("PropertyField fromJson parsing error. input: $json");
+      return throw Exception(
+          "PropertyField fromJson parsing error. input: $json");
     }
     return PropertyField(
       classConfigKey: classKey,
-      key: json["key"] as String,
-      name: json["name"] as String,
-      type: json["type"] as String,
-      isRequired: json["isRequired"] as bool,
-      isPositional: json["isPositional"] as bool,
+      key: json["key"] as String?,
+      name: json["name"] as String?,
+      type: json["type"] as String?,
+      isRequired: json["isRequired"] as bool?,
+      isPositional: json["isPositional"] as bool?,
     );
   }
 
@@ -524,11 +526,11 @@ class PropertyField
   }
 
   PropertyField copyWith({
-    String classConfigKey,
-    String name,
-    String type,
-    bool isRequired,
-    bool isPositional,
+    String? classConfigKey,
+    String? name,
+    String? type,
+    bool? isRequired,
+    bool? isPositional,
   }) {
     return PropertyField(
       classConfigKey: classConfigKey ?? this.classConfigKey,
@@ -552,7 +554,7 @@ abstract class Keyed {
 }
 
 class KeySetter {
-  String init(String key) {
+  String init(String? key) {
     return key ?? uuid.v4();
   }
 

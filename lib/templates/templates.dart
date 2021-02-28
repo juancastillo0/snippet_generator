@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/templates/serde_templates.dart';
 import 'package:snippet_generator/utils/extensions.dart';
@@ -294,9 +293,9 @@ static $name$genericIds fromJson$generics(Map<String, dynamic> map) {
 // String _required(bool isRequired) => isRequired ? "@required " : "";
 
 String globalTemplateEnum({
-  @required String name,
-  @required List<String> variants,
-  @required bool nullSafe,
+  required String name,
+  required List<String> variants,
+  required bool nullSafe,
 }) {
   final _required = nullSafe ? "required " : "@required ";
 

@@ -42,14 +42,14 @@ const _allAccentColorsMap = {
   "deepOrangeAccent": Colors.deepOrangeAccent,
 };
 
-Color /*!*/ _mapColorFromParse(dynamic value) {
+Color _mapColorFromParse(dynamic value) {
   if (value is List) {
     final colorSwatch =
         _allMaterialColorsMap[value[1]] ?? _allAccentColorsMap[value[1]];
     if (value[2] == null) {
-      return colorSwatch;
+      return colorSwatch!;
     } else {
-      return colorSwatch[value[2] as int];
+      return colorSwatch![value[2] as int]!;
     }
   }
   throw Error();

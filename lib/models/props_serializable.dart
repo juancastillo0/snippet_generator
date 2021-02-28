@@ -3,13 +3,13 @@ import 'package:snippet_generator/notifiers/app_notifier.dart';
 abstract class PropsSerializable {
   Iterable<AppNotifier<dynamic>> get props;
 
-  Map<String, Object/*?*/> toMap() {
+  Map<String, Object?> toMap() {
     return Map.fromEntries(
       this.props.map((prop) => MapEntry(prop.name, prop.toJson())),
     );
   }
 
-  bool tryFromMap(Map<String, Object/*?*/> json) {
+  bool tryFromMap(Map<String, Object?>? json) {
     if (json == null) {
       return false;
     }

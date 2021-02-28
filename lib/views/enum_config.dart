@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:snippet_generator/formatters.dart';
-import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 
 class EnumTable extends StatelessWidget {
-  const EnumTable({Key key, @required this.typeConfig}) : super(key: key);
+  const EnumTable({Key? key, required this.typeConfig}) : super(key: key);
   final TypeConfig typeConfig;
 
   @override
@@ -68,7 +67,9 @@ class EnumTable extends StatelessWidget {
             (defaultEnumKey) => Radio(
               groupValue: defaultEnumKey,
               value: value.key,
-              onChanged: (value) {value.typeConfig.defaultEnumKeyNotifier.value = value;},
+              onChanged: (String? _value) {
+                value.typeConfig.defaultEnumKeyNotifier.value = _value;
+              },
               toggleable: true,
             ),
           ),

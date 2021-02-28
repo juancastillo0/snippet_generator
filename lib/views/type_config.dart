@@ -12,10 +12,10 @@ import 'package:snippet_generator/collection_notifier/list_notifier.dart';
 
 class TypeConfigTitleView extends HookWidget {
   const TypeConfigTitleView({
-    Key key,
-    this.typeConfig,
+    Key? key,
+    required this.typeConfig,
   }) : super(key: key);
-  final TypeConfig/*!*/ typeConfig;
+  final TypeConfig typeConfig;
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +53,7 @@ class TypeConfigTitleView extends HookWidget {
 }
 
 class TypeConfigView extends HookWidget {
-  const TypeConfigView({Key key}) : super(key: key);
+  const TypeConfigView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +118,7 @@ class TypeConfigView extends HookWidget {
 
 Listenable useMergedListenable(
   Iterable<Listenable> Function() listBuilder, [
-  List<Object> keys = const <dynamic>[],
+  List<Object?> keys = const <dynamic>[],
 ]) {
   final list = useMemoized(
     () => Listenable.merge(listBuilder().toList()),
@@ -129,22 +129,22 @@ Listenable useMergedListenable(
 
 class TypeSettingsView extends HookWidget {
   const TypeSettingsView({
-    Key key,
+    Key? key,
     this.typeConfig,
   }) : super(key: key);
-  final TypeConfig typeConfig;
+  final TypeConfig? typeConfig;
 
   @override
   Widget build(BuildContext context) {
     final isExpandedList = useMemoized(
       () => ListNotifier<bool>(
-        Iterable<bool>.generate(typeConfig.allSettings.length + 1, (_) => false)
+        Iterable<bool>.generate(typeConfig!.allSettings.length + 1, (_) => false)
             .toList(),
         maxHistoryLength: 0,
       ),
     );
     useListenable(isExpandedList);
-    useMergedListenable(() => typeConfig.allSettings.values, [typeConfig]);
+    useMergedListenable(() => typeConfig!.allSettings.values, [typeConfig]);
 
     int gIndex = -1;
     final _map = <int>[];
@@ -153,7 +153,7 @@ class TypeSettingsView extends HookWidget {
       expansionCallback: (index, isExpanded) {
         isExpandedList[_map[index]] = !isExpanded;
       },
-      children: typeConfig.allSettings.entries
+      children: typeConfig!.allSettings.entries
           .followedBy([MapEntry("Advanced", AppNotifier(true))])
           .map((e) {
             gIndex++;
@@ -167,20 +167,20 @@ class TypeSettingsView extends HookWidget {
               canTapOnHeader: true,
               headerBuilder: (context, isExpanded) =>
                   Center(child: Text(e.key)),
-              body: _expansionPanelBuilders[e.key](typeConfig),
+              body: _expansionPanelBuilders[e.key]!(typeConfig),
             );
           })
           .where((panel) => panel != null)
-          .toList(),
+          .toList() as List<ExpansionPanel>,
     );
   }
 }
 
-final Map<String, Widget Function(TypeConfig)> _expansionPanelBuilders = {
+final Map<String, Widget Function(TypeConfig?)> _expansionPanelBuilders = {
   "Data Value": (typeConfig) => Text("d"),
   "Listenable": (typeConfig) => Text("l"),
   "Serializable": (typeConfig) {
-    final serializableConfig = typeConfig.serializableConfig;
+    final serializableConfig = typeConfig!.serializableConfig;
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Wrap(
@@ -214,7 +214,7 @@ final Map<String, Widget Function(TypeConfig)> _expansionPanelBuilders = {
     );
   },
   "Sum Type": (typeConfig) {
-    final sumTypeConfig = typeConfig.sumTypeConfig;
+    final sumTypeConfig = typeConfig!.sumTypeConfig;
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
@@ -238,7 +238,7 @@ final Map<String, Widget Function(TypeConfig)> _expansionPanelBuilders = {
   },
   "Enum": (typeConfig) => Text("enum"),
   "Advanced": (typeConfig) {
-    final advancedConfig = typeConfig.advancedConfig;
+    final advancedConfig = typeConfig!.advancedConfig;
     return ConstrainedBox(
       constraints: const BoxConstraints(maxHeight: 420),
       child: Padding(
