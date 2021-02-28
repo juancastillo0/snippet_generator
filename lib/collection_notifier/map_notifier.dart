@@ -217,7 +217,7 @@ Map<K, V> _defaultMapCreator<K, V>() {
 }
 
 class MapNotifier<K, V> extends EventConsumer<MapEvent<K/*!*/, V/*!*/>>
-    implements Map<K, V> {
+    implements Map<K, V/*!*/> {
   final Map<K/*!*/, V/*!*/> Function() _mapCreator;
   /*late final*/ Map<K/*!*/, V/*!*/> _inner;
 
@@ -273,7 +273,7 @@ class MapNotifier<K, V> extends EventConsumer<MapEvent<K/*!*/, V/*!*/>>
   // INSERT SINGLE
 
   @override
-  V putIfAbsent(K key, V Function() ifAbsent) {
+  V/*!*/ putIfAbsent(K key, V/*!*/ Function() ifAbsent) {
     V value;
     if (containsKey(key)) {
       value = _inner[key];
@@ -293,7 +293,7 @@ class MapNotifier<K, V> extends EventConsumer<MapEvent<K/*!*/, V/*!*/>>
   }
 
   @override
-  V update(K key, V Function(V value) update, {V Function() ifAbsent}) {
+  V/*!*/ update(K key, V/*!*/ Function(V/*!*/ value) update, {V/*!*/ Function() ifAbsent}) {
     V value;
     if (containsKey(key)) {
       final oldValue = this[key];

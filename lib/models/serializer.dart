@@ -49,7 +49,7 @@ class Serializers {
     return list.map((value) => Serializers.toJson<V>(value)).toList();
   }
 
-  static Object/*!*/ toJson<T>(T instance) {
+  static Object toJson<T>(T instance) {
     try {
       return Serializers.of<T>().toJson(instance);
     } catch (_) {
@@ -131,11 +131,11 @@ class _SerializerIdentity<T> implements Serializer<T/*!*/> {
 class SerializerFuncGeneric<T extends SerializableGeneric<T, S>, S>
     extends Serializer<T> {
   SerializerFuncGeneric({
-    @required T Function(S json) fromJson,
+    @required T Function(S/*!*/ json) fromJson,
   })  : _fromJson = fromJson,
         super();
 
-  final T Function(S json) _fromJson;
+  final T Function(S/*!*/ json) _fromJson;
 
   @override
   T fromJson(Object json) => _fromJson(json as S);

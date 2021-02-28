@@ -82,7 +82,7 @@ Future<Box<T>> _openBox<T>(String name) async {
   try {
     box = await Hive.openBox<T>(name);
   } catch (_) {
-    Hive.deleteBoxFromDisk(name);
+    await Hive.deleteBoxFromDisk(name);
     box = await Hive.openBox<T>(name);
   }
   return box;

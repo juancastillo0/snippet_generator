@@ -41,3 +41,4 @@ app.*.symbols
 app.*.map.json
 
 .fvm/flutter_sdk
+.vscode/settings.json

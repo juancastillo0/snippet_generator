@@ -220,7 +220,7 @@ class ManySetEvent<V> extends SetEvent<V> {
   }
 }
 
-class SetNotifier<V> extends EventConsumer<SetEvent<V>> implements Set<V> {
+class SetNotifier<V> extends EventConsumer<SetEvent<V/*!*/>> implements Set<V/*!*/> {
   SetNotifier({
     Set<V> inner,
     NestedNotifier parent,
@@ -233,7 +233,7 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V>> implements Set<V> {
           propKey: propKey,
         );
 
-  Set<V> _inner;
+  Set<V/*!*/> _inner;
 
   @override
   dynamic toJson() {

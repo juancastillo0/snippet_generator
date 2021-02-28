@@ -32,7 +32,7 @@ class RootStore {
   final selectedTabNotifier = AppNotifier(AppTabs.ui);
   AppTabs get selectedTab => selectedTabNotifier.value;
 
-  final types = MapNotifier<String, TypeConfig>();
+  final MapNotifier<String, TypeConfig/*!*/> types = MapNotifier<String, TypeConfig/*!*/>();
 
   final selectedTypeNotifier = AppNotifier<TypeConfig>(null);
   TypeConfig get selectedType => selectedTypeNotifier.value;
@@ -174,20 +174,27 @@ class RootStore {
     }
   }
 
-  void loadHive() {
+  Future<void> loadHive() async {
     final typeBox = getBox<TypeConfig>();
     types.addEntries(typeBox.values.map((e) => MapEntry(e.key, e)));
 
+    final _toDeleteClass = <String>[];
+    final _toDeleteProps = <String>[];
+
     final classBox = getBox<ClassConfig>();
     for (final c in classBox.values) {
-      if (c.typeConfig != null) {
+      if (types.containsKey(c.typeConfigKey)) {
         _loadItem(c, c.typeConfig.classes);
+      } else {
+        _toDeleteClass.add(c.key);
       }
     }
     final propertyBox = getBox<PropertyField>();
     for (final c in propertyBox.values) {
       if (c.classConfig != null) {
         _loadItem(c, c.classConfig.properties);
+      } else {
+        _toDeleteProps.add(c.key);
       }
     }
 
@@ -198,6 +205,11 @@ class RootStore {
       selectedTypeNotifier.value = type;
       types[selectedTypeNotifier.value.key] = type;
     }
+
+    await Future.wait([
+      classBox.deleteAll(_toDeleteClass),
+      propertyBox.deleteAll(_toDeleteProps),
+    ]);
   }
 
   Future<void> saveHive() async {

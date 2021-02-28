@@ -42,7 +42,7 @@ const _allAccentColorsMap = {
   "deepOrangeAccent": Colors.deepOrangeAccent,
 };
 
-Color/*!*/ _mapColorFromParse(dynamic value) {
+Color /*!*/ _mapColorFromParse(dynamic value) {
   if (value is List) {
     final colorSwatch =
         _allMaterialColorsMap[value[1]] ?? _allAccentColorsMap[value[1]];
@@ -93,19 +93,21 @@ final hexColorParser =
     (string("0x").optional() & anyOf("0123456789abcdefABCDEF").repeat(1, 8))
         .pick(1)
         .map((value) {
-  if (value is List<String>) {
-    final _int = value.length > 6
-        ? value.join("")
-        : ("FF" +
-            Iterable<int>.generate(6 - value.length).map((e) => "0").join() +
-            value.join());
-    return Color(int.parse(_int, radix: 16));
-  }
-  throw Error();
-} as Color Function(dynamic));
+          if (value is List<String>) {
+            final _int = value.length > 6
+                ? value.join("")
+                : ("FF" +
+                    Iterable<int>.generate(6 - value.length)
+                        .map((e) => "0")
+                        .join() +
+                    value.join());
+            return Color(int.parse(_int, radix: 16));
+          }
+          throw Error();
+        } as Color Function(dynamic));
 
-final colorParser = (accentColorParser | materialColorParser | hexColorParser)
-    .map((value) => value as Color);
+final colorParser =
+    (accentColorParser | materialColorParser | hexColorParser).cast<Color>();
 
 void main() {
   test.test("main test", () {

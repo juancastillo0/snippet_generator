@@ -42,7 +42,7 @@ class ManyGeneric<T> {
 }
 
 Parser<T/*!*/>/*!*/ enumParser<T>(List<T> enumValues, {String optionalPrefix}) {
-  return enumValues.fold<Parser<T>>(null, (value, element) {
+  return enumValues.fold<Parser<T/*!*/>>(null, (value, element) {
     Parser<T> curr =
         string(element.toString().split(".")[1]).map((value) => element);
     if (optionalPrefix != null) {
@@ -183,7 +183,7 @@ Parser<List<T>> tupleParser<T>(
 }) {
   int index = 0;
   final parser = (char("(").trim() &
-          params.fold<Parser<List<T>>>(null, (previousValue, element) {
+          params.fold<Parser<List<T/*!*/>>>(null, (previousValue, element) {
             Parser curr = element.trim();
 
             if (index == params.length - 1) {
