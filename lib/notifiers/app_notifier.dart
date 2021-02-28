@@ -4,12 +4,12 @@ import 'package:mobx/mobx.dart';
 import 'package:snippet_generator/models/rebuilder.dart';
 import 'package:snippet_generator/models/serializer.dart';
 
-class AppNotifier<T> implements ValueListenable<T > {
+class AppNotifier<T> implements ValueListenable<T> {
   String get name => observable.name;
 
   final bool required;
-  final Observable<T > observable;
-  final _subs = <void Function(), void Function()>{};
+  final Observable<T> observable;
+  final _subs = <void Function(), _ListenerCount>{};
 
   @override
   T get value {
@@ -59,18 +59,35 @@ class AppNotifier<T> implements ValueListenable<T > {
 
   @override
   void addListener(VoidCallback listener) {
-    if (!_subs.containsKey(listener)) {
-      final cancel = observable.observe((_) {
-        listener();
-      });
-      _subs[listener] = cancel;
-    }
+    final cancel = observable.observe((_) {
+      listener();
+    });
+    final count = _subs[listener] ?? _ListenerCount(cancel, 0);
+    count.count += 1;
+    _subs[listener] = count;
   }
 
   @override
   void removeListener(VoidCallback listener) {
-    _subs.remove(listener)?.call();
+    final count = _subs[listener];
+    if (count != null) {
+      count.count -= 1;
+      if (count.count == 0) {
+        count.cancel();
+        _subs.remove(listener);
+      }
+    }
   }
+}
+
+class _ListenerCount {
+  int count;
+  final void Function() cancel;
+
+  _ListenerCount(
+    this.cancel,
+    this.count,
+  );
 }
 
 // extension ValueNotifierSetter<T> on ValueNotifier<T> {
