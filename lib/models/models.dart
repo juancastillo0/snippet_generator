@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class Globals {
-  static final _map = <Type, Object>{};
+  static final _map = <Type, Object/*!*/>{};
   static final _refs = <String, Object>{};
   static final _nested = <String, List<Object>>{};
 
@@ -29,7 +29,7 @@ class Globals {
   }
 
   static T get<T>() {
-    return _map[T] as T;
+    return _map[T] as T/*!*/;
   }
 }
 

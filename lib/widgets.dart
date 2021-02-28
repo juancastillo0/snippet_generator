@@ -11,7 +11,7 @@ class RowBoolField extends StatelessWidget {
     @required this.label,
   }) : super(key: key);
 
-  final AppNotifier<bool> notifier;
+  final AppNotifier<bool/*!*/> notifier;
   final String label;
 
   @override
@@ -23,7 +23,10 @@ class RowBoolField extends StatelessWidget {
         notifier.rebuild(
           (value) => Checkbox(
             value: value,
-            onChanged: notifier.set,
+            onChanged: (value) {
+              assert(value != null);
+              notifier.value = value;
+            }
           ),
         ),
       ],

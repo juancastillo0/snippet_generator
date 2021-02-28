@@ -1,6 +1,7 @@
 import 'package:meta/meta.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/templates/serde_templates.dart';
+import 'package:snippet_generator/utils/extensions.dart';
 
 extension CasingString on String {
   String firstToLowerCase() =>
@@ -150,6 +151,15 @@ extension TemplateTypeConfig on TypeConfig {
     }
   }
 
+  List<String> get genericIdsList {
+    final result = this.signatureParserNotifier.value;
+    if (result.isSuccess) {
+      return result.value.genericIds;
+    } else {
+      return [];
+    }
+  }
+
   String get generics {
     final result = this.signatureParserNotifier.value;
     if (result.isSuccess) {
@@ -198,13 +208,13 @@ abstract class $signature {
     throw "";
   }
 
-  _T map<_T>({${classes.map((c) => "$_required _T Function(${c.className} value) ${c.name.asVariableName()},").join("\n    ")}}){
+  _T map<_T>({${classes.map((c) => "$_required _T Function(${c.classNameWithGenericIds} value) ${c.name.asVariableName()},").join("\n    ")}}){
     final v = this;
     ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) return ${c.name.asVariableName()}(v);").join("\n    ")}
     throw "";
   }
 
-  _T maybeMap<_T>({$_required _T Function() orElse, ${classes.map((c) => "_T Function(${c.className} value) ${c.name.asVariableName()},").join("\n    ")}}){
+  _T maybeMap<_T>({$_required _T Function() orElse, ${classes.map((c) => "_T Function(${c.classNameWithGenericIds} value) ${c.name.asVariableName()},").join("\n    ")}}){
     final v = this;
     ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) return ${c.name.asVariableName()} != null ? ${c.name.asVariableName()}(v) : orElse.call();").join("\n    ")}
     throw "";
@@ -212,6 +222,7 @@ abstract class $signature {
 
   ${sumTypeConfig.boolGetters.value ? templateBoolGetters() : ""}
   ${sumTypeConfig.enumDiscriminant.value ? "Type$name get typeEnum;" : ""}
+  ${sumTypeConfig.genericMappers.value ? _templateGenericMappers() : ""}
 
   ${isSerializable ? _templateSymTypeFromJson() : ""}
   ${isSerializable ? "Map<String, dynamic> toJson();" : ""}
@@ -223,6 +234,23 @@ abstract class $signature {
 
   
   """;
+  }
+
+  String _templateGenericMappers() {
+    return this.genericIdsList.mapIndex((generic, index) => """
+
+      $signature mapGeneric$generic <_T>(_T Function($generic) mapper) {
+        return map(
+          ${classes.map((c) => """
+          ${c.name.asVariableName()}: (v) => $name.${c.name.asVariableName()} (
+            ${c.propertiesSorted.map((p) => (p.isPositional ? '' : '${p.name}:') + (p.type != generic ? "v.${p.name}" : "mapper(v.${p.name})")).join(",")}
+          ),
+            """).join()}
+        );
+      }
+      
+    
+    """).join();
   }
 
   String templateBoolGetters() {

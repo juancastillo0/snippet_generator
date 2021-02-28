@@ -14,16 +14,16 @@ import 'package:snippet_generator/parsers/type_parser.dart';
 import 'package:uuid/uuid.dart';
 
 class AdvancedTypeConfig implements Serializable<AdvancedTypeConfig> {
-  TextNotifier customCodeNotifier;
+  /*late final*/ TextNotifier customCodeNotifier;
   String get customCode => customCodeNotifier.text;
 
-  AppNotifier<bool> overrideConstructorNotifier;
+  /*late final*/ AppNotifier<bool> overrideConstructorNotifier;
   bool get overrideConstructor => overrideConstructorNotifier.value;
 
-  AppNotifier<bool> isConstNotifier;
+  /*late final*/ AppNotifier<bool> isConstNotifier;
   bool get isConst => isConstNotifier.value;
 
-  Listenable _listenable;
+  /*late final*/ Listenable _listenable;
   Listenable get listenable => _listenable;
 
   AdvancedTypeConfig({
@@ -67,10 +67,10 @@ class TypeConfig
   @override
   final String key;
 
-  TextNotifier signatureNotifier;
+  /*late final*/ TextNotifier signatureNotifier;
   String get signature => signatureNotifier.text;
 
-  ComputedNotifier<Result<SignatureParser>> signatureParserNotifier;
+  /*late final*/ ComputedNotifier<Result<SignatureParser>> signatureParserNotifier;
   String get name {
     final result = signatureParserNotifier.value;
     if (result.isSuccess) {
@@ -82,36 +82,36 @@ class TypeConfig
 
   // Settings
 
-  AppNotifier<bool> isDataValueNotifier;
+  /*late final*/ AppNotifier<bool> isDataValueNotifier;
   bool get isDataValue => isDataValueNotifier.value;
 
-  AppNotifier<bool> isSumTypeNotifier;
+  /*late final*/ AppNotifier<bool> isSumTypeNotifier;
   bool get isSumType => isSumTypeNotifier.value;
-  SumTypeConfig sumTypeConfig;
+  /*late final*/ SumTypeConfig sumTypeConfig;
 
-  AppNotifier<bool> isSerializableNotifier;
+  /*late final*/ AppNotifier<bool> isSerializableNotifier;
   bool get isSerializable => isSerializableNotifier.value;
-  SerializableConfig serializableConfig;
+  /*late final*/ SerializableConfig serializableConfig;
 
-  AppNotifier<bool> isListenableNotifier;
+  /*late final*/ AppNotifier<bool> isListenableNotifier;
   bool get isListenable => isListenableNotifier.value;
 
-  AppNotifier<bool> isEnumNotifier;
+  /*late final*/ AppNotifier<bool> isEnumNotifier;
   bool get isEnum => isEnumNotifier.value;
 
   // Advanced
 
-  AdvancedTypeConfig advancedConfig;
+  /*late final*/ AdvancedTypeConfig advancedConfig;
 
   // Enum
 
-  AppNotifier<String> defaultEnumKeyNotifier;
-  ComputedNotifier<ClassConfig> defaultEnumNotifier;
+  /*late final*/ AppNotifier<String> defaultEnumKeyNotifier;
+  /*late final*/ ComputedNotifier<ClassConfig> defaultEnumNotifier;
   ClassConfig get defaultEnum => defaultEnumNotifier.value;
 
-  ComputedNotifier<bool> hasVariants;
+  /*late final*/ ComputedNotifier<bool> hasVariants;
 
-  final ListNotifier<ClassConfig> classes;
+  final ListNotifier<ClassConfig/*!*/> classes;
 
   Map<String, AppNotifier<bool>> get allSettings => {
         "Data Value": isDataValueNotifier,
@@ -290,21 +290,21 @@ class ClassConfig
   @override
   final String key;
 
-  TextNotifier nameNotifier;
+  /*late final*/ TextNotifier nameNotifier;
   String get name => nameNotifier.text;
 
-  AppNotifier<bool> isReorderingNotifier;
+  /*late final*/ AppNotifier<bool> isReorderingNotifier;
   bool get isReordering => isReorderingNotifier.value;
 
   bool get isDefault => this == typeConfig.defaultEnum;
 
-  final ListNotifier<PropertyField> properties;
-  ComputedNotifier<List<PropertyField>> propertiesSortedNotifier;
-  List<PropertyField> get propertiesSorted => propertiesSortedNotifier.value;
+  final ListNotifier<PropertyField/*!*/> properties;
+  /*late final*/ComputedNotifier<List<PropertyField>> propertiesSortedNotifier;
+  List<PropertyField>/*!*/ get propertiesSorted => propertiesSortedNotifier.value;
 
   final String typeConfigKey;
   TypeConfig _typeConfig;
-  TypeConfig get typeConfig {
+  TypeConfig/*!*/ get typeConfig {
     return _typeConfig ??= Globals.get<RootStore>().types[typeConfigKey];
   }
 
@@ -373,7 +373,7 @@ class ClassConfig
   static ClassConfig fromJson(Map<String, dynamic> json) {
     final typeKey = json["typeKey"] as String;
     if (typeKey == null) {
-      return null;
+      throw Exception("PropertyField fromJson parsing error. input: $json");
     }
     return ClassConfig(
       typeConfigKey: typeKey,
@@ -411,22 +411,22 @@ class PropertyField
   @override
   final String key;
 
-  TextNotifier nameNotifier;
+  /*late final*/ TextNotifier nameNotifier;
   String get name => nameNotifier.text;
 
-  TextNotifier typeNotifier;
+  /*late final*/ TextNotifier typeNotifier;
   String get type => typeNotifier.text;
 
-  ComputedNotifier<Result<JsonTypeParser>> parsedTypeNotifier;
+  /*late final*/ ComputedNotifier<Result<JsonTypeParser>> parsedTypeNotifier;
   Result<JsonTypeParser> get parsedType => parsedTypeNotifier.value;
 
-  AppNotifier<bool> isRequiredNotifier;
+  /*late final*/ AppNotifier<bool/*!*/> isRequiredNotifier;
   bool get isRequired => isRequiredNotifier.value;
 
-  AppNotifier<bool> isPositionalNotifier;
+  /*late final*/ AppNotifier<bool/*!*/> isPositionalNotifier;
   bool get isPositional => isPositionalNotifier.value;
 
-  AppNotifier<bool> isSelectedNotifier;
+  /*late final*/ AppNotifier<bool/*!*/> isSelectedNotifier;
   bool get isSelected => isSelectedNotifier.value;
 
   final String classConfigKey;
@@ -484,7 +484,7 @@ class PropertyField
   static PropertyField fromJson(Map<String, dynamic> json) {
     final classKey = json["classKey"] as String;
     if (classKey == null) {
-      return null;
+      return throw Exception("PropertyField fromJson parsing error. input: $json");
     }
     return PropertyField(
       classConfigKey: classKey,
@@ -545,7 +545,7 @@ class PropertyField
   }
 }
 
-final uuid = Uuid();
+const uuid = Uuid();
 
 abstract class Keyed {
   String get key;

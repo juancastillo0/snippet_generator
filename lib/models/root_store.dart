@@ -137,7 +137,7 @@ class RootStore {
     setSelectedItem(TypeItem.propertyI(type));
   }
 
-  static RootStore of(BuildContext context) =>
+  static RootStore/*!*/ of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<RootStoreProvider>().rootStore;
 
   void downloadJson() {
@@ -235,11 +235,11 @@ void _loadItem<T extends Keyed>(
   }
 }
 
-RootStore useRootStore([BuildContext context]) {
+RootStore/*!*/ useRootStore([BuildContext context]) {
   return RootStore.of(context ?? useContext());
 }
 
-TypeConfig useSelectedType([BuildContext context]) {
+TypeConfig/*!*/ useSelectedType([BuildContext context]) {
   final rootStore = RootStore.of(context ?? useContext());
   useListenable(rootStore.selectedTypeNotifier);
   return rootStore.selectedType;
@@ -251,7 +251,7 @@ class RootStoreProvider extends InheritedWidget {
     @required this.rootStore,
     @required Widget child,
   }) : super(child: child, key: key);
-  final RootStore rootStore;
+  final RootStore/*!*/ rootStore;
 
   @override
   bool updateShouldNotify(RootStoreProvider oldWidget) {

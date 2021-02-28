@@ -125,7 +125,7 @@ class RecreateListEvent<E> extends ListEvent<E> {
   }
 }
 
-class ListNotifier<E> extends EventConsumer<ListEvent<E>> implements List<E> {
+class ListNotifier<E> extends EventConsumer<ListEvent<E/*!*/>> implements List<E/*!*/> {
   ListNotifier(
     List<E> inner, {
     int maxHistoryLength,
@@ -138,7 +138,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E>> implements List<E> {
           propKey: propKey,
         );
 
-  List<E> _inner;
+  List<E/*!*/> _inner;
 
   @override
   dynamic toJson() {
@@ -147,7 +147,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E>> implements List<E> {
 
   @override
   void fromJson(dynamic json) {
-    this._inner = Serializers.fromJsonList(json);
+    this._inner = Serializers.fromJsonList(json as Iterable);
   }
 
   @override

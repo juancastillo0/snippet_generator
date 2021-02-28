@@ -41,7 +41,7 @@ class ManyGeneric<T> {
       );
 }
 
-Parser<T> enumParser<T>(List<T> enumValues, {String optionalPrefix}) {
+Parser<T/*!*/>/*!*/ enumParser<T>(List<T> enumValues, {String optionalPrefix}) {
   return enumValues.fold<Parser<T>>(null, (value, element) {
     Parser<T> curr =
         string(element.toString().split(".")[1]).map((value) => element);
@@ -57,7 +57,7 @@ Parser<T> enumParser<T>(List<T> enumValues, {String optionalPrefix}) {
   });
 }
 
-Parser<String> stringsParser(Iterable<String> enumValues) {
+Parser<String>/*!*/ stringsParser(Iterable<String> enumValues) {
   return enumValues.fold<Parser<String>>(null, (value, element) {
     final curr = string(element);
     if (value == null) {
@@ -89,7 +89,7 @@ Parser<List<T>> separatedParser<T>(
 }
 
 Parser<Map<String, T>> structParser<T>(
-  Map<String, Parser<T>> params, {
+  Map<String, Parser<T>/*!*/> params, {
   String optionalName,
 }) {
   final parser = separatedParser(
@@ -124,8 +124,8 @@ Parser<Map<String, T>> structParser<T>(
   return parser;
 }
 
-Parser<MapEntry<String, T>> structParamsParser<T>(
-    Map<String, Parser<T>> params) {
+Parser<MapEntry<String, T>>/*!*/ structParamsParser<T>(
+    Map<String, Parser<T>/*!*/> params) {
   final parser = params.entries.fold<Parser<MapEntry<String, T>>>(null,
       (previousValue, element) {
     final curr =
@@ -141,11 +141,11 @@ Parser<MapEntry<String, T>> structParamsParser<T>(
   return parser;
 }
 
-Parser<String> orManyString(Iterable<String> params) {
+Parser<String>/*!*/ orManyString(Iterable<String> params) {
   return orMany<String, String>(params, (s) => string(s));
 }
 
-Parser<T> orMany<T, V>(Iterable<V> params, Parser<T> Function(V) parserFn) {
+Parser<T>/*!*/ orMany<T, V>(Iterable<V> params, Parser<T> Function(V) parserFn) {
   final parser = params.fold<Parser<T>>(null, (previousValue, element) {
     final curr = parserFn(element);
     if (previousValue == null) {
@@ -158,7 +158,7 @@ Parser<T> orMany<T, V>(Iterable<V> params, Parser<T> Function(V) parserFn) {
   return parser;
 }
 
-Parser<MapEntry<String, Token<T>>> structParamsParserToken<T>(
+Parser<MapEntry<String, Token<T>>>/*!*/ structParamsParserToken<T>(
     Map<String, Parser<T>> params) {
   final parser = params.entries.fold<Parser<MapEntry<String, Token<T>>>>(null,
       (previousValue, element) {

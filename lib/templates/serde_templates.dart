@@ -64,7 +64,7 @@ String _parseJsonTypeToJson(
     primitiveParser: (v) {
       if (v.type.isCustom) {
         if (generics.any((g) => g.id == v.raw)) {
-          return "($getter as dynamic).toJson()";
+          return "Serializers.toJson<${v.raw}>($getter)";//"($getter as dynamic).toJson()";
         } else {
           return "$getter.toJson()";
         }

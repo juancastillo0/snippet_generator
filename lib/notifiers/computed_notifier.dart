@@ -21,7 +21,7 @@ class ComputedNotifier<T> extends ComputedNotifierBase<T> {
 }
 
 abstract class ComputedNotifierBase<T> extends ChangeNotifier
-    implements ValueListenable<T> {
+    implements ValueListenable<T/*!*/> {
   ComputedNotifierBase([List<Listenable> _primaryDependencyList]) {
     _primaryDependencies = Listenable.merge(
       _primaryDependencyList ?? dependencies,
@@ -46,7 +46,7 @@ abstract class ComputedNotifierBase<T> extends ChangeNotifier
   T _value;
 
   @override
-  T get value {
+  T/*!*/ get value {
     RebuilderGlobalScope.instance.addToScope(this);
     if (!_isUpToDate) {
       _listenDependencies();

@@ -7,11 +7,10 @@ import 'package:snippet_generator/models/rebuilder.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/widgets.dart';
-import 'package:super_tooltip/super_tooltip.dart';
 
 class ClassPropertiesTable extends HookWidget {
   const ClassPropertiesTable({Key key, @required this.data}) : super(key: key);
-  final ClassConfig data;
+  final ClassConfig/*!*/ data;
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +90,10 @@ class ClassPropertiesTable extends HookWidget {
                                   (p) => DataRow(
                                     key: ValueKey(p.key),
                                     selected: p.isSelected,
-                                    onSelectChanged: p.isSelectedNotifier.set,
+                                    onSelectChanged: (value) {
+                                      assert(value != null);
+                                      p.isSelectedNotifier.value = value;
+                                    },
                                     cells: _makeRowChildren(p)
                                         .map((e) => DataCell(e))
                                         .toList(),
@@ -220,7 +222,10 @@ class ClassPropertiesTable extends HookWidget {
         child: property.isRequiredNotifier.rebuild(
           (isRequired) => Checkbox(
             value: isRequired,
-            onChanged: property.isRequiredNotifier.set,
+            onChanged: (value) {
+              assert(value != null);
+              property.isRequiredNotifier.value = value;
+            },
           ),
         ),
       ),
@@ -229,43 +234,60 @@ class ClassPropertiesTable extends HookWidget {
         child: property.isPositionalNotifier.rebuild(
           (isPositional) => Checkbox(
             value: isPositional,
-            onChanged: property.isPositionalNotifier.set,
+            onChanged: (value) {
+              assert(value != null);
+              property.isPositionalNotifier.value = value;
+            },
           ),
         ),
       ),
       Builder(
         key: const Key("more"),
         builder: (context) {
-          return IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {
-              SuperTooltip tooltip;
-              tooltip = SuperTooltip(
-                popupDirection: TooltipDirection.up,
-                arrowLength: 10,
-                borderColor: Colors.black12,
-                borderWidth: 1,
-                hasShadow: false,
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    RaisedButton.icon(
-                      onPressed: () {
-                        tooltip.close();
-                        data.properties.remove(property);
-                      },
-                      icon: const Icon(Icons.delete),
-                      label: const Text("Remove Field"),
-                    ),
-                  ],
-                ),
-              );
-
-              tooltip.show(context);
-            },
+          return _MoreOptions(
+            data: data,
+            property: property,
           );
         },
       ),
     ];
+  }
+}
+
+class _MoreOptions extends HookWidget {
+  final ClassConfig/*!*/ data;
+  final PropertyField property;
+
+  const _MoreOptions({
+    Key key,
+    @required this.data,
+    @required this.property,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final showMenu = useState(false);
+    return MenuPortalEntry(
+      options: [
+        RaisedButton.icon(
+          onPressed: () {
+            showMenu.value = false;
+            data.properties.remove(property);
+          },
+          icon: const Icon(Icons.delete),
+          label: const Text("Remove Field"),
+        )
+      ],
+      isVisible: showMenu.value,
+      onClose: () {
+        showMenu.value = false;
+      },
+      child: IconButton(
+        icon: const Icon(Icons.more_vert),
+        onPressed: () {
+          showMenu.value = true;
+        },
+      ),
+    );
   }
 }

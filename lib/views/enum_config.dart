@@ -68,7 +68,7 @@ class EnumTable extends StatelessWidget {
             (defaultEnumKey) => Radio(
               groupValue: defaultEnumKey,
               value: value.key,
-              onChanged: value.typeConfig.defaultEnumKeyNotifier.set,
+              onChanged: (value) {value.typeConfig.defaultEnumKeyNotifier.value = value;},
               toggleable: true,
             ),
           ),

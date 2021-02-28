@@ -164,7 +164,7 @@ class MapManyEvent<K, V> extends MapEvent<K, V> {
 
   static MapManyEvent<K, V> fromJson<K, V>(Map<String, dynamic> map) {
     return MapManyEvent._(
-      events: Serializers.fromJsonList<MapEvent<K, V>>(map['events']),
+      events: Serializers.fromJsonList<MapEvent<K, V>>(map['events'] as Iterable),
     );
   }
 
@@ -216,10 +216,10 @@ Map<K, V> _defaultMapCreator<K, V>() {
   return <K, V>{};
 }
 
-class MapNotifier<K, V> extends EventConsumer<MapEvent<K, V>>
+class MapNotifier<K, V> extends EventConsumer<MapEvent<K/*!*/, V/*!*/>>
     implements Map<K, V> {
-  final Map<K, V> Function() _mapCreator;
-  Map<K, V> _inner;
+  final Map<K/*!*/, V/*!*/> Function() _mapCreator;
+  /*late final*/ Map<K/*!*/, V/*!*/> _inner;
 
   MapNotifier({
     int maxHistoryLength,

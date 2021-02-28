@@ -140,7 +140,7 @@ class ManyTypedSetEvent<V> extends SetEvent<V> {
 
   static ManyTypedSetEvent<V> fromJson<V>(Map<String, dynamic> map) {
     return ManyTypedSetEvent<V>(
-      values: Serializers.fromJsonList<V>(map['values']),
+      values: Serializers.fromJsonList<V>(map['values'] as Iterable),
       type: map['type'] == SetEventManyType.insert.toString().split(".")[1]
           ? SetEventManyType.insert
           : SetEventManyType.remove,
@@ -201,7 +201,7 @@ class ManySetEvent<V> extends SetEvent<V> {
 
   static ManySetEvent<V> fromJson<V>(Map<String, dynamic> map) {
     return ManySetEvent(
-      events: Serializers.fromJsonList<SetEvent<V>>(map["events"]),
+      events: Serializers.fromJsonList<SetEvent<V>>(map["events"] as Iterable),
     );
   }
 
@@ -242,7 +242,7 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V>> implements Set<V> {
 
   @override
   void fromJson(dynamic json) {
-    this._inner = Serializers.fromJsonList<V>(json).toSet();
+    this._inner = Serializers.fromJsonList<V>(json as Iterable).toSet();
   }
 
   @override

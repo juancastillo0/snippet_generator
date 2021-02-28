@@ -139,7 +139,7 @@ class _ParsersViewBody extends HookWidget {
     Key key,
     this.componentWidget,
   }) : super(key: key);
-  final ParsedState componentWidget;
+  final ParsedState/*!*/ componentWidget;
 
   @override
   Widget build(BuildContext context) {

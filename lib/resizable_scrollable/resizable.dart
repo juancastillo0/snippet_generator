@@ -14,7 +14,7 @@ class Resizable extends StatefulWidget {
   final double defaultHeight;
   final double minHeight;
 
-  final Widget child;
+  final Widget/*!*/ child;
   final Widget handle;
 
   const Resizable({

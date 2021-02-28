@@ -1,24 +1,16 @@
-import 'dart:io' as io;
-import 'dart:io';
-import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:file_download_web/file_download_web.dart';
-import 'package:file_chooser/file_chooser.dart';
+import 'dart:typed_data';
+import 'package:file_selector_platform_interface/file_selector_platform_interface.dart';
 
 void downloadToClient(
   String content,
   String fileName,
   String contentType,
 ) {
-  if (kIsWeb) {
-    downloadToClientWeb(content, fileName, contentType);
-  } else {
-    _downloadToClientNative(content, fileName, contentType);
-  }
+  _downloadToClientNative(content, fileName, contentType);
 }
 
-const _jsonFileType = [
-  FileTypeFilterGroup(fileExtensions: ["json"])
+final _jsonFileType = [
+  XTypeGroup(extensions: ["json"])
 ];
 
 Future<void> _downloadToClientNative(
@@ -26,33 +18,31 @@ Future<void> _downloadToClientNative(
   String fileName,
   String contentType,
 ) async {
-  final result = await showSavePanel(
-    allowedFileTypes: _jsonFileType,
-    suggestedFileName: fileName,
+  final path = await FileSelectorPlatform.instance.getSavePath(
+    acceptedTypeGroups: _jsonFileType,
+    suggestedName: fileName,
   );
-  if (result.canceled || result.paths.isEmpty) {
+  if (path == null) {
     return;
   } else {
-    // final directory = await getDownloadsDirectory();
-    final file = io.File(result.paths[0]);
-    return file.writeAsString(content); 
+    final textFile = XFile.fromData(
+      Uint8List.fromList(content.codeUnits),
+      mimeType: 'text/plain',
+      name: fileName,
+    );
+    await textFile.saveTo(path);
   }
 }
 
 Future<String> importFromClient() async {
-  if (kIsWeb) {
-    return importFromClientWeb();
+  final file = await FileSelectorPlatform.instance.openFile(
+    acceptedTypeGroups: _jsonFileType,
+    // allowsMultipleSelection: false,
+    // canSelectDirectories: false,
+  );
+  if (file == null) {
+    return null;
   } else {
-    final result = await showOpenPanel(
-      allowedFileTypes: _jsonFileType,
-      allowsMultipleSelection: false,
-      canSelectDirectories: false,
-    );
-    if (result.canceled || result.paths.isEmpty) {
-      return null;
-    } else {
-      final file = File(result.paths[0]);
-      return file.readAsString();
-    }
+    return file.readAsString();
   }
 }

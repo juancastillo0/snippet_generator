@@ -42,7 +42,7 @@ const _allAccentColorsMap = {
   "deepOrangeAccent": Colors.deepOrangeAccent,
 };
 
-Color _mapColorFromParse(dynamic value) {
+Color/*!*/ _mapColorFromParse(dynamic value) {
   if (value is List) {
     final colorSwatch =
         _allMaterialColorsMap[value[1]] ?? _allAccentColorsMap[value[1]];
@@ -102,7 +102,7 @@ final hexColorParser =
     return Color(int.parse(_int, radix: 16));
   }
   throw Error();
-});
+} as Color Function(dynamic));
 
 final colorParser = (accentColorParser | materialColorParser | hexColorParser)
     .map((value) => value as Color);

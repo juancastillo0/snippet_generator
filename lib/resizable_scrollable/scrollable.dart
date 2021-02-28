@@ -500,7 +500,7 @@ class _ScrollHandle extends HookWidget {
 }
 
 class _DummySizer extends SingleChildRenderObjectWidget {
-  final Function(Size) onBuild;
+  final Function(Size)/*!*/ onBuild;
 
   const _DummySizer({Key key, this.onBuild}) : super(key: key);
 

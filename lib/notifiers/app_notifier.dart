@@ -4,11 +4,11 @@ import 'package:mobx/mobx.dart';
 import 'package:snippet_generator/models/rebuilder.dart';
 import 'package:snippet_generator/models/serializer.dart';
 
-class AppNotifier<T> implements ValueListenable<T> {
+class AppNotifier<T> implements ValueListenable<T /*!*/ > {
   String get name => observable.name;
 
   final bool required;
-  final Observable<T> observable;
+  final Observable<T /*!*/ > observable;
   final _subs = <void Function(), void Function()>{};
 
   @override
@@ -17,7 +17,7 @@ class AppNotifier<T> implements ValueListenable<T> {
     return observable.value;
   }
 
-  set value(T value) => runInAction(
+  set value(T /*!*/ value) => runInAction(
         () => observable.value = value,
         name: "${name}Setter",
       );
@@ -34,7 +34,7 @@ class AppNotifier<T> implements ValueListenable<T> {
     // parent?.registerValue(this);
   }
 
-  dynamic toJson() {
+  Object toJson() {
     return Serializers.toJson<T>(this.value);
   }
 
@@ -46,12 +46,15 @@ class AppNotifier<T> implements ValueListenable<T> {
   }
 
   bool _trySet(dynamic value, {bool mutate = true}) {
-    final _value = Serializers.fromJson<T>(value);
-    final success = _value != null;
-    if (success && mutate) {
-      this.value = _value;
+    try {
+      final _value = Serializers.fromJson<T>(value);
+      if (mutate) {
+        this.value = _value;
+      }
+      return true;
+    } catch (_) {
+      return false;
     }
-    return success;
   }
 
   @override

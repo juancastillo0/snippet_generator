@@ -81,7 +81,7 @@ abstract class EventConsumer<E extends Event<E>> extends ChangeNotifier {
     }
   }
 
-  void _callConsume(E event, EventType type) {
+  void _callConsume(E/*!*/ event, EventType type) {
     consume(event);
 
     final data = EventData(event, type);

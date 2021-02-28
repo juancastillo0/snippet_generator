@@ -15,7 +15,7 @@ class TypeConfigTitleView extends HookWidget {
     Key key,
     this.typeConfig,
   }) : super(key: key);
-  final TypeConfig typeConfig;
+  final TypeConfig/*!*/ typeConfig;
 
   @override
   Widget build(BuildContext context) {
