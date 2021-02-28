@@ -155,7 +155,7 @@ class RootStore {
     downloadToClient(jsonString, "snippet_model.json", "application/json");
   }
 
-  void importJson(Map<String, dynamic> json) {
+  bool importJson(Map<String, dynamic> json) {
     try {
       final type = TypeConfig.fromJson(json["type"] as Map<String, dynamic>);
 
@@ -174,8 +174,10 @@ class RootStore {
           p.classConfig?.properties,
         );
       }
+      return true;
     } catch (e, s) {
       print("error $e\n$s");
+      return false;
     }
   }
 

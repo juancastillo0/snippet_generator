@@ -243,10 +243,14 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
           onPressed: () async {
             final jsonString = await importFromClient();
             if (jsonString != null) {
+              bool success = false;
               try {
                 final json = jsonDecode(jsonString);
-                rootStore.importJson(json as Map<String, dynamic>);
-              } catch (_) {
+                success = rootStore.importJson(json as Map<String, dynamic>);
+              } catch (e, s) {
+                print("jsonDecode error $e\n$s");
+              }
+              if (!success) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     behavior: SnackBarBehavior.floating,
