@@ -98,12 +98,14 @@ class MenuPortalEntry<T> extends StatelessWidget {
     required this.options,
     required this.child,
     required this.isVisible,
+    this.width = 100.0,
     this.onClose,
   }) : super(key: key);
 
   final List<Widget> options;
   final Widget child;
   final bool isVisible;
+  final double width;
   final void Function()? onClose;
 
   @override
@@ -114,7 +116,7 @@ class MenuPortalEntry<T> extends StatelessWidget {
       childAnchor: Alignment.bottomCenter,
       portal: Container(
         constraints: const BoxConstraints(maxHeight: 300),
-        width: 100,
+        width: width,
         margin: const EdgeInsets.only(top: 5),
         decoration: BoxDecoration(
           color: Colors.white,

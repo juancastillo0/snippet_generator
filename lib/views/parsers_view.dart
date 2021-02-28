@@ -6,6 +6,7 @@ import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/parsers/widget_parser.dart';
 import 'package:snippet_generator/utils/extensions.dart';
+import 'package:snippet_generator/utils/theme.dart';
 import 'package:snippet_generator/widgets.dart';
 
 class ParsedState {
@@ -69,8 +70,9 @@ class ParsersView extends HookWidget {
                   ),
                 ),
               ),
-              FlatButton(
+              TextButton(
                 onPressed: addComponentWidget,
+                style: menuStyle(context),
                 child: const Text("ADD"),
               )
             ],
@@ -104,8 +106,9 @@ class ComponentWidgetTab extends HookWidget {
 
     return MenuPortalEntry(
       options: [
-        FlatButton(
+        TextButton(
           onPressed: onDelete,
+          style: menuStyle(context),
           child: const Text("delete"),
         )
       ],

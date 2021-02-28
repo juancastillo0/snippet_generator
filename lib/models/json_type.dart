@@ -35,19 +35,19 @@ extension SupportedJsonTypeExtension on SupportedJsonType {
   bool get isSet => this == SupportedJsonType.Set;
 
   T? when<T>({
-    T Function()? String,
+    T Function()? string,
     T Function()? int,
     T Function()? double,
     T Function()? num,
-    T Function()? List,
-    T Function()? Map,
-    T Function()? Set,
+    T Function()? list,
+    T Function()? map,
+    T Function()? set,
     T Function()? orElse,
   }) {
     T Function()? c;
     switch (this) {
       case SupportedJsonType.String:
-        c = String;
+        c = string;
         break;
       case SupportedJsonType.int:
         c = int;
@@ -59,13 +59,13 @@ extension SupportedJsonTypeExtension on SupportedJsonType {
         c = num;
         break;
       case SupportedJsonType.List:
-        c = List;
+        c = list;
         break;
       case SupportedJsonType.Map:
-        c = Map;
+        c = map;
         break;
       case SupportedJsonType.Set:
-        c = Set;
+        c = set;
         break;
 
       default:

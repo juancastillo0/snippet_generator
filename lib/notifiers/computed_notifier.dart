@@ -1,7 +1,6 @@
-
 import 'package:flutter/foundation.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/models/rebuilder.dart';
-
 
 class ComputedNotifier<T> extends ComputedNotifierBase<T> {
   ComputedNotifier(
@@ -18,6 +17,22 @@ class ComputedNotifier<T> extends ComputedNotifierBase<T> {
   T computer() {
     return this._computer();
   }
+}
+
+T useComputed<T>(
+  T Function() compute,
+  List<Listenable> dependencies, [
+  List<Object?> keys = const <Object>[],
+]) {
+  final _computed = useMemoized(
+    () => ComputedNotifier<T>(compute, dependencies),
+    [...dependencies, ...keys],
+  );
+  useListenable(_computed);
+  useEffect(() {
+    return _computed.dispose;
+  }, [_computed]);
+  return _computed.value;
 }
 
 abstract class ComputedNotifierBase<T> extends ChangeNotifier

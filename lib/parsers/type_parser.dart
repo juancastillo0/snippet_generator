@@ -2,7 +2,7 @@ import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/parsers/parsers.dart';
 import 'package:snippet_generator/utils/json_type.dart';
 
-// ignore: constant_identifier_names
+// ignore: constant_identifier_names  
 enum CollectionType { List, Set }
 
 CollectionType? parseCollectionType(String rawString,
@@ -23,17 +23,17 @@ extension CollectionTypeExtension on CollectionType {
   bool get isSet => this == CollectionType.Set;
 
   T? when<T>({
-    T Function()? List,
-    T Function()? Set,
+    T Function()? list,
+    T Function()? set,
     T Function()? orElse,
   }) {
     T Function()? c;
     switch (this) {
       case CollectionType.List:
-        c = List;
+        c = list;
         break;
       case CollectionType.Set:
-        c = Set;
+        c = set;
         break;
 
       default:

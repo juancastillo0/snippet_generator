@@ -48,9 +48,11 @@ abstract class Nested<V> {
     T Function(_Children value)? children,
   }) {
     final Nested<V> v = this;
-    if (v is _Child<V>) return child != null ? child(v) : orElse?.call();
-    if (v is _Children<V>)
+    if (v is _Child<V>) {
+      return child != null ? child(v) : orElse?.call();
+    } else if (v is _Children<V>) {
       return children != null ? children(v) : orElse?.call();
+    }
     throw "";
   }
 }

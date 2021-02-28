@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/models/json_type.dart';
+import 'package:snippet_generator/notifiers/computed_notifier.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/formatters.dart';
 import 'package:snippet_generator/models/rebuilder.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/models/type_models.dart';
+import 'package:snippet_generator/utils/theme.dart';
 import 'package:snippet_generator/widgets.dart';
 
 class ClassPropertiesTable extends HookWidget {
@@ -14,6 +16,10 @@ class ClassPropertiesTable extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasProperties = useComputed(
+      () => data.properties.isNotEmpty,
+      [data.properties],
+    );
     return GestureDetector(
       onTap: () => RootStore.of(context).selectClass(data),
       child: Card(
@@ -31,9 +37,10 @@ class ClassPropertiesTable extends HookWidget {
                             label: "Class Name",
                           ),
                           const Spacer(),
-                          RaisedButton.icon(
+                          ElevatedButton.icon(
                             onPressed: () =>
                                 data.typeConfig.classes.remove(data),
+                            style: elevatedStyle(context),
                             icon: const Icon(Icons.delete),
                             label: const Text("Remove Class"),
                           )
@@ -50,8 +57,11 @@ class ClassPropertiesTable extends HookWidget {
                     scrollDirection: Axis.horizontal,
                     child: data.properties.rebuild(
                       () {
-                        const columnSizes = <double>[200.0, 200, 40, 40, 40];
-                        const _contraints = BoxConstraints(minWidth: 150);
+                        if (data.properties.isEmpty) {
+                          return const SizedBox();
+                        }
+                        // const columnSizes = <double>[200.0, 200, 40, 40, 40];
+                        // const _contraints = BoxConstraints(minWidth: 150);
                         return Rebuilder(
                           builder: (_) => DataTable(
                             showCheckboxColumn: false,
@@ -112,12 +122,16 @@ class ClassPropertiesTable extends HookWidget {
                 key: const Key("footer"),
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  RowBoolField(
-                    notifier: data.isReorderingNotifier,
-                    label: "Reorder",
-                  ),
-                  RaisedButton.icon(
+                  if (hasProperties)
+                    RowBoolField(
+                      notifier: data.isReorderingNotifier,
+                      label: "Reorder",
+                    )
+                  else
+                    const SizedBox(width: 100),
+                  ElevatedButton.icon(
                     onPressed: data.addProperty,
+                    style: elevatedStyle(context),
                     icon: const Icon(Icons.add),
                     label: const Text("Add Field"),
                   ),
@@ -195,7 +209,7 @@ class ClassPropertiesTable extends HookWidget {
           return MenuPortalEntry<String>(
             options: options
                 .map(
-                  (e) => FlatButton(
+                  (e) => TextButton(
                     onPressed: () {
                       typeNotifier.controller.value = TextEditingValue(
                         text: e,
@@ -204,6 +218,7 @@ class ClassPropertiesTable extends HookWidget {
                         ),
                       );
                     },
+                    style: menuStyle(context),
                     key: Key(e),
                     child: Text(e),
                   ),
@@ -269,15 +284,17 @@ class _MoreOptions extends HookWidget {
     final showMenu = useState(false);
     return MenuPortalEntry(
       options: [
-        RaisedButton.icon(
+        TextButton.icon(
           onPressed: () {
             showMenu.value = false;
             data.properties.remove(property);
           },
+          style: menuStyle(context),
           icon: const Icon(Icons.delete),
           label: const Text("Remove Field"),
         )
       ],
+      width: 170,
       isVisible: showMenu.value,
       onClose: () {
         showMenu.value = false;

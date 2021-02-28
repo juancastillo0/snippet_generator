@@ -1,4 +1,5 @@
 enum PrimitiveJson {
+  // ignore: constant_identifier_names
   String,
   int,
   double,
@@ -30,7 +31,7 @@ extension PrimitiveJsonExtension on PrimitiveJson {
   bool get isBool => this == PrimitiveJson.bool;
 
   T? when<T>({
-    T Function()? String,
+    T Function()? string,
     T Function()? int,
     T Function()? double,
     T Function()? num,
@@ -41,7 +42,7 @@ extension PrimitiveJsonExtension on PrimitiveJson {
     T Function()? c;
     switch (this) {
       case PrimitiveJson.String:
-        c = String;
+        c = string;
         break;
       case PrimitiveJson.int:
         c = int;

@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
+import 'package:snippet_generator/utils/theme.dart';
 import 'package:snippet_generator/views/class_properties.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/utils/extensions.dart';
@@ -71,7 +72,7 @@ class TypeConfigView extends HookWidget {
     return SingleScrollable(
       alignment: Alignment.topCenter,
       child: Padding(
-        padding: const EdgeInsets.only(right: 10.0),
+        padding: const EdgeInsets.only(left: 5.0, right: 8.0),
         child: Column(
           children: <Widget>[
             TypeConfigTitleView(typeConfig: typeConfig),
@@ -98,9 +99,10 @@ class TypeConfigView extends HookWidget {
               () => typeConfig.isSumType && !typeConfig.isEnum
                   ? Align(
                       alignment: Alignment.centerLeft,
-                      child: RaisedButton.icon(
+                      child: ElevatedButton.icon(
                         onPressed: typeConfig.addVariant,
                         icon: const Icon(Icons.add),
+                        style: elevatedStyle(context),
                         label: typeConfig.isEnum
                             ? const Text("Add Variant")
                             : const Text("Add Class"),
@@ -178,8 +180,8 @@ class TypeSettingsView extends HookWidget {
 }
 
 final Map<String, Widget Function(TypeConfig?)> _expansionPanelBuilders = {
-  "Data Value": (typeConfig) => Text("d"),
-  "Listenable": (typeConfig) => Text("l"),
+  "Data Value": (typeConfig) => const Text("d"),
+  "Listenable": (typeConfig) => const Text("l"),
   "Serializable": (typeConfig) {
     final serializableConfig = typeConfig!.serializableConfig;
     return Padding(
@@ -237,7 +239,7 @@ final Map<String, Widget Function(TypeConfig?)> _expansionPanelBuilders = {
       ),
     );
   },
-  "Enum": (typeConfig) => Text("enum"),
+  "Enum": (typeConfig) => const Text("enum"),
   "Advanced": (typeConfig) {
     final advancedConfig = typeConfig!.advancedConfig;
     return ConstrainedBox(

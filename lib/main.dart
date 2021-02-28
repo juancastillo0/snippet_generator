@@ -20,6 +20,7 @@ import 'package:snippet_generator/templates/templates.dart';
 import 'package:snippet_generator/utils/download_json.dart';
 import 'package:snippet_generator/utils/persistence.dart';
 import 'package:snippet_generator/parsers/type_parser.dart';
+import 'package:snippet_generator/utils/theme.dart';
 import 'package:snippet_generator/views/globals.dart';
 import 'package:snippet_generator/views/parsers_view.dart';
 import 'package:snippet_generator/views/type_config.dart';
@@ -299,10 +300,7 @@ class CodeGenerated extends HookWidget {
             ElevatedButton.icon(
               onPressed: () =>
                   Clipboard.setData(ClipboardData(text: sourceCode)),
-              style: ElevatedButton.styleFrom(
-                primary: Colors.white,
-                onPrimary: Colors.black,
-              ),
+              style: elevatedStyle(context),
               icon: const Icon(Icons.copy),
               label: const Text("Copy Source Code"),
             ),

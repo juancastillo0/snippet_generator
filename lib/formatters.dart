@@ -1,3 +1,4 @@
+// ignore_for_file: unnecessary_raw_strings
 import 'package:flutter/services.dart';
 
 final _variableNameRegex = RegExp(r"^[a-zA-Z_][a-zA-Z_0-9]*");

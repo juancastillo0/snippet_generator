@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/utils/extensions.dart';
+import 'package:snippet_generator/utils/theme.dart';
 
 class TypesMenu extends HookWidget {
   const TypesMenu({Key? key}) : super(key: key);
@@ -66,9 +67,9 @@ class TypesMenu extends HookWidget {
               ),
               Align(
                 alignment: Alignment.centerRight,
-                child: FlatButton.icon(
-                  padding: const EdgeInsets.all(18.0),
+                child: TextButton.icon(
                   onPressed: rootStore.addType,
+                  style: menuStyle(context, padding: const EdgeInsets.all(18.0)),
                   icon: const Icon(Icons.add),
                   label: const Text("Add Type"),
                 ),
