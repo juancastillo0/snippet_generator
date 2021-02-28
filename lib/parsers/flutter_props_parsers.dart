@@ -204,10 +204,12 @@ abstract class PropClass<T> {
 class _ValuePropClass<T> implements PropClass<T> {
   final ValueNotifier<T> valueNotifier;
   const _ValuePropClass(this.valueNotifier);
+  @override
   void set(T value) {
     valueNotifier.value = value;
   }
 
+  @override
   T get() => valueNotifier.value;
 }
 
@@ -278,8 +280,8 @@ class AlignmentInput extends HookWidget {
     final global = WidgetFormState.of(context);
     final token = global.map[key.value];
     final value = token?.value as Alignment? ?? const Alignment(0, 0);
-    final  controllerL = useTextEditingController();
-    final  controllerR = useTextEditingController();
+    final controllerL = useTextEditingController();
+    final controllerR = useTextEditingController();
 
     useEffect(() {
       if (double.tryParse(controllerL.text) != value.x) {
@@ -344,9 +346,7 @@ class AlignmentInput extends HookWidget {
               ],
             ),
             DropdownButton<Alignment>(
-              value: value != null && _alignmentList.contains(value)
-                  ? value
-                  : null,
+              value: _alignmentList.contains(value) ? value : null,
               items: _alignmentList
                   .map(
                     (e) => DropdownMenuItem(
@@ -695,23 +695,29 @@ final edgeInsetsParser = (doubleParser.map((value) => EdgeInsets.all(value)) |
           switch (value.where((v) => v != null).length) {
             case 4:
               return EdgeInsets.fromLTRB(
-                  value[0], value[1], value[2], value[3]);
+                value[0]!,
+                value[1]!,
+                value[2]!,
+                value[3]!,
+              );
             case 3:
               return EdgeInsets.only(
-                top: value[0],
-                bottom: value[0],
-                left: value[1],
-                right: value[2],
+                top: value[0]!,
+                bottom: value[0]!,
+                left: value[1]!,
+                right: value[2]!,
               );
             case 2:
               return EdgeInsets.symmetric(
-                  vertical: value[0], horizontal: value[1]);
+                vertical: value[0]!,
+                horizontal: value[1]!,
+              );
             case 1:
             default:
-              return EdgeInsets.all(value[0]);
+              return EdgeInsets.all(value[0]!);
           }
         }))
-    .map((v) => v as EdgeInsetsGeometry?);
+    .cast<EdgeInsetsGeometry>();
 
 final boxConstraintsParser = structParser(
   {
@@ -839,7 +845,7 @@ final offsetParser = tupleParser(
   numberRequired: 2,
   optionalName: "Offset",
 ).map<Offset>((value) {
-  return Offset(value[0], value[1]);
+  return Offset(value[0]!, value[1]!);
 });
 
 class CustomBoxShadow extends BoxShadow {
@@ -906,8 +912,8 @@ final gradientParser = structParser({
   "startAngle": doubleParser,
   "begin": doubleParser,
   "ends": doubleParser,
-}).map((params) {
-  Alignment.bottomCenter;
+}).map<Gradient>((params) {
+  // TODO:
   // LinearGradient, RadialGradient, SweepGradient
   // RadialGradient();
   // SweepGradient();
@@ -944,9 +950,9 @@ final radiusParser = (doubleParser.map((value) => Radius.circular(value)) |
           optionalName: "Radius",
         ).map((value) {
           if (value.length == 1) {
-            return Radius.circular(value[0]);
+            return Radius.circular(value[0]!);
           } else {
-            return Radius.elliptical(value[0], value[1]);
+            return Radius.elliptical(value[0]!, value[1]!);
           }
         }))
     .cast<Radius>();
@@ -1048,16 +1054,13 @@ final shapeDecorationParser = structParser({
   "shape": shapeBorderParser,
   "shadows": separatedParser(boxShadowParser),
 }, optionalName: "ShapeDecoration")
-    .map((params) {
-  if (params["shape"] == null) {
-    return null;
-  }
+    .map<ShapeDecoration>((params) {
   return ShapeDecoration(
     color: params["color"] as Color?,
     shape: params["shape"] as ShapeBorder,
     shadows: params["shadows"] as List<BoxShadow>?,
   );
-} as ShapeDecoration Function(Map<String, Object>));
+});
 
 final decorationParser =
     (boxDecorationParser | shapeDecorationParser).cast<Decoration>();

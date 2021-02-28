@@ -93,7 +93,7 @@ class PrimitiveParser extends JsonTypeParser {
   final String raw;
   final List<String> genericIds;
 
-  static PrimitiveParser? _collect(dynamic raw) {
+  static PrimitiveParser _collect(dynamic raw) {
     if (raw is String) {
       final type = parsePrimitiveJson(raw);
       return PrimitiveParser(type, raw);
@@ -108,7 +108,7 @@ class PrimitiveParser extends JsonTypeParser {
                 ? (raw[1] as List).map((e) => e as String).toList()
                 : const <String>[]),
         orElse: () => PrimitiveParser(type, rawString),
-      );
+      )!;
     }
     throw "";
   }
@@ -148,10 +148,10 @@ class JsonTypeParser {
             CollectionParser.listParser |
             CollectionParser.setParser |
             PrimitiveParser.parser)
-        .map((value) => value as JsonTypeParser?));
+        .map((value) => value as JsonTypeParser));
   }
 
-  static final SettableParser<JsonTypeParser?> _parser =
-      undefined<JsonTypeParser?>();
-  static Parser<JsonTypeParser?> get parser => _parser;
+  static final SettableParser<JsonTypeParser> _parser =
+      undefined<JsonTypeParser>();
+  static Parser<JsonTypeParser> get parser => _parser;
 }

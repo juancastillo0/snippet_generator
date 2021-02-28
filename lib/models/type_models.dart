@@ -418,8 +418,8 @@ class PropertyField
   late final TextNotifier typeNotifier;
   String get type => typeNotifier.text;
 
-  late final ComputedNotifier<Result<JsonTypeParser?>> parsedTypeNotifier;
-  Result<JsonTypeParser?> get parsedType => parsedTypeNotifier.value;
+  late final ComputedNotifier<Result<JsonTypeParser>> parsedTypeNotifier;
+  Result<JsonTypeParser> get parsedType => parsedTypeNotifier.value;
 
   late final AppNotifier<bool> isRequiredNotifier;
   bool get isRequired => isRequiredNotifier.value;

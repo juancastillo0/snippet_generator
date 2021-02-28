@@ -12,13 +12,13 @@ void main() {
       final r1 = PrimitiveParser.parser.parse("int");
 
       expect(r1.isSuccess, true);
-      expect(r1.value!.type.toEnumString(), "int");
-      expect(r1.value!.raw, "int");
+      expect(r1.value.type.toEnumString(), "int");
+      expect(r1.value.raw, "int");
 
       final r2 = PrimitiveParser.parser.parse("Bo");
       expect(r2.isSuccess, true);
-      expect(r2.value!.type.toEnumString(), "custom");
-      expect(r2.value!.raw, "Bo");
+      expect(r2.value.type.toEnumString(), "custom");
+      expect(r2.value.raw, "Bo");
 
       print(singleGeneric(JsonTypeParser.parser).trim().parse(" < int>").value);
     });
@@ -77,7 +77,7 @@ void main() {
 
   group('None', () {
     test('simple', () {
-      Map m = {
+      final Map m = {
         "d": {"w": 2}
       };
 

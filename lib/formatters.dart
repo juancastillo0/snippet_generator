@@ -60,7 +60,7 @@ bool Function(String) convertValidate(String? Function(String)? validate) {
 }
 
 String? Function(String) combineValidators(
-  List<String Function(String)> validators,
+  List<String? Function(String)> validators,
 ) {
   return (String v) {
     for (final validator in validators) {

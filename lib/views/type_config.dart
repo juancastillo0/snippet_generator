@@ -130,21 +130,21 @@ Listenable useMergedListenable(
 class TypeSettingsView extends HookWidget {
   const TypeSettingsView({
     Key? key,
-    this.typeConfig,
+    required this.typeConfig,
   }) : super(key: key);
-  final TypeConfig? typeConfig;
+  final TypeConfig typeConfig;
 
   @override
   Widget build(BuildContext context) {
     final isExpandedList = useMemoized(
       () => ListNotifier<bool>(
-        Iterable<bool>.generate(typeConfig!.allSettings.length + 1, (_) => false)
+        Iterable<bool>.generate(typeConfig.allSettings.length + 1, (_) => false)
             .toList(),
         maxHistoryLength: 0,
       ),
     );
     useListenable(isExpandedList);
-    useMergedListenable(() => typeConfig!.allSettings.values, [typeConfig]);
+    useMergedListenable(() => typeConfig.allSettings.values, [typeConfig]);
 
     int gIndex = -1;
     final _map = <int>[];
@@ -153,7 +153,7 @@ class TypeSettingsView extends HookWidget {
       expansionCallback: (index, isExpanded) {
         isExpandedList[_map[index]] = !isExpanded;
       },
-      children: typeConfig!.allSettings.entries
+      children: typeConfig.allSettings.entries
           .followedBy([MapEntry("Advanced", AppNotifier(true))])
           .map((e) {
             gIndex++;
@@ -171,7 +171,8 @@ class TypeSettingsView extends HookWidget {
             );
           })
           .where((panel) => panel != null)
-          .toList() as List<ExpansionPanel>,
+          .cast<ExpansionPanel>()
+          .toList(),
     );
   }
 }

@@ -275,10 +275,11 @@ final pFlexible = WidgetParser.createWithParams("Flexible", {
 });
 
 final pPositioned = WidgetParser.createWithParams("Positioned", {
-  "factory": string("directional") |
-      string("fill") |
-      string("fromRect") |
-      string("fromRelativeRect"),
+  "factory": (string("directional") |
+          string("fill") |
+          string("fromRect") |
+          string("fromRelativeRect"))
+      .cast<String>(),
   "height": doubleParser,
   "width": doubleParser,
   "top": doubleParser,
@@ -431,7 +432,7 @@ class WidgetParser {
 
   static Parser<WidgetParser> createWithParams(
     String name,
-    Map<String, Parser<Object?>> params,
+    Map<String, Parser<Object>> params,
     Widget Function(Map<String, Object>) create, {
     FormWidgetBuilder? form,
   }) {
@@ -439,8 +440,7 @@ class WidgetParser {
       structParamsParserToken(params),
       left: char("("),
       right: char(")"),
-    ).map((entries) => Map.fromEntries(entries) as Map<String, Token<Object>>
-        Function(List<MapEntry<String, Token<Object?>>>));
+    ).map((entries) => Map.fromEntries(entries));
 
     Parser nameParser = string(name).trim();
     final hasFactory = params["factory"] is Parser;

@@ -39,10 +39,8 @@ String parseFieldFromJson(PropertyField e) {
   if (result.isFailure) {
     return "map['${e.name}'] as ${e.type}";
   }
-  final generics =
-      e.classConfig!.typeConfig.signatureParserNotifier.value.value?.generics ??
-          [];
-
+  final parsedResult = e.classConfig!.typeConfig.signatureParserNotifier.value;
+  final generics = parsedResult.value.generics;
   return _parseJsonTypeFromJson("map['${e.name}']", result.value, generics);
 }
 
@@ -80,8 +78,7 @@ String parseFieldToJson(PropertyField e) {
   if (result.isFailure) {
     return "${e.name}'.toJson()";
   }
-  final generics =
-      e.classConfig!.typeConfig.signatureParserNotifier.value.value?.generics ??
-          [];
+  final parsedResult = e.classConfig!.typeConfig.signatureParserNotifier.value;
+  final generics = parsedResult.value.generics;
   return _parseJsonTypeToJson(e.name, result.value, generics);
 }

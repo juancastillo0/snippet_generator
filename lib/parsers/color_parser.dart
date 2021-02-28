@@ -92,19 +92,17 @@ final accentColorParser = (string("Colors.").optional() &
 final hexColorParser =
     (string("0x").optional() & anyOf("0123456789abcdefABCDEF").repeat(1, 8))
         .pick(1)
-        .map((value) {
-          if (value is List<String>) {
-            final _int = value.length > 6
-                ? value.join("")
-                : ("FF" +
-                    Iterable<int>.generate(6 - value.length)
-                        .map((e) => "0")
-                        .join() +
-                    value.join());
-            return Color(int.parse(_int, radix: 16));
-          }
-          throw Error();
-        } as Color Function(dynamic));
+        .map<Color>((value) {
+  if (value is List<String>) {
+    final _int = value.length > 6
+        ? value.join("")
+        : ("FF" +
+            Iterable<int>.generate(6 - value.length).map((e) => "0").join() +
+            value.join());
+    return Color(int.parse(_int, radix: 16));
+  }
+  throw Error();
+});
 
 final colorParser =
     (accentColorParser | materialColorParser | hexColorParser).cast<Color>();

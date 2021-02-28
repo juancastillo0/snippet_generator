@@ -176,15 +176,15 @@ Parser<MapEntry<String, Token<T>>> structParamsParserToken<T>(
   return parser;
 }
 
-Parser<List<T>> tupleParser<T>(
+Parser<List<T?>> tupleParser<T>(
   List<Parser<T>> params, {
   String? optionalName,
   int? numberRequired,
 }) {
   int index = 0;
   final parser = (char("(").trim() &
-          params.fold<Parser<List<T>>?>(null,
-              (Parser<List<T>>? previousValue, Parser<T> element) {
+          params.fold<Parser<List<T?>>?>(null,
+              (Parser<List<T?>>? previousValue, Parser<T> element) {
             Parser curr = element.trim();
 
             if (index == params.length - 1) {

@@ -6,9 +6,10 @@ linter:
     use_setters_to_change_properties: false
     prefer_constructors_over_static_methods: false
     unnecessary_this: false
+    prefer_interpolation_to_compose_strings: false
 
     type_annotate_public_apis: true
-    avoid_redundant_argument_values: true
+    avoid_redundant_argument_values: false
 
 analyzer:
   exclude:

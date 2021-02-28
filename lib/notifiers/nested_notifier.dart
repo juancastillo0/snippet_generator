@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:snippet_generator/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/models/models.dart';
@@ -45,12 +44,12 @@ class NestedNotifier extends ChangeNotifier {
           )
           .followedBy(
             _nestedNotifiers.map(
-              ((e) => MapEntry(e.propKey!, e.toJson())) as MapEntry<String, Object?> Function(NestedNotifier),
+              (e) => MapEntry(e.propKey!, e.toJson()),
             ),
           )
           .followedBy(
             _collectionNotifiers.map(
-              ((e) => MapEntry(e.propKey!, e.toJson())) as MapEntry<String, Object?> Function(EventConsumer<Event<dynamic>>),
+              (e) => MapEntry(e.propKey!, e.toJson()),
             ),
           ),
     );
