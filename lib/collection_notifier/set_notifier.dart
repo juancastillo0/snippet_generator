@@ -44,14 +44,15 @@ abstract class SetEvent<V> implements Event<SetEvent<V>> {
     T Function(List<SetEvent<V>> events)? many,
   }) {
     final SetEvent<V> v = this;
-    if (v is InsertSetEvent<V>)
+    if (v is InsertSetEvent<V>) {
       return insert != null ? insert(v.value) : orElse?.call();
-    if (v is ManyTypedSetEvent<V>)
+    } else if (v is ManyTypedSetEvent<V>) {
       return manyTyped != null ? manyTyped(v.values, v.type) : orElse?.call();
-    if (v is RemoveSetEvent<V>)
+    } else if (v is RemoveSetEvent<V>) {
       return remove != null ? remove(v.value) : orElse?.call();
-    if (v is ManySetEvent<V>)
+    } else if (v is ManySetEvent<V>) {
       return many != null ? many(v.events) : orElse?.call();
+    }
     throw "";
   }
 
@@ -77,13 +78,15 @@ abstract class SetEvent<V> implements Event<SetEvent<V>> {
     T Function(ManySetEvent<V> value)? many,
   }) {
     final SetEvent<V> v = this;
-    if (v is InsertSetEvent<V>)
+    if (v is InsertSetEvent<V>) {
       return insert != null ? insert(v) : orElse?.call();
-    if (v is ManyTypedSetEvent<V>)
+    } else if (v is ManyTypedSetEvent<V>) {
       return manyTyped != null ? manyTyped(v) : orElse?.call();
-    if (v is RemoveSetEvent<V>)
+    } else if (v is RemoveSetEvent<V>) {
       return remove != null ? remove(v) : orElse?.call();
-    if (v is ManySetEvent<V>) return many != null ? many(v) : orElse?.call();
+    } else if (v is ManySetEvent<V>) {
+      return many != null ? many(v) : orElse?.call();
+    }
     throw "";
   }
 
@@ -300,7 +303,8 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V>> implements Set<V> {
         .where((e) => e != null)
         .toList();
     if (values.isNotEmpty) {
-      apply(SetEvent.manyTyped(values: values.cast(), type: SetEventManyType.insert));
+      apply(SetEvent.manyTyped(
+          values: values.cast(), type: SetEventManyType.insert));
     }
   }
 
@@ -333,7 +337,8 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V>> implements Set<V> {
         .where((e) => e != null)
         .toList();
     if (values.isNotEmpty) {
-      apply(SetEvent.manyTyped(values: values.cast(), type: SetEventManyType.insert));
+      apply(SetEvent.manyTyped(
+          values: values.cast(), type: SetEventManyType.insert));
     }
   }
 
@@ -350,7 +355,8 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V>> implements Set<V> {
         .where((e) => e != null)
         .toList();
     if (values.isNotEmpty) {
-      apply(SetEvent.manyTyped(values: values.cast(), type: SetEventManyType.remove));
+      apply(SetEvent.manyTyped(
+          values: values.cast(), type: SetEventManyType.remove));
     }
   }
 

@@ -68,12 +68,15 @@ abstract class TypeItem implements Clonable<TypeItem> {
     T Function(List<PropertyField> value)? propertyListI,
   }) {
     final TypeItem v = this;
-    if (v is _ClassI) return classI != null ? classI(v.value) : orElse?.call();
-    if (v is _TypeI) return typeI != null ? typeI(v.value) : orElse?.call();
-    if (v is _PropertyI)
+    if (v is _ClassI) {
+      return classI != null ? classI(v.value) : orElse?.call();
+    } else if (v is _TypeI) {
+      return typeI != null ? typeI(v.value) : orElse?.call();
+    } else if (v is _PropertyI) {
       return propertyI != null ? propertyI(v.value) : orElse?.call();
-    if (v is _PropertyListI)
+    } else if (v is _PropertyListI) {
       return propertyListI != null ? propertyListI(v.value) : orElse?.call();
+    }
     throw "";
   }
 
@@ -99,12 +102,15 @@ abstract class TypeItem implements Clonable<TypeItem> {
     T Function(_PropertyListI value)? propertyListI,
   }) {
     final TypeItem v = this;
-    if (v is _ClassI) return classI != null ? classI(v) : orElse?.call();
-    if (v is _TypeI) return typeI != null ? typeI(v) : orElse?.call();
-    if (v is _PropertyI)
+    if (v is _ClassI) {
+      return classI != null ? classI(v) : orElse?.call();
+    } else if (v is _TypeI) {
+      return typeI != null ? typeI(v) : orElse?.call();
+    } else if (v is _PropertyI) {
       return propertyI != null ? propertyI(v) : orElse?.call();
-    if (v is _PropertyListI)
+    } else if (v is _PropertyListI) {
       return propertyListI != null ? propertyListI(v) : orElse?.call();
+    }
     throw "";
   }
 
