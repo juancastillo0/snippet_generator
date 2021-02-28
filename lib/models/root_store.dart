@@ -174,6 +174,7 @@ class RootStore {
           p.classConfig?.properties,
         );
       }
+      selectedTypeNotifier.value = type;
       return true;
     } catch (e, s) {
       print("error $e\n$s");
