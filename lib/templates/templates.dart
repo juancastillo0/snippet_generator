@@ -20,6 +20,10 @@ extension TemplateClassConfig on ClassConfig {
     return typeConfig.rootStore.isCodeGenNullSafe ? "required" : "@required";
   }
 
+  String get _nullable {
+    return typeConfig.rootStore.isCodeGenNullSafe ? "?" : "/*?*/";
+  }
+
   String get classNameWithGenericIds => "$className${typeConfig.genericIds}";
 
   String get signature => typeConfig.isSumType
@@ -45,8 +49,10 @@ class $signature {
   }
 
   String _templateClassCopyWith() {
-    final _params =
-        properties.map((p) => '${p.type} ${p.name},').join('\n    ');
+    final _params = properties
+        .map((p) =>
+            '${p.type}${p.type.endsWith("?") ? "" : _nullable} ${p.name},')
+        .join('\n    ');
     return """
 $classNameWithGenericIds copyWith({$_params}) {
     return $_classConstructor(
@@ -57,13 +63,14 @@ $classNameWithGenericIds copyWith({$_params}) {
   }
 
   String _templateClassClone() {
-    return """
-$classNameWithGenericIds clone() {
-    return $_classConstructor(
-      ${propertiesSorted.map((e) => "${e.isPositional ? '' : '${e.name}:'} this.${e.name},").join("\n      ")}
-    );
-  }
-""";
+    return "";
+//     return """
+// $classNameWithGenericIds clone() {
+//     return $_classConstructor(
+//       ${propertiesSorted.map((e) => "${e.isPositional ? '' : '${e.name}:'} this.${e.name},").join("\n      ")}
+//     );
+//   }
+// """;
   }
 
   String _templateClassEquals() {
@@ -77,7 +84,7 @@ bool operator ==(Object other) {
 }
 
 @override
-int get hashCode => ${properties.map((e) => '${e.name}.hashCode').join(" + ")};
+int get hashCode => ${properties.map((e) => '${e.name}.hashCode').join(" ^ ")};
 """;
   }
 
@@ -180,13 +187,14 @@ extension TemplateTypeConfig on TypeConfig {
     return advancedConfig.isConst ? "const" : "";
   }
 
-  String get _required {
-    return this.rootStore.isCodeGenNullSafe ? "required" : "@required";
-  }
+  String get _nullable => this.rootStore.isCodeGenNullSafe ? "?" : "/*?*/";
+
+  String get _required =>
+      this.rootStore.isCodeGenNullSafe ? "required" : "@required";
 
   String templateSumType() {
     return """
-import 'package:meta/meta.dart';
+${!this.rootStore.isCodeGenNullSafe ? "import 'package:meta/meta.dart';" : ""}
 
 abstract class $signature {
   ${advancedConfig.overrideConstructor ? '' : '$_const $name._();'}
@@ -194,29 +202,31 @@ abstract class $signature {
   ${advancedConfig.customCode}
   
   ${classes.map((c) => "$_const factory $name.${c.name.asVariableName()}(${c.templateFactoryParams()}) = ${c._classConstructor};").join("\n  ")}
+
+  ${_repeatedPropsTemplate()}
   
   _T when<_T>({${classes.map((c) => "$_required _T Function(${_funcParams(c)}) ${c.name.asVariableName()},").join("\n    ")}}){
     final v = this;
-    ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) return ${c.name.asVariableName()}(${_funcParamsCall(c)});").join("\n    ")}
-    throw "";
+    ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) {return ${c.name.asVariableName()}(${_funcParamsCall(c)});}").join("\nelse ")}
+    $_throwNotFoundVariant
   }
 
-  _T maybeWhen<_T>({$_required _T Function() orElse, ${classes.map((c) => "_T Function(${_funcParams(c)}) ${c.name.asVariableName()},").join("\n    ")}}){
+  _T maybeWhen<_T>({$_required _T Function() orElse, ${classes.map((c) => "_T Function(${_funcParams(c)})$_nullable ${c.name.asVariableName()},").join("\n    ")}}){
     final v = this;
-    ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) return ${c.name.asVariableName()} != null ? ${c.name.asVariableName()}(${_funcParamsCall(c)}) : orElse.call();").join("\n    ")}
-    throw "";
+    ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) {return ${c.name.asVariableName()} != null ? ${c.name.asVariableName()}(${_funcParamsCall(c)}) : orElse.call();}").join("\nelse ")}
+    $_throwNotFoundVariant
   }
 
   _T map<_T>({${classes.map((c) => "$_required _T Function(${c.classNameWithGenericIds} value) ${c.name.asVariableName()},").join("\n    ")}}){
     final v = this;
-    ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) return ${c.name.asVariableName()}(v);").join("\n    ")}
-    throw "";
+    ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) {return ${c.name.asVariableName()}(v);}").join("\nelse ")}
+    $_throwNotFoundVariant
   }
 
-  _T maybeMap<_T>({$_required _T Function() orElse, ${classes.map((c) => "_T Function(${c.classNameWithGenericIds} value) ${c.name.asVariableName()},").join("\n    ")}}){
+  _T maybeMap<_T>({$_required _T Function() orElse, ${classes.map((c) => "_T Function(${c.classNameWithGenericIds} value)$_nullable ${c.name.asVariableName()},").join("\n    ")}}){
     final v = this;
-    ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) return ${c.name.asVariableName()} != null ? ${c.name.asVariableName()}(v) : orElse.call();").join("\n    ")}
-    throw "";
+    ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) {return ${c.name.asVariableName()} != null ? ${c.name.asVariableName()}(v) : orElse.call();}").join("\nelse ")}
+    $_throwNotFoundVariant
   }
 
   ${sumTypeConfig.boolGetters.value ? templateBoolGetters() : ""}
@@ -235,14 +245,55 @@ abstract class $signature {
   """;
   }
 
+  Map<String, CummProp> repeatedProps() {
+    final repeated = <String, List<PropertyField>>{};
+    for (final p in classes.expand((c) => c.properties)) {
+      final l = repeated.putIfAbsent(p.name, () => []);
+      l.add(p);
+    }
+    repeated.removeWhere((_, l) => l.length != classes.length);
+    return repeated.map(
+      (key, value) => MapEntry(key, CummProp.fromProps(value)),
+    );
+  }
+
+  String _repeatedPropsTemplate() {
+    final props = repeatedProps();
+    if (props.isEmpty) {
+      return "";
+    }
+
+    return props.entries
+        .map((e) =>
+            "${e.value.sameType ?? 'Object'}${e.value.isNullable && e.value.sameType == null ? _nullable : ''} get ${e.key};")
+        .join();
+  }
+
+  String get _throwNotFoundVariant {
+    return "throw Exception();";
+  }
+
   String _templateGenericMappers() {
+    String _propToMapped(PropertyField p, String generic) {
+      String _setter;
+      if (p.type == generic) {
+        _setter = "mapper(v.${p.name})";
+      } else if (p.type.endsWith("?") && "$generic?" == p.type) {
+        _setter = "v.${p.name} == null ? null : mapper(v.${p.name}!)";
+      } else {
+        _setter = "v.${p.name}";
+      }
+      return (p.isPositional ? '' : '${p.name}:') + _setter;
+    }
+
+    final _signatureParsed = signatureParserNotifier.value;
     return this.genericIdsList.mapIndex((generic, index) => """
 
-      $signature mapGeneric$generic <_T>(_T Function($generic) mapper) {
+      $name<${_signatureParsed.isSuccess ? _signatureParsed.value.genericIds.map((g) => g == generic ? "_T" : g).join(",") : ""}> mapGeneric$generic <_T>(_T Function($generic) mapper) {
         return map(
           ${classes.map((c) => """
           ${c.name.asVariableName()}: (v) => $name.${c.name.asVariableName()} (
-            ${c.propertiesSorted.map((p) => (p.isPositional ? '' : '${p.name}:') + (p.type != generic ? "v.${p.name}" : "mapper(v.${p.name})")).join(",")}
+            ${c.propertiesSorted.map((p) => _propToMapped(p, generic)).join(",")}
           ),
             """).join()}
         );
@@ -283,10 +334,32 @@ static $name$genericIds fromJson$generics(Map<String, dynamic> map) {
   switch (map["${serializableConfig.discriminator.value}"] as String) {
     ${classes.map((e) => 'case "${e.name}": return ${e.className}.fromJson$genericIds(map);').join("\n    ")}
     default:
-      return null;
+      throw Exception('Invalid discriminator for $signature.fromJson \${map["${serializableConfig.discriminator.value}"]}. Input map: \$map');
   }
 }
 """;
+  }
+}
+
+class CummProp {
+  final String? sameType;
+  final bool isNullable;
+
+  const CummProp({required this.sameType, required this.isNullable});
+
+  static CummProp fromProps(List<PropertyField> value) {
+    final isNullable = value.any((p) => p.type.endsWith("?"));
+    final initialType = value.isEmpty
+        ? null
+        : (value.first.type.endsWith("?")
+            ? value.first.type.substring(0, value.first.type.length - 1)
+            : value.first.type);
+    final isSameType =
+        value.every((p) => p.type == initialType || p.type == "$initialType?");
+    return CummProp(
+      isNullable: isNullable,
+      sameType: isSameType ? initialType : null,
+    );
   }
 }
 
@@ -298,19 +371,20 @@ String globalTemplateEnum({
   required bool nullSafe,
 }) {
   final _required = nullSafe ? "required " : "@required ";
+  final _nullable = nullSafe ? "?" : "/*?*/";
 
   return """
 enum $name {
   ${variants.map((e) => "$e,").join("\n  ")}
 }
 
-$name parse$name(String rawString, {$name defaultValue}) {
+$name$_nullable parse$name(String rawString) {
   for (final variant in $name.values) {
     if (rawString == variant.toEnumString()) {
       return variant;
     }
   }
-  return defaultValue;
+  return null;
 }
 
 extension ${name}Extension on $name {
@@ -328,14 +402,14 @@ case $name.$e:
         return $e();
       """).join()}
     }
-    throw "";
+    ${nullSafe ? '' : 'throw Exception("");'}
   }
 
   _T maybeWhen<_T>({
-    ${variants.map((e) => "_T Function() ${e.firstToLowerCase()},").join("\n    ")}
+    ${variants.map((e) => "_T Function()$_nullable ${e.firstToLowerCase()},").join("\n    ")}
     $_required _T Function() orElse,
   }) {
-    _T Function() c;
+    _T Function()$_nullable c;
     switch (this) {
       ${variants.map((e) => """
 case $name.$e:
