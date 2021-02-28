@@ -28,10 +28,10 @@ T useComputed<T>(
     () => ComputedNotifier<T>(compute, dependencies),
     [...dependencies, ...keys],
   );
-  useListenable(_computed);
   useEffect(() {
     return _computed.dispose;
   }, [_computed]);
+  useListenable(_computed);
   return _computed.value;
 }
 
@@ -68,7 +68,7 @@ abstract class ComputedNotifierBase<T> extends ChangeNotifier
       _updateValue(initial: true);
       _isUpToDate = true;
     }
-    return _value!;
+    return _value as T;
   }
 
   void _compute() {
