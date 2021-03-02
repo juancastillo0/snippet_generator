@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -31,6 +32,8 @@ class RootStore {
   TypeItem? copiedItem;
   final selectedTabNotifier = AppNotifier(AppTabs.ui);
   AppTabs get selectedTab => selectedTabNotifier.value;
+
+  final themeModeNotifier = AppNotifier(ThemeMode.dark);
 
   final MapNotifier<String, TypeConfig> types =
       MapNotifier<String, TypeConfig>();

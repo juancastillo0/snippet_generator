@@ -46,8 +46,17 @@ class ParsersView extends HookWidget {
       children: [
         Container(
           height: 45,
-          color: Colors.white,
+          decoration: BoxDecoration(
+            color: context.theme.cardColor,
+            border: Border(
+              bottom: BorderSide(
+                color: context.theme.canvasColor,
+                width: 2,
+              ),
+            ),
+          ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
                 child: Scrollbar(
@@ -188,10 +197,12 @@ class _ParsersViewBody extends HookWidget {
       [componentWidget, controller.value],
     );
 
-    final _form = selected.value == null ? null : selected.value!.form!(
-      selected.value?.tokenParsedParams,
-      controller,
-    );
+    final _form = selected.value == null
+        ? null
+        : selected.value!.form!(
+            selected.value?.tokenParsedParams,
+            controller,
+          );
 
     return Row(
       children: [
