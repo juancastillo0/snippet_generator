@@ -54,8 +54,8 @@ class $signature {
             '${p.type}${p.type.endsWith("?") ? "" : _nullable} ${p.name},')
         .join('\n    ');
     return """
-$classNameWithGenericIds copyWith({$_params}) {
-    return $_classConstructor(
+$classNameWithGenericIds copyWith(${properties.isEmpty ? "" : "{$_params}"}) {
+    return ${properties.isEmpty ? typeConfig._const : ""} $_classConstructor(
       ${propertiesSorted.map((e) => "${e.isPositional ? '' : '${e.name}:'} ${e.name} ?? this.${e.name},").join("\n      ")}
     );
   }
@@ -78,20 +78,20 @@ $classNameWithGenericIds copyWith({$_params}) {
 @override
 bool operator ==(Object other) {
   if (other is $classNameWithGenericIds){
-    return ${properties.map((e) => 'this.${e.name} == other.${e.name}').join(" && ")};
+    return ${properties.isEmpty ? "true" : properties.map((e) => 'this.${e.name} == other.${e.name}').join(" && ")};
   }
   return false;
 }
 
 @override
-int get hashCode => ${properties.map((e) => '${e.name}.hashCode').join(" ^ ")};
+int get hashCode => ${properties.isEmpty ? "${typeConfig._const} $_classConstructor().hashCode" : ""} ${properties.map((e) => '${e.name}.hashCode').join(" ^ ")};
 """;
   }
 
   String _templateClassFromJson() {
     return """
 static $classNameWithGenericIds fromJson${typeConfig.generics}(Map<String, dynamic> map) {
-    return $_classConstructor(
+    return ${properties.isEmpty ? typeConfig._const : ""} $_classConstructor(
       ${propertiesSorted.map((e) => "${e.isPositional ? '' : '${e.name}:'} ${parseFieldFromJson(e)},").join("\n      ")}
     );
   }
@@ -103,7 +103,7 @@ static $classNameWithGenericIds fromJson${typeConfig.generics}(Map<String, dynam
 ${typeConfig.isSumType ? "@override" : ""}
 Map<String, dynamic> toJson() {
     return {
-      ${typeConfig.isSumType ? '"${typeConfig.serializableConfig.discriminator.value}": "$className",' : ""}
+      ${typeConfig.isSumType ? '"${typeConfig.serializableConfig.discriminator.value}": "${name.asVariableName()}",' : ""}
       ${properties.map((e) => '"${e.name}": ${parseFieldToJson(e)},').join("\n      ")}
     };
   }
@@ -332,7 +332,7 @@ abstract class $signature {
     return """
 static $name$genericIds fromJson$generics(Map<String, dynamic> map) {
   switch (map["${serializableConfig.discriminator.value}"] as String) {
-    ${classes.map((e) => 'case "${e.name}": return ${e.className}.fromJson$genericIds(map);').join("\n    ")}
+    ${classes.map((e) => 'case "${e.name.asVariableName()}": return ${e.className}.fromJson$genericIds(map);').join("\n    ")}
     default:
       throw Exception('Invalid discriminator for $signature.fromJson \${map["${serializableConfig.discriminator.value}"]}. Input map: \$map');
   }
@@ -378,9 +378,11 @@ enum $name {
   ${variants.map((e) => "$e,").join("\n  ")}
 }
 
-$name$_nullable parse$name(String rawString) {
+$name$_nullable parse$name(String rawString, {bool caseSensitive = true}) {
+  final _rawString = caseSensitive ? rawString : rawString.toLowerCase();
   for (final variant in $name.values) {
-    if (rawString == variant.toEnumString()) {
+    final variantString = caseSensitive ? variant.toEnumString() : variant.toEnumString().toLowerCase();
+    if (_rawString == variantString) {
       return variant;
     }
   }
