@@ -3,29 +3,23 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_portal/flutter_portal.dart';
-import 'package:google_fonts/google_fonts.dart';
-
 import 'package:snippet_generator/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/rebuilder.dart';
 import 'package:snippet_generator/models/root_store.dart';
-import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/parsers/widget_parser.dart';
-import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
-import 'package:snippet_generator/templates/templates.dart';
 import 'package:snippet_generator/utils/download_json.dart';
+import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/utils/persistence.dart';
 import 'package:snippet_generator/parsers/type_parser.dart';
 import 'package:snippet_generator/utils/theme.dart';
+import 'package:snippet_generator/views/code_generated.dart';
 import 'package:snippet_generator/views/globals.dart';
 import 'package:snippet_generator/views/parsers_view.dart';
 import 'package:snippet_generator/views/type_config.dart';
 import 'package:snippet_generator/views/types_menu.dart';
-import 'package:snippet_generator/widgets.dart';
 
 final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 
@@ -40,61 +34,62 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends HookWidget {
   const MyApp();
 
   @override
   Widget build(BuildContext context) {
-    return Portal(
-      child: GlobalKeyboardListener.wrapper(
-        child: MaterialApp(
-          title: 'Snippet Generator',
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            primarySwatch: Colors.teal,
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-            scaffoldBackgroundColor: const Color(0xfff5f8fa),
+    final rootStore = Globals.get<RootStore>();
+    useListenable(rootStore.themeModeNotifier);
+
+    return RootStoreProvider(
+      rootStore: rootStore,
+      child: Portal(
+        child: GlobalKeyboardListener.wrapper(
+          child: MaterialApp(
+            title: 'Snippet Generator',
+            debugShowCheckedModeBanner: false,
+            theme: lightTheme(),
+            darkTheme: darkTheme(),
+            themeMode: rootStore.themeModeNotifier.value,
+            navigatorObservers: [routeObserver],
+            home: const MyHomePage(),
           ),
-          navigatorObservers: [routeObserver],
-          home: const MyHomePage(),
         ),
       ),
     );
   }
 }
 
-class MyHomePage extends HookWidget {
+class MyHomePage extends StatelessWidget {
   const MyHomePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final rootStore = Globals.get<RootStore>();
-    return RootStoreProvider(
-      rootStore: rootStore,
-      child: Scaffold(
-        appBar: const _HomePageAppBar(),
-        body: RootStoreMessager(
-          rootStore: rootStore,
-          child: Rebuilder(
-            builder: (context) {
-              int index = 0;
-              switch (rootStore.selectedTab) {
-                case AppTabs.types:
-                  index = 0;
-                  break;
-                case AppTabs.ui:
-                  index = 1;
-                  break;
-              }
-              return IndexedStack(
-                index: index,
-                children: const [
-                  TypesTabView(),
-                  ParsersView(),
-                ],
-              );
-            },
-          ),
+    return Scaffold(
+      appBar: const _HomePageAppBar(),
+      body: RootStoreMessager(
+        rootStore: rootStore,
+        child: Rebuilder(
+          builder: (context) {
+            int index = 0;
+            switch (rootStore.selectedTab) {
+              case AppTabs.types:
+                index = 0;
+                break;
+              case AppTabs.ui:
+                index = 1;
+                break;
+            }
+            return IndexedStack(
+              index: index,
+              children: const [
+                TypesTabView(),
+                ParsersView(),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -224,6 +219,22 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
         );
       }),
       actions: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Dark Mode"),
+            rootStore.themeModeNotifier.rebuild(
+              (mode) => Switch(
+                value: rootStore.themeModeNotifier.value == ThemeMode.dark,
+                onChanged: (value) {
+                  rootStore.themeModeNotifier.value =
+                      value ? ThemeMode.dark : ThemeMode.light;
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(width: 20),
         TextButton.icon(
           style: _actionButton(context),
           onPressed: () async {
@@ -278,87 +289,6 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(46);
-}
-
-class CodeGenerated extends HookWidget {
-  final String sourceCode;
-
-  const CodeGenerated({
-    Key? key,
-    required this.sourceCode,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final rootStore = useRootStore(context);
-
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            ElevatedButton.icon(
-              onPressed: () =>
-                  Clipboard.setData(ClipboardData(text: sourceCode)),
-              style: elevatedStyle(context),
-              icon: const Icon(Icons.copy),
-              label: const Text("Copy Source Code"),
-            ),
-            RowBoolField(
-              label: "Null Safe",
-              notifier: rootStore.isCodeGenNullSafeNotifier,
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Expanded(
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.only(
-                top: 12.0,
-                bottom: 12.0,
-                left: 12.0,
-              ),
-              child: SingleScrollable(
-                child: SelectableText(
-                  sourceCode,
-                  style: GoogleFonts.cousine(),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class TypeCodeGenerated extends HookWidget {
-  const TypeCodeGenerated({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final rootStore = useRootStore(context);
-    final TypeConfig typeConfig = useSelectedType(context);
-    useListenable(typeConfig.deepListenable);
-    useListenable(rootStore.isCodeGenNullSafeNotifier);
-
-    return Observer(builder: (context) {
-      String sourceCode;
-      if (typeConfig.isEnum) {
-        sourceCode = typeConfig.templateEnum();
-      } else if (typeConfig.isSumType) {
-        sourceCode = typeConfig.templateSumType();
-      } else {
-        final _class = typeConfig.classes[0];
-        sourceCode = _class.templateClass();
-      }
-      try {
-        sourceCode = rootStore.formatter.format(sourceCode);
-      } catch (_) {}
-      return CodeGenerated(sourceCode: sourceCode);
-    });
-  }
 }
 
 class HistoryView extends HookWidget {
