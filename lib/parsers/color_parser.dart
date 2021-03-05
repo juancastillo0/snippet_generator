@@ -9,6 +9,7 @@ const _allMaterialColorsMap = {
   "purple": Colors.purple,
   "deepPurple": Colors.deepPurple,
   "indigo": Colors.indigo,
+  "blueGrey": Colors.blueGrey,
   "blue": Colors.blue,
   "lightBlue": Colors.lightBlue,
   "cyan": Colors.cyan,
@@ -21,8 +22,27 @@ const _allMaterialColorsMap = {
   "orange": Colors.orange,
   "deepOrange": Colors.deepOrange,
   "brown": Colors.brown,
-  "blueGrey": Colors.blueGrey,
 };
+
+const _allBlackAndWhiteColorsMap = {
+  "black12": Colors.black12,
+  "black26": Colors.black26,
+  "black38": Colors.black38,
+  "black45": Colors.black45,
+  "black54": Colors.black54,
+  "black87": Colors.black87,
+  "black": Colors.black,
+  "white10": Colors.white10,
+  "white12": Colors.white12,
+  "white24": Colors.white24,
+  "white30": Colors.white30,
+  "white38": Colors.white38,
+  "white45": Colors.black45,
+  "white54": Colors.white54,
+  "white87": Colors.black87,
+  "white": Colors.white,
+};
+
 const _allAccentColorsMap = {
   "redAccent": Colors.redAccent,
   "pinkAccent": Colors.pinkAccent,
@@ -46,10 +66,13 @@ Color _mapColorFromParse(dynamic value) {
   if (value is List) {
     final colorSwatch =
         _allMaterialColorsMap[value[1]] ?? _allAccentColorsMap[value[1]];
+    if (colorSwatch == null) {
+      return _allBlackAndWhiteColorsMap[value[1]]!;
+    }
     if (value[2] == null) {
-      return colorSwatch!;
+      return colorSwatch;
     } else {
-      return colorSwatch![value[2] as int]!;
+      return colorSwatch[value[2] as int]!;
     }
   }
   throw Error();
@@ -73,6 +96,10 @@ final materialColorParser = (string("Colors.").optional() &
                 char("]"))
             .pick(1)
             .optional())
+    .map(_mapColorFromParse);
+
+final blackAndWhiteColorParser = (string("Colors.").optional() &
+        stringsParser(_allBlackAndWhiteColorsMap.keys))
     .map(_mapColorFromParse);
 
 final accentColorParser = (string("Colors.").optional() &
@@ -104,8 +131,11 @@ final hexColorParser =
   throw Error();
 });
 
-final colorParser =
-    (accentColorParser | materialColorParser | hexColorParser).cast<Color>();
+final colorParser = (accentColorParser |
+        materialColorParser |
+        blackAndWhiteColorParser |
+        hexColorParser)
+    .cast<Color>();
 
 void main() {
   test.test("main test", () {
