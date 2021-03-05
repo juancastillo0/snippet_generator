@@ -1,6 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'models/initial_size.dart';
 
 enum ResizeHorizontal { left, right, both }
 enum ResizeVertical { top, bottom, both }
@@ -112,6 +114,88 @@ class _ResizableState extends State<Resizable> {
       );
     }
   }
+}
+
+class ResizableFlex extends HookWidget {
+  final Axis direction;
+  final List<ResizableItem> children;
+  const ResizableFlex({
+    Key? key,
+    required this.direction,
+    required this.children,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final overridenSizes = useMemoized(() => <Key, double>{}, [direction]);
+
+    return LayoutBuilder(builder: (context, box) {
+      final isVertical = direction == Axis.vertical;
+      final max = isVertical ? box.maxHeight : box.maxWidth;
+      int withoutFlex = 0;
+      int totalFlex = children.fold(
+        0,
+        (previousValue, element) {
+          final _flex = element.initialSize
+              ?.when(flex: (flex) => flex + previousValue, size: (_) {});
+          if (_flex == null) {
+            withoutFlex += 1;
+            return previousValue;
+          } else {
+            return _flex;
+          }
+        },
+      );
+
+      return Flex(
+        direction: direction,
+        children: [
+          ...children.map((e) {
+            final _initialSize = e.initialSize;
+            Widget warpSized(double size) {
+              return SizedBox(
+                height: isVertical ? size : null,
+                width: isVertical ? null : size,
+                key: e.key,
+                child: e.child,
+              );
+            }
+
+            if (overridenSizes.containsKey(e.key)) {
+              return warpSized(overridenSizes[e.key]!);
+            } else if (_initialSize != null) {
+              return _initialSize.when(
+                flex: (flex) => Flexible(
+                  key: e.key,
+                  flex: flex,
+                  child: e.child,
+                ),
+                size: warpSized,
+              );
+            } else {
+              return e.child;
+            }
+          })
+        ],
+      );
+    });
+  }
+}
+
+class ResizableItem {
+  final double? minSize;
+  final double? maxSize;
+  final InitialSize? initialSize;
+  final Key? key;
+  final Widget child;
+
+  ResizableItem({
+    required this.child,
+    this.initialSize,
+    this.minSize,
+    this.maxSize,
+    this.key,
+  });
 }
 
 class Separator extends StatelessWidget {
