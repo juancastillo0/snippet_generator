@@ -695,26 +695,26 @@ final edgeInsetsParser = (doubleParser.map((value) => EdgeInsets.all(value)) |
           switch (value.where((v) => v != null).length) {
             case 4:
               return EdgeInsets.fromLTRB(
-                value[0]!,
-                value[1]!,
-                value[2]!,
-                value[3]!,
+                value[0],
+                value[1],
+                value[2],
+                value[3],
               );
             case 3:
               return EdgeInsets.only(
-                top: value[0]!,
-                bottom: value[0]!,
-                left: value[1]!,
-                right: value[2]!,
+                top: value[0],
+                bottom: value[0],
+                left: value[1],
+                right: value[2],
               );
             case 2:
               return EdgeInsets.symmetric(
-                vertical: value[0]!,
-                horizontal: value[1]!,
+                vertical: value[0],
+                horizontal: value[1],
               );
             case 1:
             default:
-              return EdgeInsets.all(value[0]!);
+              return EdgeInsets.all(value[0]);
           }
         }))
     .cast<EdgeInsetsGeometry>();
@@ -845,7 +845,7 @@ final offsetParser = tupleParser(
   numberRequired: 2,
   optionalName: "Offset",
 ).map<Offset>((value) {
-  return Offset(value[0]!, value[1]!);
+  return Offset(value[0], value[1]);
 });
 
 class CustomBoxShadow extends BoxShadow {
@@ -950,9 +950,9 @@ final radiusParser = (doubleParser.map((value) => Radius.circular(value)) |
           optionalName: "Radius",
         ).map((value) {
           if (value.length == 1) {
-            return Radius.circular(value[0]!);
+            return Radius.circular(value[0]);
           } else {
-            return Radius.elliptical(value[0]!, value[1]!);
+            return Radius.elliptical(value[0], value[1]);
           }
         }))
     .cast<Radius>();
