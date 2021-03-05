@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/models/type_models.dart';
@@ -9,9 +10,29 @@ import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/utils/theme.dart';
 import 'package:snippet_generator/widgets.dart';
 
+const _initialWidgetText = """
+Center()
+SizedBox(width: 400.0)
+Container(
+  height: 90,
+  padding: (horizontal: 10),
+  decoration: (
+    color: white, borderRadius: 15,
+    boxShadow: [ (color:black12 , offset: (0, 2), spreadRadius: 1, blurRadius: 3) ],
+  ),
+)
+Row()
+[
+  Expanded()
+  Text(text: "dw dw"),
+  Padding(padding: 20)
+  Text(text: "kk")
+]
+""";
+
 class ParsedState {
   final key = uuid.v4();
-  final controller = TextEditingController();
+  final controller = TextEditingController(text: _initialWidgetText);
 
   final nameNotifier = TextNotifier();
 }
@@ -197,7 +218,7 @@ class _ParsersViewBody extends HookWidget {
       [componentWidget, controller.value],
     );
 
-    final _form = selected.value == null
+    final _form = selected.value?.form == null
         ? null
         : selected.value!.form!(
             selected.value?.tokenParsedParams,
@@ -221,6 +242,7 @@ class _ParsersViewBody extends HookWidget {
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                     ),
+                    style: GoogleFonts.cousine(fontSize: 14),
                     controller: controller,
                     expands: true,
                     maxLines: null,
