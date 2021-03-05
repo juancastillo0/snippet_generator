@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_portal/flutter_portal.dart';
 import 'package:snippet_generator/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/models/models.dart';
@@ -18,6 +19,7 @@ import 'package:snippet_generator/utils/theme.dart';
 import 'package:snippet_generator/views/code_generated.dart';
 import 'package:snippet_generator/views/globals.dart';
 import 'package:snippet_generator/views/parsers_view.dart';
+import 'package:snippet_generator/themes/themes_tab_view.dart';
 import 'package:snippet_generator/views/type_config.dart';
 import 'package:snippet_generator/views/types_menu.dart';
 
@@ -73,20 +75,12 @@ class MyHomePage extends StatelessWidget {
         rootStore: rootStore,
         child: Rebuilder(
           builder: (context) {
-            int index = 0;
-            switch (rootStore.selectedTab) {
-              case AppTabs.types:
-                index = 0;
-                break;
-              case AppTabs.ui:
-                index = 1;
-                break;
-            }
             return IndexedStack(
-              index: index,
+              index: rootStore.selectedTab.index,
               children: const [
                 TypesTabView(),
                 ParsersView(),
+                ThemesTabView(),
               ],
             );
           },
@@ -179,6 +173,38 @@ ButtonStyle _actionButton(BuildContext context) => TextButton.styleFrom(
       padding: const EdgeInsets.symmetric(horizontal: 17),
     );
 
+const appTabsTitles = {
+  AppTabs.ui: "Widgets",
+  AppTabs.types: "Types",
+  AppTabs.theme: "Themes",
+};
+
+class TabButton extends HookWidget {
+  const TabButton({
+    required this.tab,
+    Key? key,
+  }) : super(key: key);
+
+  final AppTabs tab;
+
+  @override
+  Widget build(BuildContext context) {
+    final rootStore = useRootStore(context);
+
+    return Observer(builder: (context) {
+      return TextButton(
+        style: _actionButton(context),
+        onPressed: tab == rootStore.selectedTab
+            ? null
+            : () {
+                rootStore.setSelectedTab(tab);
+              },
+        child: Text(appTabsTitles[tab]!),
+      );
+    });
+  }
+}
+
 class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
   const _HomePageAppBar({Key? key}) : super(key: key);
 
@@ -193,27 +219,12 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
           height: 60,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Center(child: Text('Flutter Snippet Generator')),
-              const SizedBox(width: 30),
-              TextButton(
-                style: _actionButton(context),
-                onPressed: AppTabs.types == rootStore.selectedTab
-                    ? null
-                    : () {
-                        rootStore.setSelectedTab(AppTabs.types);
-                      },
-                child: const Text("Types"),
-              ),
-              TextButton(
-                style: _actionButton(context),
-                onPressed: AppTabs.ui == rootStore.selectedTab
-                    ? null
-                    : () {
-                        rootStore.setSelectedTab(AppTabs.ui);
-                      },
-                child: const Text("Widgets"),
-              ),
+            children: const [
+              Center(child: Text('Flutter Snippet Generator')),
+              SizedBox(width: 30),
+              TabButton(tab: AppTabs.types),
+              TabButton(tab: AppTabs.ui),
+              TabButton(tab: AppTabs.theme),
             ],
           ),
         );

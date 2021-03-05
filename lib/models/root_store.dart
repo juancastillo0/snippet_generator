@@ -14,7 +14,7 @@ import 'package:snippet_generator/utils/persistence.dart';
 import 'package:snippet_generator/views/globals.dart';
 import 'package:dart_style/dart_style.dart';
 
-enum AppTabs { types, ui }
+enum AppTabs { types, ui, theme }
 
 class RootStore {
   TypeItem? lastSelectedItem;
