@@ -186,8 +186,8 @@ final pColumn = WidgetParser.createWithParams("Column", _flexParams, (params) {
     verticalDirection: params["verticalDirection"] as VerticalDirection? ??
         VerticalDirection.down,
     children: (params["children"] as List?)
-            ?.map((w) => w.widget as Widget?)
-            .toList() as List<Widget>? ??
+            ?.map((w) => w.widget as Widget)
+            .toList() ??
         [],
   );
 });
@@ -207,8 +207,8 @@ final pRow = WidgetParser.createWithParams("Row", _flexParams, (params) {
     verticalDirection: params["verticalDirection"] as VerticalDirection? ??
         VerticalDirection.down,
     children: (params["children"] as List?)
-            ?.map((w) => w.widget as Widget?)
-            .toList() as List<Widget>? ??
+            ?.map((w) => w.widget as Widget)
+            .toList() ??
         [],
   );
 });
@@ -234,8 +234,8 @@ final pFlex = WidgetParser.createWithParams("Flex", {
     verticalDirection: params["verticalDirection"] as VerticalDirection? ??
         VerticalDirection.down,
     children: (params["children"] as List?)
-            ?.map((w) => w.widget as Widget?)
-            .toList() as List<Widget>? ??
+            ?.map((w) => w.widget as Widget)
+            .toList() ??
         [],
   );
 });
@@ -256,8 +256,8 @@ final pStack = WidgetParser.createWithParams("Stack", {
     fit: params["fit"] as StackFit? ?? StackFit.loose,
     textDirection: params["textDirection"] as TextDirection?,
     children: (params["children"] as List?)
-            ?.map((w) => w.widget as Widget?)
-            .toList() as List<Widget>? ??
+            ?.map((w) => w.widget as Widget)
+            .toList() ??
         [],
   );
 });
@@ -268,9 +268,9 @@ final pFlexible = WidgetParser.createWithParams("Flexible", {
   "child": WidgetParser.parser,
 }, (params) {
   return Flexible(
-    flex: params["flex"] as int,
-    fit: params["fit"] as FlexFit,
-    child: (params["child"] as WidgetParser).widget,
+    flex: params["flex"] as int? ?? 1,
+    fit: params["fit"] as FlexFit? ?? FlexFit.loose,
+    child: _extractChild(params),
   );
 });
 
@@ -291,7 +291,7 @@ final pPositioned = WidgetParser.createWithParams("Positioned", {
   "textDirection": textDirectionParser,
   "child": WidgetParser.parser,
 }, (params) {
-  final child = (params["child"] as WidgetParser?)?.widget ?? const SizedBox();
+  final child = _extractChild(params);
   switch (params["factory"] as String?) {
     case "directional":
       return Positioned.directional(
@@ -301,7 +301,8 @@ final pPositioned = WidgetParser.createWithParams("Positioned", {
         bottom: params["bottom"] as double?,
         end: params["end"] as double?,
         start: params["start"] as double?,
-        textDirection: params["textDirection"] as TextDirection,
+        textDirection:
+            params["textDirection"] as TextDirection? ?? TextDirection.ltr,
         child: child,
       );
     case "fill":
@@ -333,10 +334,14 @@ final pExpanded = WidgetParser.createWithParams("Expanded", {
   "child": WidgetParser.parser,
 }, (params) {
   return Expanded(
-    flex: params["flex"] as int,
-    child: (params["child"] as WidgetParser).widget,
+    flex: params["flex"] as int? ?? 1,
+    child: _extractChild(params),
   );
 });
+
+Widget _extractChild(Map<String, Object> params) {
+  return (params["child"] as WidgetParser?)?.widget ?? const SizedBox();
+}
 
 final pSizedBox = WidgetParser.createWithParams("SizedBox", {
   "width": doubleParser,
@@ -474,9 +479,9 @@ class WidgetParser {
         Nested<WidgetParser?>? _child;
         if (value.length > childIndex && value[childIndex] != null) {
           final widgets = value[childIndex];
-          if (widgets is Token<List>) {
-            params["children"] = widgets;
-            _child = Nested.children(widgets.value.cast());
+          if (widgets is Token && widgets.value is List) {
+            params["children"] = widgets as Token<Object>;
+            _child = Nested.children((widgets.value as List).cast());
           } else if (widgets != null) {
             params["child"] = (widgets as Token) as Token<Object>;
             _child = Nested.child(widgets.value as WidgetParser?);
@@ -505,7 +510,7 @@ void expectIs<T>(dynamic value, [void Function(T)? callback]) {
 }
 
 Parser<T> prefixPoint<T>(Parser<T> parser) {
-  return (char(".").trim() & parser).pick(1);
+  return (char(".").trim().optional() & parser).pick(1);
 }
 
 void main() {
