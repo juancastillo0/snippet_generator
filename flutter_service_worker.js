@@ -3,19 +3,24 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 const RESOURCES = {
-  "assets/NOTICES": "4cd8bb1ddf54fe7db4a6c604059e3d5b",
-"assets/AssetManifest.json": "2efbb41d7877d10aac9d091f58ccd7b9",
+  "manifest.json": "f327d6c3ac03e4e02f45a7854aa92ae3",
+"icons/Icon-192.png": "ac9a721a12bbc803b44f645561ecb1e1",
+"icons/Icon-512.png": "96e752610906ba2a93c65f8abe1645f1",
+"assets/NOTICES": "446bb36d4037306d6a280417af21c2aa",
 "assets/fonts/MaterialIcons-Regular.otf": "1288c9e28052e028aba623321f7826ac",
+"assets/AssetManifest.json": "ca5a5a411db671e5bd3ee44fc41118f8",
+"assets/google_fonts/Cousine-Italic.ttf": "177a3d2157da07498e805683e8cdaa8d",
+"assets/google_fonts/LICENSE.txt": "3b83ef96387f14655fc854ddc3c6bd57",
+"assets/google_fonts/Cousine-BoldItalic.ttf": "1038b5579146b28e9e4dc98c8fc5d1d9",
+"assets/google_fonts/Cousine-Bold.ttf": "06dae6a1a3247bd76125cfe3b3480557",
+"assets/google_fonts/Cousine-Regular.ttf": "64a889644e439ac4806c8e41bc9d1c83",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "6d342eb68f170c97609e9da345464e5e",
 "assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
+"index.html": "121631a577fa487bab29c4c79e3de202",
+"/": "121631a577fa487bab29c4c79e3de202",
+"main.dart.js": "7fc096c1faeda8f47504164f69134f58",
 "version.json": "479ca84fb350de76102ed1d9911e3d0a",
-"manifest.json": "f327d6c3ac03e4e02f45a7854aa92ae3",
-"index.html": "fdc7428043043b6a7b95b28dd43f6c04",
-"/": "fdc7428043043b6a7b95b28dd43f6c04",
-"favicon.png": "5dcef449791fa27946b3d35ad8803796",
-"main.dart.js": "0fc5e85c4209d65f7943f1dc86a59f8f",
-"icons/Icon-192.png": "ac9a721a12bbc803b44f645561ecb1e1",
-"icons/Icon-512.png": "96e752610906ba2a93c65f8abe1645f1"
+"favicon.png": "5dcef449791fa27946b3d35ad8803796"
 };
 
 // The application shell files that are downloaded before a service worker can
