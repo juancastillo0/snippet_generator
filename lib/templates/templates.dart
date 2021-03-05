@@ -44,8 +44,27 @@ class $signature {
   ${typeConfig.isDataValue ? _templateClassEquals() : ""}
   ${typeConfig.isSerializable ? _templateClassFromJson() : ""}
   ${typeConfig.isSerializable ? _templateClassToJson() : ""}
+
 }
+
+${typeConfig.isListenable ? _templateClassNotifier() : ""}
   """;
+  }
+
+  String _templateClassNotifier() {
+// class ${className}Notifier${typeConfig.generics} extends ValueNotifier<$classNameWithGenericIds> {
+//   ${className}Notifier($classNameWithGenericIds value): super(value);
+    // ${properties.map((p) => "set ${p.name}(${p.type} _v) => value = value.copyWith(${p.name}:  _v);\n"
+    //         "${p.type} get ${p.name} => value.${p.name};").join()}
+    return """
+class ${className}Notifier${typeConfig.generics} {
+  ${className}Notifier($classNameWithGenericIds value): ${properties.map((p) => "${p.name}Notifier = ValueNotifier<${p.type}>(value.${p.name})").join(",")};
+
+  ${properties.map((p) => "final ValueNotifier<${p.type}> ${p.name}Notifier;\n"
+            "set ${p.name}(${p.type} _v) => ${p.name}Notifier.value = _v;\n"
+            "${p.type} get ${p.name} => ${p.name}Notifier.value;").join()}
+}
+    """;
   }
 
   String _templateClassCopyWith() {
