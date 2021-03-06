@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:mobx/mobx.dart' hide Listenable;
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/models/models.dart';
@@ -10,6 +11,7 @@ import 'package:snippet_generator/models/serializer.dart';
 import 'package:snippet_generator/models/sum_type_config.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/notifiers/computed_notifier.dart';
+import 'package:snippet_generator/parsers/class_fields_parser.dart';
 import 'package:snippet_generator/parsers/signature_parser.dart';
 import 'package:snippet_generator/parsers/type_parser.dart';
 import 'package:uuid/uuid.dart';
@@ -294,6 +296,12 @@ class ClassConfig
   late final TextNotifier nameNotifier;
   String get name => nameNotifier.text;
 
+  final rawImport = TextNotifier();
+
+  late final Computed<Result<List<RawField>>> parsedRawImport = Computed(
+    () => fieldsParser.parse(rawImport.text),
+  );
+
   late final AppNotifier<bool> isReorderingNotifier;
   bool get isReordering => isReorderingNotifier.value;
 
@@ -358,8 +366,10 @@ class ClassConfig
     ]);
   }
 
-  void addProperty() {
-    properties.add(PropertyField(classConfigKey: key));
+  PropertyField addProperty() {
+    final prop = PropertyField(classConfigKey: key);
+    properties.add(prop);
+    return prop;
   }
 
   @override
