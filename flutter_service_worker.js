@@ -16,9 +16,9 @@ const RESOURCES = {
 "assets/google_fonts/Cousine-Regular.ttf": "64a889644e439ac4806c8e41bc9d1c83",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "6d342eb68f170c97609e9da345464e5e",
 "assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
-"index.html": "8d30db328ce56857a361540846f26ea1",
-"/": "8d30db328ce56857a361540846f26ea1",
-"main.dart.js": "093f6c683210a4cc7fd3c275841945cc",
+"index.html": "d048a6b2b20dacc52297eaea1374dc66",
+"/": "d048a6b2b20dacc52297eaea1374dc66",
+"main.dart.js": "a556adfc73e75eb12c92a3b23780243a",
 "version.json": "479ca84fb350de76102ed1d9911e3d0a",
 "favicon.png": "5dcef449791fa27946b3d35ad8803796"
 };
