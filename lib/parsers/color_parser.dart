@@ -131,6 +131,46 @@ final hexColorParser =
   throw Error();
 });
 
+final Map<String, Color Function(BuildContext)> _themeFactory = {
+  "accentColor": (context) => Theme.of(context).accentColor,
+  "primaryColorLight": (context) => Theme.of(context).primaryColorLight,
+  "primaryColorDark": (context) => Theme.of(context).primaryColorDark,
+  "primaryColor": (context) => Theme.of(context).primaryColor,
+  "canvasColor": (context) => Theme.of(context).canvasColor,
+  "scaffoldBackgroundColor": (context) =>
+      Theme.of(context).scaffoldBackgroundColor,
+  "cardColor": (context) => Theme.of(context).cardColor,
+  "buttonColor": (context) => Theme.of(context).buttonColor,
+  "backgroundColor": (context) => Theme.of(context).backgroundColor,
+  "errorColor": (context) => Theme.of(context).errorColor,
+  "toggleableActiveColor": (context) => Theme.of(context).toggleableActiveColor,
+};
+
+final Map<String, Color Function(BuildContext)> _colorSchemeFactory = {
+  "primaryVariant": (context) => Theme.of(context).colorScheme.primaryVariant,
+  "primary": (context) => Theme.of(context).colorScheme.primary,
+  "secondaryVariant": (context) =>
+      Theme.of(context).colorScheme.secondaryVariant,
+  "secondary": (context) => Theme.of(context).colorScheme.secondary,
+  "surface": (context) => Theme.of(context).colorScheme.surface,
+  "background": (context) => Theme.of(context).colorScheme.background,
+  "error": (context) => Theme.of(context).colorScheme.error,
+  "onPrimary": (context) => Theme.of(context).colorScheme.onPrimary,
+  "onSecondary": (context) => Theme.of(context).colorScheme.onSecondary,
+  "onSurface": (context) => Theme.of(context).colorScheme.onSurface,
+  "onBackground": (context) => Theme.of(context).colorScheme.onBackground,
+  "onError": (context) => Theme.of(context).colorScheme.onError,
+};
+
+final themeColorParser =
+    (string("theme.").trim().optional() & stringsParser(_themeFactory.keys) |
+            string("colorScheme.").trim().optional() &
+                stringsParser(_colorSchemeFactory.keys))
+        .map<Color Function(BuildContext)>((l) {
+  final key = (l as List)[1] as String;
+  return _themeFactory[key] ?? _colorSchemeFactory[key]!;
+});
+
 final colorParser = (accentColorParser |
         materialColorParser |
         blackAndWhiteColorParser |
