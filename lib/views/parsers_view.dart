@@ -89,7 +89,7 @@ class ParsedState {
       if (value?.form != null) {
         _selectedWidget.value = value;
       } else if (position == -1) {
-        _selectedWidget.value = result.value;
+        // _selectedWidget.value = result.value;
       }
     }
   }

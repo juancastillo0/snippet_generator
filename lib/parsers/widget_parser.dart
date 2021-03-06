@@ -132,6 +132,105 @@ class ContainerForm extends HookWidget {
   }
 }
 
+final _buttonParams = {
+  "autofocus": boolParser,
+  "clipBehavior": clipParser,
+  "alignment": alignmentParser,
+  "elevation": doubleParser,
+  "fixedSize": sizeParser,
+  "minimumSize": sizeParser,
+  "onSurface": colorParser,
+  "padding": edgeInsetsParser,
+  "primary": colorParser,
+  "shadowColor": colorParser,
+  "side": borderSideParser,
+  "visualDensity": visualDensityParser,
+  "tapTargetSize": materialTapTargetSizeParser,
+  "shape": shapeBorderParser,
+  "child": WidgetParser.parser,
+};
+
+final pTextButton = WidgetParser.createWithParams("TextButton", {
+  ..._buttonParams,
+  "backgroundColor": colorParser,
+}, (params) {
+  return TextButton(
+    onPressed: () {},
+    style: TextButton.styleFrom(
+      alignment: params["alignment"] as Alignment?,
+      backgroundColor: params["backgroundColor"] as Color?,
+      elevation: params["elevation"] as double?,
+      fixedSize: params["fixedSize"] as Size?,
+      minimumSize: params["minimumSize"] as Size?,
+      onSurface: params["onSurface"] as Color?,
+      padding: params["padding"] as EdgeInsetsGeometry?,
+      primary: params["primary"] as Color?,
+      shadowColor: params["shadowColor"] as Color?,
+      side: params["side"] as BorderSide?,
+      visualDensity: params["visualDensity"] as VisualDensity?,
+      tapTargetSize: params["tapTargetSize"] as MaterialTapTargetSize?,
+      shape: params["shape"] as OutlinedBorder?,
+    ),
+    clipBehavior: params["clipBehavior"] as Clip? ?? Clip.none,
+    autofocus: params["autofocus"] as bool? ?? false,
+    child: _extractChild(params),
+  );
+});
+
+final pElevatedButton = WidgetParser.createWithParams("ElevatedButton", {
+  ..._buttonParams,
+  "onPrimary": colorParser,
+}, (params) {
+  return ElevatedButton(
+    onPressed: () {},
+    style: ElevatedButton.styleFrom(
+      alignment: params["alignment"] as Alignment?,
+      onPrimary: params["onPrimary"] as Color?,
+      elevation: params["elevation"] as double?,
+      fixedSize: params["fixedSize"] as Size?,
+      minimumSize: params["minimumSize"] as Size?,
+      onSurface: params["onSurface"] as Color?,
+      padding: params["padding"] as EdgeInsetsGeometry?,
+      primary: params["primary"] as Color?,
+      shadowColor: params["shadowColor"] as Color?,
+      side: params["side"] as BorderSide?,
+      visualDensity: params["visualDensity"] as VisualDensity?,
+      tapTargetSize: params["tapTargetSize"] as MaterialTapTargetSize?,
+      shape: params["shape"] as OutlinedBorder?,
+    ),
+    clipBehavior: params["clipBehavior"] as Clip? ?? Clip.none,
+    autofocus: params["autofocus"] as bool? ?? false,
+    child: _extractChild(params),
+  );
+});
+
+final pOutlinedButton = WidgetParser.createWithParams("OutlinedButton", {
+  ..._buttonParams,
+  "backgroundColor": colorParser,
+}, (params) {
+  return OutlinedButton(
+    onPressed: () {},
+    style: OutlinedButton.styleFrom(
+      alignment: params["alignment"] as Alignment?,
+      backgroundColor: params["backgroundColor"] as Color?,
+      elevation: params["elevation"] as double?,
+      fixedSize: params["fixedSize"] as Size?,
+      minimumSize: params["minimumSize"] as Size?,
+      onSurface: params["onSurface"] as Color?,
+      padding: params["padding"] as EdgeInsetsGeometry?,
+      primary: params["primary"] as Color?,
+      shadowColor: params["shadowColor"] as Color?,
+      side: params["side"] as BorderSide?,
+      visualDensity: params["visualDensity"] as VisualDensity?,
+      tapTargetSize: params["tapTargetSize"] as MaterialTapTargetSize?,
+      shape: params["shape"] as OutlinedBorder?,
+    ),
+    clipBehavior: params["clipBehavior"] as Clip? ?? Clip.none,
+    autofocus: params["autofocus"] as bool? ?? false,
+    child: _extractChild(params),
+  );
+});
+
 final pAlign = WidgetParser.createWithParams("Align", {
   "alignment": alignmentParser,
   "widthFactor": doubleParser,
@@ -139,7 +238,7 @@ final pAlign = WidgetParser.createWithParams("Align", {
   "child": WidgetParser.parser,
 }, (params) {
   return Align(
-    alignment: params["alignment"] as Alignment,
+    alignment: params["alignment"] as Alignment? ?? Alignment.center,
     heightFactor: params["heightFactor"] as double?,
     widthFactor: params["widthFactor"] as double?,
     child: (params["child"] as WidgetParser?)?.widget,
@@ -419,7 +518,10 @@ class WidgetParser {
             pText |
             pStack |
             pPositioned |
-            pPadding)
+            pPadding |
+            pTextButton |
+            pOutlinedButton |
+            pElevatedButton)
         .cast<WidgetParser>());
   }
 

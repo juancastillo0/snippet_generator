@@ -45,6 +45,16 @@ final filterQualityParser =
 final paintingStyleParser =
     enumParser(PaintingStyle.values, optionalPrefix: "PaintingStyle");
 final tileModeParser = enumParser(TileMode.values, optionalPrefix: "TileMode");
+final visualDensityParser =
+    ((string("VisualDensity") & char(".").trim()).optional() &
+            (string("comfortable") | string("compact") | string("standard")))
+        .map((value) => value[1] == "comfortable"
+            ? VisualDensity.comfortable
+            : (value[1] == "compact"
+                ? VisualDensity.compact
+                : VisualDensity.standard));
+final materialTapTargetSizeParser = enumParser(MaterialTapTargetSize.values,
+    optionalPrefix: "MaterialTapTargetSize");
 
 const _alignmentList = [
   Alignment.topLeft,
@@ -192,6 +202,19 @@ final alignmentParser = (_alignmentEnumParser |
           throw Error();
         }))
     .cast<Alignment>();
+
+final sizeParser = (string("Size").trim().optional() &
+        char("(").trim() &
+        doubleParser &
+        char(",").trim() &
+        doubleParser &
+        char(")").trim())
+    .map<Size>((value) {
+  if (value is List) {
+    return Size(value[2] as double, value[4] as double);
+  }
+  throw Error();
+});
 
 abstract class PropClass<T> {
   void set(T value);
