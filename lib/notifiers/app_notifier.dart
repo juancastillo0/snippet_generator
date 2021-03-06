@@ -123,5 +123,5 @@ class TextNotifier extends AppNotifier<String> {
   final TextEditingController controller;
   final FocusNode focusNode = FocusNode();
   AppNotifier<String> get textNotifier => this;
-  String get text => controller.text;
+  String get text => value;
 }

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
-import 'package:snippet_generator/themes/theme_store.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/widgets.dart';
 
@@ -59,25 +59,36 @@ class ThemesTabView extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themesStore = useMemoized(() => ThemesStore());
+    final rootStore = useRootStore(context);
+    final themesStore = rootStore.themesStore;
     useListenable(themesStore.isUsingDarkTheme);
 
+    final themeCouple = themesStore.themes.first;
     final store = themesStore.isUsingDarkTheme.value
-        ? themesStore.themes.first.dark
-        : themesStore.themes.first.light;
+        ? themeCouple.dark
+        : themeCouple.light;
 
     return Row(
       children: [
         Expanded(
           child: Column(
             children: [
-              Row(
-                children: [
-                  RowBoolField(
-                    notifier: themesStore.isUsingDarkTheme,
-                    label: "Dark Theme",
-                  ),
-                ],
+              Padding(
+                padding:
+                    const EdgeInsets.only(left: 12.0, right: 8.0, bottom: 5),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    RowTextField(
+                      controller: themeCouple.name.controller,
+                      label: "Name",
+                    ),
+                    RowBoolField(
+                      notifier: themesStore.isUsingDarkTheme,
+                      label: "Dark Theme",
+                    ),
+                  ],
+                ),
               ),
               Expanded(
                 child: ListView(
