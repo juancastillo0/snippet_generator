@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
+import 'package:mobx/mobx.dart';
 import 'package:snippet_generator/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/models/serializer.dart';
 import 'package:snippet_generator/notifiers/nested_notifier.dart';
@@ -131,14 +132,14 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E>> implements List<E> {
     int? maxHistoryLength,
     NestedNotifier? parent,
     String? propKey,
-  })  : _inner = inner,
+  })  : _inner = ObservableList.of(inner),
         super(
           maxHistoryLength: maxHistoryLength,
           parent: parent,
           propKey: propKey,
         );
 
-  List<E> _inner;
+  ObservableList<E> _inner;
 
   @override
   dynamic toJson() {
@@ -147,29 +148,31 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E>> implements List<E> {
 
   @override
   void fromJson(dynamic json) {
-    this._inner = Serializers.fromJsonList(json as Iterable);
+    this._inner = ObservableList.of(Serializers.fromJsonList(json as Iterable));
   }
 
   @override
   @protected
   void consume(ListEvent<E> e) {
-    e.when(
-      change: (c) {
-        _inner[c.index] = c.newValue;
-      },
-      insert: (c) {
-        _inner.insert(c.index, c.value);
-      },
-      remove: (c) {
-        _inner.removeAt(c.index);
-      },
-      many: (c) {
-        c.events.forEach(consume);
-      },
-      recreate: (c) {
-        _inner = c.newList;
-      },
-    );
+    runInAction(() {
+      e.when(
+        change: (c) {
+          _inner[c.index] = c.newValue;
+        },
+        insert: (c) {
+          _inner.insert(c.index, c.value);
+        },
+        remove: (c) {
+          _inner.removeAt(c.index);
+        },
+        many: (c) {
+          c.events.forEach(consume);
+        },
+        recreate: (c) {
+          _inner = ObservableList.of(c.newList);
+        },
+      );
+    });
   }
 
   ListNotifier<E> clone() {
@@ -474,7 +477,8 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E>> implements List<E> {
   String join([String separator = ""]) => _inner.join(separator);
 
   @override
-  int lastIndexOf(E element, [int? start]) => _inner.lastIndexOf(element, start);
+  int lastIndexOf(E element, [int? start]) =>
+      _inner.lastIndexOf(element, start);
 
   @override
   int lastIndexWhere(bool Function(E element) test, [int? start]) =>
