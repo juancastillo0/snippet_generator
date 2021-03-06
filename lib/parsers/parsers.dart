@@ -99,8 +99,10 @@ Parser<Map<String, T>> structParser<T>(
   ).map((entries) => Map.fromEntries(entries));
   final hasFactory = params["factory"] != null;
 
+  Parser<Map<String, T>> result = parser;
+
   if (hasFactory && optionalName != null) {
-    return ((string(optionalName).trim() & char(".").trim()).optional() &
+    result = ((string(optionalName).trim() & char(".").trim()).optional() &
             params["factory"]!.optional() &
             parser)
         .map((value) {
@@ -111,7 +113,7 @@ Parser<Map<String, T>> structParser<T>(
       return r;
     });
   } else if (hasFactory) {
-    return (params["factory"]!.optional() & parser).map((value) {
+    result = (params["factory"]!.optional() & parser).map((value) {
       final r = value[1] as Map<String, T>;
       if (value[0] != null) {
         r["factory"] = value[0] as T;
@@ -119,9 +121,9 @@ Parser<Map<String, T>> structParser<T>(
       return r;
     });
   } else if (optionalName != null) {
-    return (string(optionalName).trim().optional() & parser).pick(1);
+    result = (string(optionalName).trim().optional() & parser).pick(1);
   }
-  return parser;
+  return result;
 }
 
 Parser<MapEntry<String, T>> structParamsParser<T>(

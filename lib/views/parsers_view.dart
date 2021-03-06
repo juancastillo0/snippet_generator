@@ -304,7 +304,7 @@ class _ParsersViewBody extends HookWidget {
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                     ),
-                    style: GoogleFonts.cousine(fontSize: 12),
+                    style: GoogleFonts.cousine(fontSize: 13),
                     controller: componentWidget.controller,
                     expands: true,
                     maxLines: null,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:snippet_generator/models/json_type.dart';
+import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/notifiers/computed_notifier.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/formatters.dart';
@@ -135,7 +137,22 @@ class ClassPropertiesTable extends HookWidget {
                     icon: const Icon(Icons.add),
                     label: const Text("Add Field"),
                   ),
-                  const SizedBox(width: 100),
+                  SizedBox(
+                    width: 100,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return Dialog(
+                              child: RawImportField(data: data),
+                            );
+                          },
+                        );
+                      },
+                      child: const Text("Import Raw"),
+                    ),
+                  ),
                 ],
               )
             ],
@@ -266,6 +283,130 @@ class ClassPropertiesTable extends HookWidget {
         },
       ),
     ];
+  }
+}
+
+class RawImportField extends StatelessWidget {
+  const RawImportField({
+    Key? key,
+    required this.data,
+  }) : super(key: key);
+
+  final ClassConfig data;
+
+  @override
+  Widget build(BuildContext context) {
+    final allRequired = AppNotifier(true);
+    void close() {
+      Navigator.of(context).pop();
+    }
+
+    return Container(
+      height: 400,
+      width: 600,
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Raw Import", style: context.textTheme.headline5),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: close,
+              )
+            ],
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: TextField(
+                    autofocus: true,
+                    controller: data.rawImport.controller,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      helperText:
+                          "Line or coma separated field descriptions, e.g:"
+                          "\n• String name\n• req int count,\n• isAvailable : bool",
+                    ),
+                    expands: true,
+                    minLines: null,
+                    maxLines: null,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 2,
+                  child: Observer(
+                    builder: (context) {
+                      final listResult = data.parsedRawImport.value;
+
+                      if (listResult.isSuccess) {
+                        final atLeastOneRequired =
+                            listResult.value.any((f) => f.isRequired);
+                        return Column(
+                          children: [
+                            Text("Fields", style: context.textTheme.headline6),
+                            const SizedBox(height: 5),
+                            Expanded(
+                              child: ListView(
+                                children: [
+                                  ...listResult.value.map(
+                                    (e) => SelectableText(
+                                      "${e.type} ${e.name} ${e.isRequired}",
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                if (!atLeastOneRequired)
+                                  RowBoolField(
+                                    notifier: allRequired,
+                                    label: "All Required",
+                                  )
+                                else
+                                  const SizedBox(),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    for (final rawField in listResult.value) {
+                                      final prop = data.addProperty();
+                                      prop.nameNotifier.value = rawField.name;
+                                      prop.typeNotifier.value = rawField.type;
+                                      prop.isRequiredNotifier.value =
+                                          atLeastOneRequired
+                                              ? rawField.isRequired
+                                              : allRequired.value;
+                                    }
+                                    close();
+                                  },
+                                  child: const Text("Import"),
+                                ),
+                              ],
+                            )
+                          ],
+                        );
+                      } else {
+                        return Center(
+                          child: Text(
+                            "Wrong input\n" + listResult.toString(),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                )
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
