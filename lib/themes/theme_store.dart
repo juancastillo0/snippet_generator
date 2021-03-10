@@ -1,32 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
+import 'package:snippet_generator/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/models/props_serializable.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
+import 'package:snippet_generator/themes/button_themes.dart';
 
-class ThemesStore {
+int _themeCount = 0;
+
+class ThemesStore with PropsSerializable {
+  ThemesStore({required this.name});
+
   final isUsingDarkTheme = AppNotifier(false, name: "isUsingDarkTheme");
-  final List<ThemeCouple> themes = [ThemeCouple()];
+  final themes = ListNotifier([ThemeCouple()], propKey: "themes");
+
+  @override
+  final String name;
+
+  @override
+  late final Iterable<SerializableProp> props = [
+    isUsingDarkTheme,
+    themes,
+  ];
 }
 
-class ThemeCouple {
-  final light = ThemeStore(brightness: Brightness.light);
-  final dark = ThemeStore(brightness: Brightness.dark);
+class ThemeCouple with ItemsSerializable {
+  final light = ThemeStore(brightness: Brightness.light, name: "light");
+  final dark = ThemeStore(brightness: Brightness.dark, name: "light");
 
-  final name = TextNotifier(name: "name");
+  final TextNotifier name = TextNotifier(
+    initialText: "unnamed${_themeCount++}",
+    name: "name",
+  );
+
+  @override
+  late final Iterable<SerializableProp> props = [
+    light,
+    dark,
+    name,
+  ];
 }
 
 class ThemeStore with PropsSerializable {
   static final _defaultTheme = ThemeData.light();
   static final _defaultDarkTheme = ThemeData.dark();
 
+  @override
+  final String name;
   final Brightness brightness;
 
-  ThemeStore({required this.brightness})
+  ThemeStore({required this.brightness, required this.name})
       : colorScheme = ColorSchemeNotifier(
           brightness,
           brightness == Brightness.dark
               ? _defaultDarkTheme.colorScheme
               : _defaultTheme.colorScheme,
+          name: "colorScheme",
         ) {
     if (brightness == Brightness.dark) {
       runInAction(() {
@@ -100,15 +128,11 @@ class ThemeStore with PropsSerializable {
   final bottomSheetTheme = AppNotifier<BottomSheetThemeData>(
       _defaultTheme.bottomSheetTheme,
       name: "bottomSheetTheme");
-  final textButtonTheme = AppNotifier<TextButtonThemeData>(
-      _defaultTheme.textButtonTheme,
-      name: "textButtonTheme");
-  final elevatedButtonTheme = AppNotifier<ElevatedButtonThemeData>(
-      _defaultTheme.elevatedButtonTheme,
-      name: "elevatedButtonTheme");
-  final outlinedButtonTheme = AppNotifier<OutlinedButtonThemeData>(
-      _defaultTheme.outlinedButtonTheme,
-      name: "outlinedButtonTheme");
+  final textButtonTheme = TextButtonThemeNotifier(name: "textButtonTheme");
+  final elevatedButtonTheme =
+      ElevatedButtonThemeNotifier(name: "elevatedButtonTheme");
+  final outlinedButtonTheme =
+      OutlinedButtonThemeNotifier(name: "outlinedButtonTheme");
   final textSelectionTheme = AppNotifier<TextSelectionThemeData>(
       _defaultTheme.textSelectionTheme,
       name: "textSelectionTheme");
@@ -163,7 +187,7 @@ class ThemeStore with PropsSerializable {
   });
 
   @override
-  late final Iterable<AppNotifier<dynamic>> props = [
+  late final Iterable<SerializableProp> props = [
     primaryColor,
     accentColor,
     primaryColorLight,
@@ -183,6 +207,7 @@ class ThemeStore with PropsSerializable {
     dialogTheme,
     typography,
     snackBarTheme,
+    colorScheme,
     bottomSheetTheme,
     textButtonTheme,
     elevatedButtonTheme,
@@ -195,10 +220,12 @@ class ThemeStore with PropsSerializable {
   ];
 }
 
-class ColorSchemeNotifier {
+class ColorSchemeNotifier with PropsSerializable {
+  @override
+  final String name;
   final Brightness brightness;
 
-  ColorSchemeNotifier(this.brightness, ColorScheme value)
+  ColorSchemeNotifier(this.brightness, ColorScheme value, {required this.name})
       : primaryNotifier = AppNotifier<Color>(value.primary, name: "primary"),
         primaryVariantNotifier =
             AppNotifier<Color>(value.primaryVariant, name: "primaryVariant"),
@@ -220,6 +247,7 @@ class ColorSchemeNotifier {
             AppNotifier<Color>(value.onBackground, name: "onBackground"),
         onErrorNotifier = AppNotifier<Color>(value.onError, name: "onError");
 
+  @override
   late final List<AppNotifier<Color>> props = [
     primaryNotifier,
     primaryVariantNotifier,
