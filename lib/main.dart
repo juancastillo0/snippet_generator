@@ -16,6 +16,7 @@ import 'package:snippet_generator/utils/download_json.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/utils/persistence.dart';
 import 'package:snippet_generator/parsers/type_parser.dart';
+import 'package:snippet_generator/utils/set_up_globals.dart';
 import 'package:snippet_generator/utils/theme.dart';
 import 'package:snippet_generator/views/code_generated.dart';
 import 'package:snippet_generator/views/globals.dart';
@@ -35,6 +36,7 @@ Future<void> main() async {
   JsonTypeParser.init();
   WidgetParser.init();
   await initHive();
+  setUpGlobals();
 
   final rootStore = RootStore();
   Globals.add(rootStore);
