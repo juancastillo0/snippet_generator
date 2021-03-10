@@ -2,12 +2,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class Globals {
-  static final Map<Type, Object?> _map = <Type, Object>{};
+  static final Map<Type, Object> _map = {};
+  static final Map<Type, Object Function()> _factoryMap = {};
   static final _refs = <String, Object>{};
   static final _nested = <String, List<Object>>{};
 
-  static void add<T>(T value) {
+  static void add<T extends Object>(T value) {
     _map[T] = value;
+  }
+
+  static void addFactory<T extends Object>(T Function() value) {
+    _factoryMap[T] = value;
   }
 
   static void addRef(String key, Object value) {
@@ -30,6 +35,10 @@ class Globals {
 
   static T get<T>() {
     return _map[T] as T;
+  }
+
+  static T Function()? getFactory<T>() {
+    return _factoryMap[T] as T Function()?;
   }
 }
 

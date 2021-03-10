@@ -3,6 +3,10 @@ import 'package:snippet_generator/notifiers/app_notifier.dart';
 
 class SerializableConfig with PropsSerializable {
   @override
+  final String name;
+  SerializableConfig({required this.name});
+  
+  @override
   Iterable<AppNotifier<dynamic>> get props =>
       [staticFunction, returnString, suffix, discriminator];
 

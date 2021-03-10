@@ -146,8 +146,8 @@ class TypeConfig
     SerializableConfig? serializableConfig,
   })  : key = key ?? uuid.v4(),
         classes = ListNotifier(classes ?? []),
-        sumTypeConfig = sumTypeConfig ?? SumTypeConfig(),
-        serializableConfig = serializableConfig ?? SerializableConfig() {
+        sumTypeConfig = sumTypeConfig ?? SumTypeConfig(name: "sumTypeConfig"),
+        serializableConfig = serializableConfig ?? SerializableConfig(name: "serializableConfig") {
     isEnumNotifier = AppNotifier(isEnum ?? false, parent: this);
     isDataValueNotifier = AppNotifier(isDataValue ?? false, parent: this);
     isSumTypeNotifier = AppNotifier(isSumType ?? false, parent: this);
@@ -227,8 +227,8 @@ class TypeConfig
       "isListenable": isListenable,
       "defaultEnumKey": defaultEnum?.key,
       "advancedConfig": advancedConfig.toJson(),
-      "sumTypeConfig": sumTypeConfig.toMap(),
-      "serializableConfig": serializableConfig.toMap(),
+      "sumTypeConfig": sumTypeConfig.toJson(),
+      "serializableConfig": serializableConfig.toJson(),
     };
   }
 
@@ -250,10 +250,10 @@ class TypeConfig
               "isConst": json["isConst"] as bool?,
             },
       ),
-      sumTypeConfig: SumTypeConfig()
-        ..tryFromMap(json["sumTypeConfig"] as Map<String, dynamic>?),
-      serializableConfig: SerializableConfig()
-        ..tryFromMap(json["serializableConfig"] as Map<String, dynamic>?),
+      sumTypeConfig: SumTypeConfig(name: "sumTypeConfig")
+        ..trySetFromJson(json["sumTypeConfig"]),
+      serializableConfig: SerializableConfig(name: "serializableConfig")
+        ..trySetFromJson(json["serializableConfig"]),
     );
   }
 

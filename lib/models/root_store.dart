@@ -9,12 +9,12 @@ import 'package:snippet_generator/collection_notifier/map_notifier.dart';
 import 'package:snippet_generator/models/type_item.dart';
 import 'package:snippet_generator/models/type_models.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
+import 'package:snippet_generator/parsers/view/components_widget_store.dart';
 import 'package:snippet_generator/themes/theme_store.dart';
 import 'package:snippet_generator/utils/download_json.dart';
 import 'package:snippet_generator/utils/persistence.dart';
 import 'package:snippet_generator/views/globals.dart';
 import 'package:dart_style/dart_style.dart';
-import 'package:snippet_generator/views/parsers_view.dart';
 
 enum AppTabs { types, ui, theme }
 
@@ -39,7 +39,7 @@ class RootStore {
 
   final componentWidgetsStore = ComponentWidgetsStore();
 
-  final themesStore = ThemesStore();
+  final themesStore = ThemesStore(name: "themesStore");
 
   final MapNotifier<String, TypeConfig> types =
       MapNotifier<String, TypeConfig>();
