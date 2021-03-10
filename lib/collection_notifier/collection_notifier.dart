@@ -3,6 +3,7 @@ import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
+import 'package:snippet_generator/models/props_serializable.dart';
 import 'package:snippet_generator/notifiers/nested_notifier.dart';
 
 @immutable
@@ -17,7 +18,10 @@ class EventData<V extends Event<V>> {
   final EventType type;
 }
 
-abstract class EventConsumer<E extends Event<E>> extends ChangeNotifier {
+abstract class EventConsumer<E extends Event<E>> extends ChangeNotifier implements SerializableProp {
+  @override
+  String get name => propKey!;
+
   final String? propKey;
   EventConsumer({
     int? maxHistoryLength,
@@ -27,8 +31,10 @@ abstract class EventConsumer<E extends Event<E>> extends ChangeNotifier {
     parent?.registerCollection(this);
   }
 
-  void fromJson(dynamic json);
-  dynamic toJson();
+  @override
+  bool trySetFromJson(Object? json);
+  @override
+  Object? toJson();
 
   EventHistory<E> _history;
   EventHistory<E> get history => _history;

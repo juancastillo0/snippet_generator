@@ -132,6 +132,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E>> implements List<E> {
     int? maxHistoryLength,
     NestedNotifier? parent,
     String? propKey,
+    this.itemFactory,
   })  : _inner = ObservableList.of(inner),
         super(
           maxHistoryLength: maxHistoryLength,
@@ -140,6 +141,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E>> implements List<E> {
         );
 
   ObservableList<E> _inner;
+  final E Function()? itemFactory;
 
   @override
   dynamic toJson() {
@@ -147,8 +149,15 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E>> implements List<E> {
   }
 
   @override
-  void fromJson(dynamic json) {
-    this._inner = ObservableList.of(Serializers.fromJsonList(json as Iterable));
+  bool trySetFromJson(Object? json) {
+    try {
+      this._inner = ObservableList.of(
+        Serializers.fromJsonList(json as Iterable, itemFactory),
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   @override

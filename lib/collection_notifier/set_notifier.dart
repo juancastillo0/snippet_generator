@@ -1,4 +1,5 @@
 import 'package:meta/meta.dart';
+import 'package:mobx/mobx.dart';
 import 'package:snippet_generator/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/models/serializer.dart';
 import 'package:snippet_generator/notifiers/nested_notifier.dart';
@@ -229,23 +230,30 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V>> implements Set<V> {
     NestedNotifier? parent,
     String? propKey,
     int? maxHistoryLength,
-  })  : _inner = inner ?? <V>{},
+  })  : _inner = ObservableSet.of(inner ?? <V>{}),
         super(
           maxHistoryLength: maxHistoryLength,
           parent: parent,
           propKey: propKey,
         );
 
-  Set<V> _inner;
+  ObservableSet<V> _inner;
 
   @override
-  dynamic toJson() {
-    return Serializers.toJsonList(_inner);
+  List<Object?> toJson() {
+    return Serializers.toJsonList<V>(_inner);
   }
 
   @override
-  void fromJson(dynamic json) {
-    this._inner = Serializers.fromJsonList<V>(json as Iterable).toSet();
+  bool trySetFromJson(Object? json) {
+    try {
+      this._inner = ObservableSet.of(
+        Serializers.fromJsonList<V>(json as Iterable),
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   @override

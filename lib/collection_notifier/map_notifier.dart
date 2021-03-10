@@ -1,4 +1,5 @@
 import 'package:meta/meta.dart';
+import 'package:mobx/mobx.dart';
 import 'package:snippet_generator/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/models/serializer.dart';
 import 'package:snippet_generator/notifiers/nested_notifier.dart';
@@ -164,7 +165,8 @@ class MapManyEvent<K, V> extends MapEvent<K, V> {
 
   static MapManyEvent<K, V> fromJson<K, V>(Map<String, dynamic> map) {
     return MapManyEvent._(
-      events: Serializers.fromJsonList<MapEvent<K, V>>(map['events'] as Iterable),
+      events:
+          Serializers.fromJsonList<MapEvent<K, V>>(map['events'] as Iterable),
     );
   }
 
@@ -219,7 +221,7 @@ Map<K, V> _defaultMapCreator<K, V>() {
 class MapNotifier<K, V> extends EventConsumer<MapEvent<K, V>>
     implements Map<K, V> {
   final Map<K, V> Function() _mapCreator;
-  late final Map<K, V> _inner;
+  late ObservableMap<K, V> _inner;
 
   MapNotifier({
     int? maxHistoryLength,
@@ -232,7 +234,7 @@ class MapNotifier<K, V> extends EventConsumer<MapEvent<K, V>>
           parent: parent,
           propKey: propKey,
         ) {
-    _inner = _mapCreator();
+    _inner = ObservableMap.of(_mapCreator());
   }
 
   @override
@@ -241,8 +243,13 @@ class MapNotifier<K, V> extends EventConsumer<MapEvent<K, V>>
   }
 
   @override
-  void fromJson(dynamic json) {
-    this._inner = Serializers.fromJsonMap(json);
+  bool trySetFromJson(Object? json) {
+    try {
+      this._inner = ObservableMap.of(Serializers.fromJsonMap(json));
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   @protected
@@ -257,13 +264,14 @@ class MapNotifier<K, V> extends EventConsumer<MapEvent<K, V>>
     }, many: (e) {
       e.events.forEach(consume);
     }, replace: (e) {
-      _inner = e.newMap;
+      _inner = ObservableMap.of(e.newMap);
     });
   }
 
   MapEvent<K, V> _updateOrInsertEvent(K key, V value) {
     if (containsKey(key)) {
-      return MapEvent.change(key: key, newValue: value, oldValue: this[key] as V);
+      return MapEvent.change(
+          key: key, newValue: value, oldValue: this[key] as V);
     } else {
       return MapEvent.insert(key: key, value: value);
     }
