@@ -1,8 +1,6 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/parsers/color_parser.dart';
 import 'package:snippet_generator/parsers/dart_parser.dart';
@@ -56,7 +54,7 @@ final visualDensityParser =
 final materialTapTargetSizeParser = enumParser(MaterialTapTargetSize.values,
     optionalPrefix: "MaterialTapTargetSize");
 
-const _alignmentList = [
+const alignmentList = [
   Alignment.topLeft,
   Alignment.topCenter,
   Alignment.topRight,
@@ -187,7 +185,7 @@ final textStyleParser = structParser({
 );
 
 final _alignmentEnumParser =
-    enumParser(_alignmentList, optionalPrefix: "Alignment");
+    enumParser(alignmentList, optionalPrefix: "Alignment");
 final alignmentParser = (_alignmentEnumParser |
         (string("Alignment").trim().optional() &
                 char("(").trim() &
@@ -216,457 +214,6 @@ final sizeParser = (string("Size").trim().optional() &
   throw Error();
 });
 
-abstract class PropClass<T> {
-  void set(T value);
-
-  T get();
-
-  factory PropClass.from(ValueNotifier<T> alignemnt) = _ValuePropClass<T>;
-}
-
-class _ValuePropClass<T> implements PropClass<T> {
-  final ValueNotifier<T> valueNotifier;
-  const _ValuePropClass(this.valueNotifier);
-  @override
-  void set(T value) {
-    valueNotifier.value = value;
-  }
-
-  @override
-  T get() => valueNotifier.value;
-}
-
-class WidgetFormState {
-  WidgetFormState(this.tokenMap, this.mainController);
-  final Token<Map<String, Token<Object>>>? tokenMap;
-  Map<String, Token<Object>> get map => tokenMap!.value;
-  final TextEditingController mainController;
-
-  static WidgetFormState of(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<_WidgetFormStateWidget>()!
-        .state;
-  }
-
-  void replace(String key, String _value, Token? token) {
-    int stop;
-    int start;
-    String value;
-    if (token == null) {
-      final _mapStr =
-          tokenMap!.buffer.substring(tokenMap!.start, tokenMap!.stop);
-      start = tokenMap!.start + _mapStr.lastIndexOf(")");
-      stop = start;
-      if (map.isNotEmpty && !RegExp(r",\s*\)\s*$").hasMatch(_mapStr)) {
-        value = ", $key: $_value";
-      } else {
-        value = "$key: $_value";
-      }
-    } else {
-      start = token.start;
-      stop = token.stop;
-      value = _value;
-    }
-
-    mainController.value = TextEditingValue(
-      text: mainController.text.replaceRange(start, stop, value),
-      selection: TextSelection.collapsed(
-        offset: start + value.length,
-      ),
-    );
-  }
-
-  Widget provide(Widget child) {
-    return _WidgetFormStateWidget(this, child: child);
-  }
-}
-
-class _WidgetFormStateWidget extends InheritedWidget {
-  final WidgetFormState state;
-  const _WidgetFormStateWidget(this.state, {required Widget child, Key? key})
-      : super(child: child, key: key);
-
-  @override
-  bool updateShouldNotify(covariant InheritedWidget oldWidget) {
-    return (oldWidget as _WidgetFormStateWidget).state != state;
-  }
-}
-
-class AlignmentInput extends HookWidget {
-  const AlignmentInput({
-    required ValueKey<String> key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final key = this.key as ValueKey<String>;
-    final global = WidgetFormState.of(context);
-    final token = global.map[key.value];
-    final value = token?.value as Alignment? ?? const Alignment(0, 0);
-    final controllerL = useTextEditingController();
-    final controllerR = useTextEditingController();
-
-    useEffect(() {
-      if (double.tryParse(controllerL.text) != value.x) {
-        controllerL.value =
-            controllerL.value.copyWith(text: value.x.toString());
-      }
-      if (double.tryParse(controllerR.text) != value.y) {
-        controllerR.value =
-            controllerR.value.copyWith(text: value.y.toString());
-      }
-      return () {};
-    }, [value]);
-
-    void set(Alignment? newValue) {
-      String newStrValue = newValue.toString();
-      newStrValue = newStrValue.startsWith("Alignment.")
-          ? newStrValue.replaceRange(0, 10, "")
-          : "Alignment(${newValue!.x}, ${newValue.y})";
-
-      global.replace(key.value, newStrValue, token);
-    }
-
-    return Card(
-      child: Container(
-        width: 200,
-        height: 150,
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(key.value),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: controllerL,
-                    decoration: const InputDecoration(labelText: "delta x"),
-                    onChanged: (String dx) {
-                      final dxNum = double.tryParse(dx);
-                      if (dxNum != null) {
-                        set(Alignment(dxNum, value.y));
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: TextField(
-                    controller: controllerR,
-                    decoration: const InputDecoration(labelText: "delta y"),
-                    onChanged: (String dy) {
-                      final dyNum = double.tryParse(dy);
-                      if (dyNum != null) {
-                        set(Alignment(value.x, dyNum));
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-            DropdownButton<Alignment>(
-              value: _alignmentList.contains(value) ? value : null,
-              items: _alignmentList
-                  .map(
-                    (e) => DropdownMenuItem(
-                      value: e,
-                      key: ValueKey(e),
-                      child: Text(e.toString().split(".")[1]),
-                    ),
-                  )
-                  .toList(),
-              onChanged: set,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class DoubleInput extends HookWidget {
-  final String label;
-  final void Function(double) onChanged;
-  final double? value;
-
-  const DoubleInput({
-    Key? key,
-    required this.label,
-    required this.onChanged,
-    required this.value,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = useTextEditingController();
-    useEffect(() {
-      if (value == null) {
-        controller.value = controller.value.copyWith(text: "");
-      } else if (double.tryParse(controller.text) != value) {
-        controller.value = controller.value.copyWith(text: value.toString());
-      }
-      return () {};
-    }, [value]);
-
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(labelText: label),
-      onChanged: (String dx) {
-        final dxNum = double.tryParse(dx);
-        if (dxNum != null) {
-          onChanged(dxNum);
-        }
-      },
-    );
-  }
-}
-
-extension ExtEdgeInsets on EdgeInsets {
-  bool get hasHorizontal => left == right;
-  bool get hasVertical => top == bottom;
-  bool get hasAll => left == right && top == bottom && left == bottom;
-}
-
-class ColorInput extends HookWidget {
-  const ColorInput({
-    required ValueKey<String> key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final key = this.key as ValueKey<String>;
-    final global = WidgetFormState.of(context);
-    final token = global.map[key.value];
-    final value = token?.value as Color? ?? Colors.transparent;
-
-    void set(Color newValue) {
-      global.replace(
-        key.value,
-        "0x${newValue.value.toRadixString(16).padLeft(8, '0')}",
-        token,
-      );
-    }
-
-    return Card(
-      child: Container(
-        width: 550,
-        padding: const EdgeInsets.only(top: 12, bottom: 12, left: 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(key.value),
-            ),
-            ColorPicker(
-              pickerColor: value,
-              onColorChanged: set,
-              colorPickerWidth: 100.0,
-              showLabel: true,
-              enableAlpha: true,
-              pickerAreaHeightPercent: 0.7,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class DecorationInput extends HookWidget {
-  const DecorationInput({
-    required ValueKey<String> key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final key = this.key as ValueKey<String>;
-    final global = WidgetFormState.of(context);
-    final token = global.map[key.value];
-    final value = token?.value as Decoration? ?? const BoxDecoration();
-
-    void set(Decoration newValue) {
-      if (newValue is ShapeDecoration) {
-        global.replace(
-          key.value,
-          "0x$newValue",
-          token,
-        );
-      } else if (newValue is BoxDecoration) {
-        global.replace(
-          key.value,
-          "0x$newValue",
-          token,
-        );
-      }
-    }
-
-    return Card(
-      child: Container(
-        width: 550,
-        padding: const EdgeInsets.only(top: 12, bottom: 12, left: 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(key.value),
-            ),
-            // ColorPicker(
-            //   pickerColor: value,
-            //   onColorChanged: set,
-            //   colorPickerWidth: 100.0,
-            //   showLabel: true,
-            //   enableAlpha: true,
-            //   pickerAreaHeightPercent: 0.7,
-            // ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class PaddingInput extends HookWidget {
-  const PaddingInput({
-    required ValueKey<String> key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final key = this.key as ValueKey<String>;
-    final global = WidgetFormState.of(context);
-    final token = global.map[key.value];
-    final value = token?.value as EdgeInsets? ?? EdgeInsets.zero;
-
-    void set(EdgeInsets newValue) {
-      String _f(String v, double vd) => vd == 0 ? "" : "$v: $vd, ";
-
-      String str;
-      if (newValue.hasAll) {
-        str = "${newValue.bottom}";
-      } else if (newValue.hasHorizontal && newValue.hasVertical) {
-        str =
-            "(${_f("horizontal", newValue.left)}${_f("vertical", newValue.top)})";
-      } else if (newValue.hasHorizontal) {
-        str =
-            "(${_f("horizontal", newValue.left)}${_f("top", newValue.top)}${_f("bottom", newValue.bottom)})";
-      } else if (newValue.hasVertical) {
-        str =
-            "(${_f("left", newValue.left)}${_f("right", newValue.right)}${_f("vertical", newValue.top)})";
-      } else {
-        str = "(${_f("left", newValue.left)}${_f("right", newValue.right)}"
-            "${_f("top", newValue.top)}${_f("bottom", newValue.bottom)})";
-      }
-      global.replace(key.value, str, token);
-    }
-
-    return Card(
-      child: Container(
-        width: 300,
-        height: 220,
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(key.value),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: DoubleInput(
-                    label: "horizontal",
-                    value: value.hasHorizontal ? value.left : null,
-                    onChanged: (v) {
-                      set(value.copyWith(left: v, right: v));
-                    },
-                  ),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: DoubleInput(
-                    label: "top",
-                    value: value.top,
-                    onChanged: (v) {
-                      set(value.copyWith(top: v));
-                    },
-                  ),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: DoubleInput(
-                    label: "vertical",
-                    value: value.hasVertical ? value.top : null,
-                    onChanged: (v) {
-                      set(value.copyWith(top: v, bottom: v));
-                    },
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: DoubleInput(
-                    label: "left",
-                    value: value.left,
-                    onChanged: (v) {
-                      set(value.copyWith(left: v));
-                    },
-                  ),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: DoubleInput(
-                    label: "all",
-                    value: value.hasAll ? value.left : null,
-                    onChanged: (v) {
-                      set(EdgeInsets.all(v));
-                    },
-                  ),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: DoubleInput(
-                    label: "right",
-                    value: value.right,
-                    onChanged: (v) {
-                      set(value.copyWith(right: v));
-                    },
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                const Spacer(),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: DoubleInput(
-                    label: "bottom",
-                    value: value.bottom,
-                    onChanged: (v) {
-                      set(value.copyWith(bottom: v));
-                    },
-                  ),
-                ),
-                const SizedBox(width: 15),
-                const Spacer(),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 final edgeInsetsParser = (doubleParser.map((value) => EdgeInsets.all(value)) |
         structParser(
           {
@@ -682,15 +229,15 @@ final edgeInsetsParser = (doubleParser.map((value) => EdgeInsets.all(value)) |
           },
           optionalName: "EdgeInsets",
         ).map((value) {
-          final horizontal = value["horizontal"];
-          final vertical = value["vertical"];
-          final top = value["top"];
-          final bottom = value["bottom"];
-          final left = value["left"];
-          final right = value["right"];
-          final end = value["end"];
-          final start = value["start"];
-          final all = value["all"];
+          final horizontal = value["horizontal"] as double?;
+          final vertical = value["vertical"] as double?;
+          final top = value["top"] as double?;
+          final bottom = value["bottom"] as double?;
+          final left = value["left"] as double?;
+          final right = value["right"] as double?;
+          final end = value["end"] as double?;
+          final start = value["start"] as double?;
+          final all = value["all"] as double?;
 
           if (start != null || end != null) {
             return EdgeInsetsDirectional.only(
@@ -750,11 +297,12 @@ final boxConstraintsParser = structParser(
     "minHeight": doubleParser,
     "maxWidth": doubleParser,
     "minWidth": doubleParser,
-    "factory": string("expand") |
-        string("loose") |
-        string("tight") |
-        string("rightFor") |
-        string("tightForFinite")
+    "factory": (string("expand") |
+            string("loose") |
+            string("tight") |
+            string("rightFor") |
+            string("tightForFinite"))
+        .cast()
   },
   optionalName: "EdgeInsets",
 ).map<BoxConstraints>((value) {
@@ -816,9 +364,10 @@ final borderSideParser =
 final borderParser =
     (borderSideParser.map((value) => Border.fromBorderSide(value)) |
             structParser({
-              "factory": string("all") |
-                  string("fromBorderSide") |
-                  string("symmetric"),
+              "factory": (string("all") |
+                      string("fromBorderSide") |
+                      string("symmetric"))
+                  .cast(),
               "vertical": borderSideParser,
               "horizontal": borderSideParser,
               "borderSide": borderSideParser,
@@ -984,7 +533,8 @@ final borderRadiusParser =
     (radiusParser.map((value) => BorderRadius.all(value)) |
             structParser({
               "factory":
-                  string("horizontal") | string("only") | string("vertical"),
+                  (string("horizontal") | string("only") | string("vertical"))
+                      .cast(),
               "side": radiusParser,
               "top": radiusParser,
               "bottom": radiusParser,

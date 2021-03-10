@@ -2,122 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:petitparser/petitparser.dart';
-import 'package:snippet_generator/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/models/root_store.dart';
-import 'package:snippet_generator/models/type_models.dart';
-import 'package:snippet_generator/notifiers/app_notifier.dart';
-import 'package:snippet_generator/parsers/widget_parser.dart';
+import 'package:snippet_generator/parsers/view/components_widget_store.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/utils/theme.dart';
 import 'package:snippet_generator/widgets.dart';
-
-const _initialWidgetText = """
-Center()
-SizedBox(width: 400.0)
-Container(
-  height: 90,
-  padding: (horizontal: 10),
-  decoration: (
-    color: white, borderRadius: 15,
-    boxShadow: [ (color:black12 , offset: (0, 2), spreadRadius: 1, blurRadius: 3) ],
-  ),
-)
-Row()
-[
-  Expanded()
-  Text(text: "dw dw"),
-  Padding(padding: 20)
-  Text(text: "kk")
-]
-""";
-
-class ParsedState {
-  ParsedState() {
-    controller.addListener(_onControllerChange);
-    _onControllerChange();
-  }
-
-  Result<WidgetParser> get parsedWidget => _parsedWidget.value;
-  late final AppNotifier<Result<WidgetParser>> _parsedWidget = AppNotifier(
-    WidgetParser.parser.parse(controller.text),
-    name: "parsedWidget",
-  );
-
-  WidgetParser? get selectedWidget => _selectedWidget.value;
-  late final AppNotifier<WidgetParser?> _selectedWidget = AppNotifier(
-    null,
-    name: "selectedWidget",
-  );
-
-  final key = uuid.v4();
-  final controller = TextEditingController(text: _initialWidgetText);
-  final nameNotifier = TextNotifier();
-
-  WidgetParser? _onControllerChange() {
-    if (controller.text != _parsedWidget.value.buffer) {
-      _parsedWidget.value = WidgetParser.parser.parse(controller.text);
-    }
-
-    final result = _parsedWidget.value;
-    if (!result.isSuccess) {
-      _selectedWidget.value = null;
-    } else {
-      final position = controller.selection.start;
-
-      WidgetParser? getTokenAtPos(WidgetParser value) {
-        final Token<List<dynamic>> token = value.token;
-        if (!(token.start <= position && token.stop >= position)) {
-          return null;
-        }
-        while (token.value.length == 3) {
-          final v = token.value.last?.value;
-          if (v is WidgetParser) {
-            return getTokenAtPos(v) ?? value;
-          } else if (v is List<WidgetParser>) {
-            return v
-                .map(getTokenAtPos)
-                .firstWhere((e) => e != null, orElse: () => value);
-          } else {
-            return value;
-          }
-        }
-        return value;
-      }
-
-      final value = getTokenAtPos(result.value);
-      if (value?.form != null) {
-        _selectedWidget.value = value;
-      } else if (position == -1) {
-        // _selectedWidget.value = result.value;
-      }
-    }
-  }
-}
-
-class ComponentWidgetsStore {
-  final componentWidgets = ListNotifier<ParsedState>([ParsedState()]);
-  final selectedThemeIndex = AppNotifier(0, name: "selectedThemeIndex");
-  final useDarkTheme = AppNotifier(false, name: "useDarkTheme");
-
-  final selectedIndex = AppNotifier(0, name: "selectedIndex");
-
-  void addComponentWidget() {
-    selectedIndex.value = componentWidgets.length;
-    final _parsedState = ParsedState();
-    componentWidgets.add(_parsedState);
-    _parsedState.nameNotifier.focusNode.requestFocus();
-  }
-
-  void deleteIndex(int index) {
-    componentWidgets.removeAt(index);
-    if (componentWidgets.isEmpty) {
-      addComponentWidget();
-    } else if (selectedIndex.value == componentWidgets.length) {
-      selectedIndex.value--;
-    }
-  }
-}
 
 class ParsersView extends HookWidget {
   const ParsersView({Key? key}) : super(key: key);
@@ -320,6 +209,7 @@ class _ParsersViewBody extends HookWidget {
             builder: (context) {
               final themeCouple =
                   rootStore.themesStore.themes[store.selectedThemeIndex.value];
+              print("ddw");
               return MaterialApp(
                 theme: themeCouple.light.themeData.value,
                 darkTheme: themeCouple.dark.themeData.value,
@@ -328,29 +218,7 @@ class _ParsersViewBody extends HookWidget {
                 themeMode:
                     store.useDarkTheme.value ? ThemeMode.dark : ThemeMode.light,
                 builder: (context, _) => Material(
-                  child: Observer(
-                    builder: (context) {
-                      final result = componentWidget.parsedWidget;
-                      return result.isSuccess
-                          ? Column(
-                              children: [
-                                ElevatedButton(
-                                  onPressed: () {},
-                                  child: const Text("dwd"),
-                                ),
-                                Expanded(
-                                  child: Center(child: result.value.widget),
-                                )
-                              ],
-                            )
-                          : Center(
-                              child: Text(
-                                "Invalid text:\n$result",
-                                textAlign: TextAlign.center,
-                              ),
-                            );
-                    },
-                  ),
+                  child: ParsedWidgetView(componentWidget: componentWidget),
                 ),
               );
             },
@@ -365,6 +233,48 @@ class _ParsersViewBody extends HookWidget {
         //   ),
         // ),
       ],
+    );
+  }
+}
+
+class ParsedWidgetView extends StatelessWidget {
+  const ParsedWidgetView({
+    Key? key,
+    required this.componentWidget,
+  }) : super(key: key);
+
+  final ParsedState componentWidget;
+
+  @override
+  Widget build(BuildContext context) {
+    print("ddw1");
+    return Observer(
+      builder: (context) {
+        final result = componentWidget.parsedWidget;
+        print("ddw2");
+        return result.isSuccess
+            ? Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: () {},
+                    child: const Text("dwd"),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Builder(
+                        builder: (context) => result.value.build(context),
+                      ),
+                    ),
+                  )
+                ],
+              )
+            : Center(
+                child: Text(
+                  "Invalid text:\n$result",
+                  textAlign: TextAlign.center,
+                ),
+              );
+      },
     );
   }
 }

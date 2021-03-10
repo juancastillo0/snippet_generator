@@ -6,6 +6,7 @@ import 'package:snippet_generator/parsers/color_parser.dart';
 import 'package:snippet_generator/parsers/dart_parser.dart';
 import 'package:snippet_generator/parsers/flutter_props_parsers.dart';
 import 'package:snippet_generator/parsers/parsers.dart';
+import 'package:snippet_generator/parsers/view/parser_fields.dart';
 import 'package:snippet_generator/parsers/widget_child.dart';
 import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
 import 'package:test/test.dart' as test;
@@ -116,10 +117,10 @@ class ContainerForm extends HookWidget {
         padding: const EdgeInsets.only(right: 10.0),
         child: Wrap(
           children: const [
-            AlignmentInput(
+            AlignmentParserFormInput(
               key: ValueKey("alignment"),
             ),
-            PaddingInput(
+            PaddingParserFormInput(
               key: ValueKey("padding"),
             ),
             ColorInput(
