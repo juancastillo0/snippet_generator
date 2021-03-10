@@ -1,3 +1,6 @@
+import 'package:snippet_generator/models/models.dart';
+import 'package:snippet_generator/models/props_serializable.dart';
+
 class Serializers {
   const Serializers._();
 
@@ -10,10 +13,21 @@ class Serializers {
     Map: _MapSerializer(),
   };
 
-  static T fromJson<T>(Object? json) {
+  static T fromJson<T>(Object? json, [T Function()? _itemFactory]) {
     if (json is T) {
       return json;
     } else {
+      final itemFactory = _itemFactory ?? Globals.getFactory<T>();
+      if (itemFactory != null) {
+        try {
+          final item = itemFactory();
+          if (item is SerializableItem && item.trySetFromJson(json)) {
+            return item;
+          } else {
+            throw Error();
+          }
+        } catch (_) {}
+      }
       return Serializers.of<T>()!.fromJson(json);
     }
   }
@@ -39,8 +53,10 @@ class Serializers {
     );
   }
 
-  static List<V> fromJsonList<V>(Iterable json) {
-    return json.map((value) => Serializers.fromJson<V>(value)).toList();
+  static List<V> fromJsonList<V>(Iterable json, [V Function()? itemFactory]) {
+    return json
+        .map((value) => Serializers.fromJson<V>(value, itemFactory))
+        .toList();
   }
 
   static List<Object?> toJsonList<V>(Iterable<V> list) {
@@ -130,7 +146,7 @@ class SerializerFuncGeneric<T extends SerializableGeneric<T, S>, S>
     extends Serializer<T> {
   SerializerFuncGeneric({
     required T Function(S json) fromJson,
-  })  : _fromJson = fromJson,
+  })   : _fromJson = fromJson,
         super();
 
   final T Function(S json) _fromJson;
@@ -144,7 +160,7 @@ class SerializerFuncGeneric<T extends SerializableGeneric<T, S>, S>
 class SerializerFunc<T extends Serializable<T>> extends Serializer<T> {
   SerializerFunc({
     required T Function(Map<String, dynamic>? json) fromJson,
-  })  : _fromJson = fromJson,
+  })   : _fromJson = fromJson,
         super();
 
   final T Function(Map<String, dynamic>? json) _fromJson;

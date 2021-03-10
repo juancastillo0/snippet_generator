@@ -1,13 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart';
+import 'package:snippet_generator/models/props_serializable.dart';
 import 'package:snippet_generator/models/rebuilder.dart';
 import 'package:snippet_generator/models/serializer.dart';
 
-class AppNotifier<T> implements ValueListenable<T> {
+class AppNotifier<T> implements ValueListenable<T>, SerializableProp {
+  @override
   String get name => observable.name;
 
-  final bool required;
+  final bool isRequired;
   final Observable<T> observable;
   final _subs = <void Function(), _ListenerCount>{};
 
@@ -28,24 +30,26 @@ class AppNotifier<T> implements ValueListenable<T> {
     T value, {
     dynamic parent,
     String? name,
-    bool? required,
-  })  : required = required ?? true,
+    bool? isRequired,
+  })  : isRequired = isRequired ?? false,
         observable = Observable(value, name: name) {
     // parent?.registerValue(this);
   }
 
+  @override
   Object? toJson() {
     return Serializers.toJson<T>(this.value);
   }
 
-  bool trySetFromMap(Map<String, dynamic> map, {bool mutate = true}) {
-    if (map.containsKey(this.name)) {
-      return this._trySet(map[this.name], mutate: mutate);
-    }
-    return !this.required;
-  }
+  // bool trySetFromMap(Map<String, dynamic> map, {bool mutate = true}) {
+  //   if (map.containsKey(this.name)) {
+  //     return this._trySet(map[this.name], mutate: mutate);
+  //   }
+  //   return !this.isRequired;
+  // }
 
-  bool _trySet(dynamic value, {bool mutate = true}) {
+  @override
+  bool trySetFromJson(Object? value, {bool mutate = true}) {
     try {
       final _value = Serializers.fromJson<T>(value);
       if (mutate) {
@@ -105,9 +109,9 @@ class TextNotifier extends AppNotifier<String> {
     String? initialText,
     dynamic parent,
     String? name,
-    bool? required,
+    bool? isRequired,
   })  : controller = TextEditingController(text: initialText),
-        super(initialText ?? '', name: name, required: required) {
+        super(initialText ?? '', name: name, isRequired: isRequired) {
     controller.addListener(() {
       if (this.value != controller.text) {
         this.value = controller.text;

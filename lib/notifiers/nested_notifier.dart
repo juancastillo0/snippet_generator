@@ -58,7 +58,7 @@ class NestedNotifier extends ChangeNotifier {
   void fromJson(Map<String, dynamic>? json) {
     for (final notifier in _notifiers) {
       if (json!.containsKey(notifier.name)) {
-        notifier.trySetFromMap(json);
+        notifier.trySetFromJson(json[notifier.name]);
       }
     }
 
@@ -70,7 +70,7 @@ class NestedNotifier extends ChangeNotifier {
 
     for (final notifier in _collectionNotifiers) {
       if (json!.containsKey(notifier.propKey)) {
-        notifier.fromJson(json[notifier.propKey!] as Map<String, dynamic>?);
+        notifier.trySetFromJson(json[notifier.propKey!]);
       }
     }
   }
