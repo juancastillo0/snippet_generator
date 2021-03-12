@@ -19,7 +19,7 @@ class ButtonSelect<T> extends HookWidget {
   }) : super(key: key);
 
   final Iterable<T> options;
-  final T selected;
+  final T? selected;
   final String Function(T)? asString;
   final void Function(T) onChange;
 

@@ -4,10 +4,14 @@ import 'package:mobx/mobx.dart';
 import 'package:snippet_generator/models/props_serializable.dart';
 import 'package:snippet_generator/models/rebuilder.dart';
 import 'package:snippet_generator/models/serializer.dart';
+import 'package:snippet_generator/fields/fields.dart';
 
-class AppNotifier<T> implements ValueListenable<T>, SerializableProp {
+class AppNotifier<T>
+    implements ValueListenable<T>, SerializableProp, PropClass<T> {
   @override
   String get name => observable.name;
+  @override
+  Type get type => T;
 
   final bool isRequired;
   final Observable<T> observable;
@@ -19,11 +23,14 @@ class AppNotifier<T> implements ValueListenable<T>, SerializableProp {
     return observable.value;
   }
 
-  set value(T value) => runInAction(
-        () => observable.value = value,
-        name: "${name}Setter",
-      );
+  set value(T value) {
+    runInAction(
+      () => observable.value = value,
+      name: "${name}Setter",
+    );
+  }
 
+  @override
   void set(T value) => this.value = value;
 
   AppNotifier(

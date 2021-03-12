@@ -33,10 +33,10 @@ Future<void> main() async {
     yield LicenseEntryWithLineBreaks(['google_fonts'], license);
   });
 
+  setUpGlobals();
   JsonTypeParser.init();
   WidgetParser.init();
   await initHive();
-  setUpGlobals();
 
   final rootStore = RootStore();
   Globals.add(rootStore);

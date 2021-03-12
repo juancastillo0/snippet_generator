@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
+import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/widgets.dart';
 
@@ -91,47 +92,48 @@ class ThemesTabView extends HookWidget {
                 ),
               ),
               Expanded(
-                child: ListView(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                  children: [
-                    ...store.props.whereType<AppNotifier<Color>>().map(
-                          (notifier) => Observer(
-                            builder: (context) => ColorFieldRow(
-                              name: notifier.name,
-                              onChanged: notifier.set,
-                              value: notifier.value,
+                child: SingleScrollable(
+                  builder: (context, scrollController) => ListView(
+                    controller: scrollController,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 20),
+                    children: [
+                      ...store.props.whereType<AppNotifier<Color>>().map(
+                            (notifier) => Observer(
+                              builder: (context) => ColorFieldRow(
+                                name: notifier.name,
+                                onChanged: notifier.set,
+                                value: notifier.value,
+                              ),
                             ),
                           ),
-                        ),
-                    Container(
-                      padding: const EdgeInsets.only(top: 20, bottom: 10),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          top: BorderSide(color: context.theme.canvasColor),
-                        ),
-                      ),
-                      child: SelectableText(
-                        "Color Scheme",
-                        style: context.textTheme.headline6,
-                      ),
-                    ),
-                    ...store.colorScheme.props
-                        .whereType<AppNotifier<Color>>()
-                        .map(
-                          (notifier) => Observer(
-                            builder: (context) => ColorFieldRow(
-                              name: notifier.name,
-                              onChanged: notifier.set,
-                              value: notifier.value,
+                      const _ListTitle(title: "Color Scheme"),
+                      ...store.colorScheme.props
+                          .whereType<AppNotifier<Color>>()
+                          .map(
+                            (notifier) => Observer(
+                              builder: (context) => ColorFieldRow(
+                                name: notifier.name,
+                                onChanged: notifier.set,
+                                value: notifier.value,
+                              ),
                             ),
                           ),
-                        ),
-                    // RowTextField(
-                    //   controller: store.primaryTextColor.controller,
-                    //   label: "Primary",
-                    // ),
-                  ],
+                      const _ListTitle(title: "Button Themes"),
+                      ...[
+                        store.textButtonTheme,
+                        store.elevatedButtonTheme,
+                        store.outlinedButtonTheme
+                      ].expand((buttonTheme) sync* {
+                        yield _ListTitle(title: buttonTheme.name);
+                        yield buttonTheme.form();
+                      })
+                      // RowTextField(
+                      //   controller: store.primaryTextColor.controller,
+                      //   label: "Primary",
+                      // ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -179,6 +181,31 @@ class ThemesTabView extends HookWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ListTitle extends StatelessWidget {
+  const _ListTitle({
+    Key? key,
+    required this.title,
+  }) : super(key: key);
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(top: 20, bottom: 10),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: context.theme.canvasColor),
+        ),
+      ),
+      child: SelectableText(
+        title,
+        style: context.textTheme.headline6,
+      ),
     );
   }
 }

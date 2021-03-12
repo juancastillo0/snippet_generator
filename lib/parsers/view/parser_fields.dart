@@ -6,26 +6,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/fields/flutter_fields.dart';
 
-abstract class PropClass<T> {
-  void set(T value);
-
-  T get();
-
-  factory PropClass.from(ValueNotifier<T> alignemnt) = _ValuePropClass<T>;
-}
-
-class _ValuePropClass<T> implements PropClass<T> {
-  final ValueNotifier<T> valueNotifier;
-  const _ValuePropClass(this.valueNotifier);
-  @override
-  void set(T value) {
-    valueNotifier.value = value;
-  }
-
-  @override
-  T get() => valueNotifier.value;
-}
-
 class WidgetFormState {
   WidgetFormState(this.tokenMap, this.mainController);
   final Token<Map<String, Token<Object>>>? tokenMap;

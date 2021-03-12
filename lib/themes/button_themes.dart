@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
+import 'package:snippet_generator/fields/fields.dart';
 import 'package:snippet_generator/models/props_serializable.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
 
@@ -21,7 +22,7 @@ abstract class BaseButtonThemeNotifier with PropsSerializable {
   final fixedSize = AppNotifier<Size?>(null, name: "fixedSize");
   final minimumSize = AppNotifier<Size?>(null, name: "minimumSize");
   final onSurface = AppNotifier<Color?>(null, name: "onSurface");
-  final padding = AppNotifier<EdgeInsetsGeometry?>(null, name: "padding");
+  final padding = AppNotifier<EdgeInsets?>(null, name: "padding");
   final primary = AppNotifier<Color?>(null, name: "primary");
   final shadowColor = AppNotifier<Color?>(null, name: "shadowColor");
   final side = AppNotifier<BorderSide?>(null, name: "side");
@@ -30,6 +31,17 @@ abstract class BaseButtonThemeNotifier with PropsSerializable {
   final tapTargetSize =
       AppNotifier<MaterialTapTargetSize?>(null, name: "tapTargetSize");
   final shape = AppNotifier<OutlinedBorder?>(null, name: "shape");
+
+  Widget form() {
+    return Wrap(
+      children: [
+        ...props.cast<AppNotifier<Object?>>().map((e) {
+          final c = GlobalFields.get(e);
+          return c;
+        }).whereType<Widget>()
+      ],
+    );
+  }
 
   static List<SerializableProp> defaultProps(
     BaseButtonThemeNotifier instance,
