@@ -470,6 +470,7 @@ class _ScrollHandle extends HookWidget {
     final position = controller.position;
     final hovering = useState(false);
     final dragging = useState(false);
+    final baseColor = Theme.of(context).colorScheme.onSurface;
 
     return MouseRegion(
       onEnter: (_) => hovering.value = true,
@@ -489,8 +490,8 @@ class _ScrollHandle extends HookWidget {
           width: horizontal ? handleSize : double.infinity,
           child: Container(
             color: hovering.value || dragging.value
-                ? Colors.black.withOpacity(0.17)
-                : Colors.black12,
+                ? baseColor.withOpacity(0.17)
+                : baseColor.withOpacity(0.12),
           ),
         ),
       ),

@@ -7,21 +7,6 @@ import 'package:snippet_generator/fields/flutter_fields.dart';
 
 typedef FieldFunc<T> = Widget Function(PropClass<T>);
 
-class _FunctionWrapper<T> {
-  final FieldFunc<T> _func;
-
-  _FunctionWrapper(this._func);
-
-  Widget build(PropClass<T> notifier) {
-    return AnimatedBuilder(
-      animation: notifier,
-      builder: (context, _child) {
-        return _func(notifier);
-      },
-    );
-  }
-}
-
 class GlobalFields {
   static final Map<Type, _FunctionWrapper<Object?>> _map = {};
 
@@ -56,22 +41,35 @@ class GlobalFields {
       ),
     );
     add<VisualDensity>(
-      (notifier) => ButtonSelect<VisualDensity>(
-        key: ValueKey(notifier.name),
-        selected: notifier.value,
-        options: const [
-          VisualDensity.comfortable,
-          VisualDensity.compact,
-          VisualDensity.standard,
+      (notifier) => _DefaultCard(
+        label: notifier.name,
+        children: [
+          ButtonSelect<VisualDensity>(
+            key: ValueKey(notifier.name),
+            selected: notifier.value,
+            options: const [
+              VisualDensity.comfortable,
+              VisualDensity.compact,
+              VisualDensity.standard,
+            ],
+            asString: (d) {
+              return _visualDensityNameMap[d]!;
+            },
+            onChange: notifier.set,
+          ),
         ],
-        onChange: notifier.set,
       ),
     );
     add<double>(
-      (notifier) => DoubleInput(
+      (notifier) => _DefaultCard(
         label: notifier.name,
-        onChanged: notifier.set,
-        value: notifier.value,
+        children: [
+          DoubleInput(
+            label: notifier.name,
+            onChanged: notifier.set,
+            value: notifier.value,
+          ),
+        ],
       ),
     );
     add<Size>((notifier) => SizeInput(notifier: notifier));
@@ -79,12 +77,36 @@ class GlobalFields {
   }
 }
 
-class SizeInput extends StatelessWidget {
-  const SizeInput({
+final _visualDensityNameMap = {
+  VisualDensity.comfortable: "comfortable",
+  VisualDensity.compact: "compact",
+  VisualDensity.standard: "standard",
+};
+
+class _FunctionWrapper<T> {
+  final FieldFunc<T> _func;
+
+  _FunctionWrapper(this._func);
+
+  Widget build(PropClass<T> notifier) {
+    return AnimatedBuilder(
+      animation: notifier,
+      builder: (context, _child) {
+        return _func(notifier);
+      },
+    );
+  }
+}
+
+class _DefaultCard extends StatelessWidget {
+  final List<Widget> children;
+  final String label;
+
+  const _DefaultCard({
     Key? key,
-    required this.notifier,
+    required this.label,
+    required this.children,
   }) : super(key: key);
-  final PropClass<Size?> notifier;
 
   @override
   Widget build(BuildContext context) {
@@ -97,25 +119,43 @@ class SizeInput extends StatelessWidget {
           children: [
             Align(
               alignment: Alignment.centerLeft,
-              child: Text(notifier.name),
+              child: Text(label),
             ),
-            DoubleInput(
-              label: "width",
-              onChanged: (w) => notifier.set(
-                Size(w, notifier.value?.height ?? 0),
-              ),
-              value: notifier.value?.width,
-            ),
-            DoubleInput(
-              label: "height",
-              onChanged: (h) => notifier.set(
-                Size(notifier.value?.width ?? 0, h),
-              ),
-              value: notifier.value?.height,
-            )
+            ...children,
           ],
         ),
       ),
+    );
+  }
+}
+
+class SizeInput extends StatelessWidget {
+  const SizeInput({
+    Key? key,
+    required this.notifier,
+  }) : super(key: key);
+  final PropClass<Size?> notifier;
+
+  @override
+  Widget build(BuildContext context) {
+    return _DefaultCard(
+      label: notifier.name,
+      children: [
+        DoubleInput(
+          label: "width",
+          onChanged: (w) => notifier.set(
+            Size(w, notifier.value?.height ?? 0),
+          ),
+          value: notifier.value?.width,
+        ),
+        DoubleInput(
+          label: "height",
+          onChanged: (h) => notifier.set(
+            Size(notifier.value?.width ?? 0, h),
+          ),
+          value: notifier.value?.height,
+        )
+      ],
     );
   }
 }

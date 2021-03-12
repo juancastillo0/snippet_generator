@@ -3,6 +3,7 @@ import 'package:mobx/mobx.dart';
 import 'package:snippet_generator/fields/fields.dart';
 import 'package:snippet_generator/models/props_serializable.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
+import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
 
 enum ButtonType {
   text,
@@ -21,9 +22,9 @@ abstract class BaseButtonThemeNotifier with PropsSerializable {
   final elevation = AppNotifier<double?>(null, name: "elevation");
   final fixedSize = AppNotifier<Size?>(null, name: "fixedSize");
   final minimumSize = AppNotifier<Size?>(null, name: "minimumSize");
-  final onSurface = AppNotifier<Color?>(null, name: "onSurface");
   final padding = AppNotifier<EdgeInsets?>(null, name: "padding");
   final primary = AppNotifier<Color?>(null, name: "primary");
+  final onSurface = AppNotifier<Color?>(null, name: "onSurface");
   final shadowColor = AppNotifier<Color?>(null, name: "shadowColor");
   final side = AppNotifier<BorderSide?>(null, name: "side");
   final visualDensity =
@@ -33,14 +34,7 @@ abstract class BaseButtonThemeNotifier with PropsSerializable {
   final shape = AppNotifier<OutlinedBorder?>(null, name: "shape");
 
   Widget form() {
-    return Wrap(
-      children: [
-        ...props.cast<AppNotifier<Object?>>().map((e) {
-          final c = GlobalFields.get(e);
-          return c;
-        }).whereType<Widget>()
-      ],
-    );
+    return _ButtonForm(props: props);
   }
 
   static List<SerializableProp> defaultProps(
@@ -51,15 +45,42 @@ abstract class BaseButtonThemeNotifier with PropsSerializable {
       instance.elevation,
       instance.fixedSize,
       instance.minimumSize,
-      instance.onSurface,
       instance.padding,
       instance.primary,
       instance.shadowColor,
+      instance.onSurface,
       instance.side,
       instance.visualDensity,
       instance.tapTargetSize,
       instance.shape,
     ];
+  }
+}
+
+class _ButtonForm extends StatelessWidget {
+  const _ButtonForm({
+    Key? key,
+    required this.props,
+  }) : super(key: key);
+
+  final Iterable<SerializableProp> props;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 300,
+      child: SingleScrollable(
+        padding: const EdgeInsets.only(right: 20),
+        child: Wrap(
+          children: [
+            ...props
+                .cast<AppNotifier<Object?>>()
+                .map(GlobalFields.get)
+                .whereType<Widget>()
+          ],
+        ),
+      ),
+    );
   }
 }
 
