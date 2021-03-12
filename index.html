@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
@@ -12,22 +13,36 @@
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png" />
 
   <title>snippet_generator</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    html,
+    body {
+      margin: 0px;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
 </head>
+
 <body>
+  <div style="display: flex;flex-direction: row;align-items: center;justify-content: center;height: 100%;width: 100%;">
+    <img src="./icons/Icon-192.png" alt="Flutter" width="64px" height="64px">
+    <h1>Snippet Generator</h1>
+  </div>
   <!-- This script installs service_worker.js to provide PWA functionality to
        application. For more information, see:
        https://developers.google.com/web/fundamentals/primers/service-workers -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
-        navigator.serviceWorker.register('flutter_service_worker.js?v=2244807032');
+        navigator.serviceWorker.register('flutter_service_worker.js?v=2651929922');
       });
     }
   </script>
   <script src="main.dart.js" type="application/javascript"></script>
 </body>
+
 </html>
