@@ -262,7 +262,7 @@ class ParsedWidgetView extends StatelessWidget {
                   Expanded(
                     child: Center(
                       child: Builder(
-                        builder: (context) => result.value.build(context),
+                        builder: (context) => result.value.widget,
                       ),
                     ),
                   )
