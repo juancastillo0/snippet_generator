@@ -37,6 +37,9 @@ jobs:
 
       - name: Build web
         run: flutter build web --release --dart-define=FLUTTER_WEB_CANVASKIT_URL=./canvaskit_0.25.0/
+      
+      - name: patch service worker
+        run: dart patch_service_worker.dart
 
       # Runs a single command using the runners shell
       - name: Deploy
