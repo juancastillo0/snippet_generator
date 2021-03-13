@@ -22,8 +22,8 @@ const RESOURCES = {
 "canvaskit_0.25.0/canvaskit.js": "95226282bb562bd618d4df577b10abc6",
 "canvaskit_0.25.0/full/canvaskit.wasm": "4238f9424ec50c2b1c6b184b542cada7",
 "canvaskit_0.25.0/full/canvaskit.js": "d6f5d25a9443bb9507341afc8fd058c5",
-"index.html": "3853d64810df5de58bc46008a1c1044b",
-"/": "3853d64810df5de58bc46008a1c1044b",
+"index.html": "750633d3913ccd30387bf351f339af72",
+"/": "750633d3913ccd30387bf351f339af72",
 "main.dart.js": "b461cf47a5a0fae5c282f0492636d048",
 "version.json": "479ca84fb350de76102ed1d9911e3d0a",
 "favicon.png": "5dcef449791fa27946b3d35ad8803796"
@@ -73,7 +73,7 @@ self.addEventListener("activate", function(event) {
         return;
       }
       var oldManifest = await manifest.json();
-      var origin = self.location.origin;
+      var origin = (self.location.origin + '/snippet_generator');
       for (var request of await contentCache.keys()) {
         var key = request.url.substring(origin.length + 1);
         if (key == "") {
@@ -112,7 +112,7 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== 'GET') {
     return;
   }
-  var origin = self.location.origin;
+  var origin = (self.location.origin + '/snippet_generator');
   var key = event.request.url.substring(origin.length + 1);
   // Redirect URLs to the index.html
   if (key.indexOf('?v=') != -1) {
