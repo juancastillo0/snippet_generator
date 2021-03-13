@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 ButtonStyle elevatedStyle(BuildContext context) => ElevatedButton.styleFrom();
 
@@ -17,11 +18,13 @@ ButtonStyle menuStyle(BuildContext context, {EdgeInsetsGeometry? padding}) =>
     );
 
 ThemeData lightTheme() {
+  final _baseTheme = ThemeData.light();
   return ThemeData(
     primarySwatch: Colors.teal,
     brightness: Brightness.light,
     visualDensity: VisualDensity.adaptivePlatformDensity,
     scaffoldBackgroundColor: const Color(0xfff5f8fa),
+    textTheme: GoogleFonts.nunitoSansTextTheme(_baseTheme.textTheme),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         primary: Colors.white,
@@ -37,8 +40,9 @@ ThemeData lightTheme() {
 }
 
 ThemeData darkTheme() {
+  final _baseTheme = ThemeData.dark();
   final accentColor = Colors.teal[600];
-  return ThemeData.dark().copyWith(
+  return _baseTheme.copyWith(
     // primaryColor: Colors.black,
     toggleableActiveColor: accentColor,
     accentColor: accentColor,
@@ -48,6 +52,7 @@ ThemeData darkTheme() {
     brightness: Brightness.dark,
     visualDensity: VisualDensity.adaptivePlatformDensity,
     // scaffoldBackgroundColor: const Color(0xfff5f8fa),
+    textTheme: GoogleFonts.nunitoSansTextTheme(_baseTheme.textTheme),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         primary: Colors.black26,

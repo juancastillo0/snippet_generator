@@ -29,8 +29,11 @@ final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 
 Future<void> main() async {
   LicenseRegistry.addLicense(() async* {
-    final license = await rootBundle.loadString('google_fonts/LICENSE.txt');
-    yield LicenseEntryWithLineBreaks(['google_fonts'], license);
+    final licenseCousine = await rootBundle.loadString('google_fonts/LICENSE.txt');
+    final licenseNunitoSans = await rootBundle.loadString('google_fonts/OFL.txt');
+    
+    yield LicenseEntryWithLineBreaks(['google_fonts'], licenseCousine);
+    yield LicenseEntryWithLineBreaks(['google_fonts'], licenseNunitoSans);
   });
 
   setUpGlobals();
