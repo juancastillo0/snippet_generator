@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:snippet_generator/fields/fields.dart';
 import 'package:snippet_generator/models/props_serializable.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
+import 'package:snippet_generator/themes/themes_tab_view.dart';
 
 enum ButtonType {
   text,
@@ -67,14 +69,29 @@ class _ButtonForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorProps = props.whereType<AppNotifier<Color?>>().toSet();
     return SizedBox(
       height: 300,
       child: SingleScrollable(
         padding: const EdgeInsets.only(right: 20),
         child: Wrap(
           children: [
+            Column(
+              children: [
+                ...colorProps.map(
+                  (notifier) => Observer(
+                    builder: (context) => ColorFieldRow(
+                      name: notifier.name,
+                      onChanged: notifier.set,
+                      value: notifier.value ?? Colors.white,
+                    ),
+                  ),
+                )
+              ],
+            ),
             ...props
                 .cast<AppNotifier<Object?>>()
+                .where((p) => !colorProps.contains(p))
                 .map(GlobalFields.get)
                 .whereType<Widget>()
           ],
