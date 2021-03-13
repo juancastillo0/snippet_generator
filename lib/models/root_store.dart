@@ -35,7 +35,7 @@ class RootStore {
   final selectedTabNotifier = AppNotifier(AppTabs.ui);
   AppTabs get selectedTab => selectedTabNotifier.value;
 
-  final themeModeNotifier = AppNotifier(ThemeMode.dark);
+  final themeModeNotifier = AppNotifier(ThemeMode.light, name: "themeMode");
 
   final componentWidgetsStore = ComponentWidgetsStore();
 
@@ -47,7 +47,7 @@ class RootStore {
   final selectedTypeNotifier = AppNotifier<TypeConfig?>(null);
   TypeConfig? get selectedType => selectedTypeNotifier.value;
 
-  final isCodeGenNullSafeNotifier = AppNotifier<bool>(false);
+  final isCodeGenNullSafeNotifier = AppNotifier<bool>(true);
   bool get isCodeGenNullSafe => isCodeGenNullSafeNotifier.value;
 
   final _messageEventsController = StreamController<MessageEvent>.broadcast();

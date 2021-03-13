@@ -53,7 +53,7 @@ class CodeGenerated extends HookWidget {
               child: SingleScrollable(
                 child: SelectableText(
                   sourceCode,
-                  style: GoogleFonts.cousine(),
+                  style: GoogleFonts.cousine(fontSize: 13),
                 ),
               ),
             ),

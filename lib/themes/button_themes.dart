@@ -73,8 +73,10 @@ class _ButtonForm extends StatelessWidget {
     return SizedBox(
       height: 300,
       child: SingleScrollable(
-        padding: const EdgeInsets.only(right: 20),
+        padding: const EdgeInsets.only(right: 6),
         child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Column(
               children: [

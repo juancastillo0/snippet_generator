@@ -99,7 +99,9 @@ class ThemesTabView extends HookWidget {
                   builder: (context, scrollController) => ListView(
                     controller: scrollController,
                     padding: const EdgeInsets.symmetric(
-                        vertical: 10, horizontal: 20),
+                      vertical: 10,
+                      horizontal: 18,
+                    ),
                     children: [
                       ...store.props.whereType<AppNotifier<Color>>().map(
                             (notifier) => Observer(
