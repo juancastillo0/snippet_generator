@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/fields/base_fields.dart';
+import 'package:snippet_generator/fields/fields.dart';
 import 'package:snippet_generator/parsers/flutter_props_parsers.dart';
 
 class AlignmentInput extends HookWidget {
@@ -218,4 +220,82 @@ extension ExtEdgeInsets on EdgeInsets {
   bool get hasHorizontal => left == right;
   bool get hasVertical => top == bottom;
   bool get hasAll => left == right && top == bottom && left == bottom;
+}
+
+class SizeInput extends StatelessWidget {
+  const SizeInput({
+    Key? key,
+    required this.notifier,
+  }) : super(key: key);
+  final PropClass<Size?> notifier;
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultCardInput(
+      label: notifier.name,
+      children: [
+        DoubleInput(
+          label: "width",
+          onChanged: (w) => notifier.set(
+            Size(w, notifier.value?.height ?? 0),
+          ),
+          value: notifier.value?.width,
+        ),
+        DoubleInput(
+          label: "height",
+          onChanged: (h) => notifier.set(
+            Size(notifier.value?.width ?? 0, h),
+          ),
+          value: notifier.value?.height,
+        )
+      ],
+    );
+  }
+}
+
+class ColorInput extends StatelessWidget {
+  const ColorInput({
+    Key? key,
+    required this.notifier,
+  }) : super(key: key);
+  final PropClass<Color?> notifier;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Container(
+        width: 250,
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(notifier.name),
+            ),
+            const SizedBox(height: 5),
+            Builder(builder: (context) {
+              final mq = MediaQuery.of(context);
+              return MediaQuery(
+                data: mq.copyWith(size: Size(250, mq.size.height)),
+                child: ColorPicker(
+                  pickerColor: notifier.value ?? Colors.black,
+                  onColorChanged: notifier.set,
+                  colorPickerWidth: 250.0,
+                  pickerAreaHeightPercent: 0.7,
+                  enableAlpha: true,
+                  displayThumbColor: true,
+                  showLabel: true,
+                  paletteType: PaletteType.hsv,
+                  pickerAreaBorderRadius: const BorderRadius.all(
+                    Radius.circular(4.0),
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -58,38 +58,41 @@ class ButtonSelect<T> extends HookWidget {
       // TODO: can be calculate when we need a dropdown?
       visible: options.length <= 3 || checkedShouldBeDropdown.value,
       maintainState: true,
-      child: ButtonBar(
-        alignment: MainAxisAlignment.center,
-        layoutBehavior: ButtonBarLayoutBehavior.constrained,
-        buttonPadding: EdgeInsets.zero,
-        children: options.map((e) {
-          final s = _asString(e);
+      child: Padding(
+        padding: const EdgeInsets.only(top: 8.0),
+        child: ButtonBar(
+          alignment: MainAxisAlignment.center,
+          layoutBehavior: ButtonBarLayoutBehavior.constrained,
+          buttonPadding: EdgeInsets.zero,
+          children: options.map((e) {
+            final s = _asString(e);
 
-          return FlatButton(
-            key: Key(s),
-            onPressed: () => onChange(e),
-            color: e == selected ? theme.primaryColor : null,
-            child: Builder(builder: (ctx) {
-              SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
-                // print("Text ${ctx.size} ${ctx.globalPaintBounds}");
-                if (buttonTop == null) {
-                  buttonTop = ctx.globalPaintBounds!.top;
-                  return;
-                }
-                if (!checkedShouldBeDropdown.value) {
-                  if (buttonTop != ctx.globalPaintBounds!.top) {
-                    isDropdown.value = true;
+            return FlatButton(
+              key: Key(s),
+              onPressed: () => onChange(e),
+              color: e == selected ? theme.primaryColor : null,
+              child: Builder(builder: (ctx) {
+                SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
+                  // print("Text ${ctx.size} ${ctx.globalPaintBounds}");
+                  if (buttonTop == null) {
+                    buttonTop = ctx.globalPaintBounds!.top;
+                    return;
                   }
-                  checkedShouldBeDropdown.value = true;
-                }
-              });
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                child: Text(s),
-              );
-            }),
-          );
-        }).toList(),
+                  if (!checkedShouldBeDropdown.value) {
+                    if (buttonTop != ctx.globalPaintBounds!.top) {
+                      // isDropdown.value = true;
+                    }
+                    checkedShouldBeDropdown.value = true;
+                  }
+                });
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                  child: Text(s),
+                );
+              }),
+            );
+          }).toList(),
+        ),
       ),
     );
   }

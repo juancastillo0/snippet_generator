@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:snippet_generator/fields/base_fields.dart';
 import 'package:snippet_generator/fields/button_select_field.dart';
+import 'package:snippet_generator/fields/enum_fields.dart';
 import 'package:snippet_generator/fields/flutter_fields.dart';
 
 typedef FieldFunc<T> = Widget Function(PropClass<T>);
@@ -40,28 +41,8 @@ class GlobalFields {
         value: notifier.value,
       ),
     );
-    add<VisualDensity>(
-      (notifier) => _DefaultCard(
-        label: notifier.name,
-        children: [
-          ButtonSelect<VisualDensity>(
-            key: ValueKey(notifier.name),
-            selected: notifier.value,
-            options: const [
-              VisualDensity.comfortable,
-              VisualDensity.compact,
-              VisualDensity.standard,
-            ],
-            asString: (d) {
-              return _visualDensityNameMap[d]!;
-            },
-            onChange: notifier.set,
-          ),
-        ],
-      ),
-    );
     add<double>(
-      (notifier) => _DefaultCard(
+      (notifier) => DefaultCardInput(
         label: notifier.name,
         children: [
           DoubleInput(
@@ -74,14 +55,10 @@ class GlobalFields {
     );
     add<Size>((notifier) => SizeInput(notifier: notifier));
     add<Color>((notifier) => ColorInput(notifier: notifier));
+
+    setUpEnumFields();
   }
 }
-
-final _visualDensityNameMap = {
-  VisualDensity.comfortable: "comfortable",
-  VisualDensity.compact: "compact",
-  VisualDensity.standard: "standard",
-};
 
 class _FunctionWrapper<T> {
   final FieldFunc<T> _func;
@@ -98,11 +75,11 @@ class _FunctionWrapper<T> {
   }
 }
 
-class _DefaultCard extends StatelessWidget {
+class DefaultCardInput extends StatelessWidget {
   final List<Widget> children;
   final String label;
 
-  const _DefaultCard({
+  const DefaultCardInput({
     Key? key,
     required this.label,
     required this.children,
@@ -122,84 +99,6 @@ class _DefaultCard extends StatelessWidget {
               child: Text(label),
             ),
             ...children,
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class SizeInput extends StatelessWidget {
-  const SizeInput({
-    Key? key,
-    required this.notifier,
-  }) : super(key: key);
-  final PropClass<Size?> notifier;
-
-  @override
-  Widget build(BuildContext context) {
-    return _DefaultCard(
-      label: notifier.name,
-      children: [
-        DoubleInput(
-          label: "width",
-          onChanged: (w) => notifier.set(
-            Size(w, notifier.value?.height ?? 0),
-          ),
-          value: notifier.value?.width,
-        ),
-        DoubleInput(
-          label: "height",
-          onChanged: (h) => notifier.set(
-            Size(notifier.value?.width ?? 0, h),
-          ),
-          value: notifier.value?.height,
-        )
-      ],
-    );
-  }
-}
-
-class ColorInput extends StatelessWidget {
-  const ColorInput({
-    Key? key,
-    required this.notifier,
-  }) : super(key: key);
-  final PropClass<Color?> notifier;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Container(
-        width: 250,
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(notifier.name),
-            ),
-            const SizedBox(height: 5),
-            Builder(builder: (context) {
-              final mq = MediaQuery.of(context);
-              return MediaQuery(
-                data: mq.copyWith(size: Size(250, mq.size.height)),
-                child: ColorPicker(
-                  pickerColor: notifier.value ?? Colors.black,
-                  onColorChanged: notifier.set,
-                  colorPickerWidth: 250.0,
-                  pickerAreaHeightPercent: 0.7,
-                  enableAlpha: true,
-                  displayThumbColor: true,
-                  showLabel: true,
-                  paletteType: PaletteType.hsv,
-                  pickerAreaBorderRadius: const BorderRadius.all(
-                    Radius.circular(4.0),
-                  ),
-                ),
-              );
-            }),
           ],
         ),
       ),
