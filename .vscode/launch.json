@@ -7,7 +7,9 @@
     {
       "name": "snippet_generator",
       "request": "launch",
-      "type": "dart"
+      "type": "dart",
+      "args": ["--web-renderer", "canvaskit"],
+      "console": "terminal"
     }
   ]
 }
