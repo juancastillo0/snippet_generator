@@ -33,11 +33,13 @@ class Formatters {
   static final noStartNumber =
       FilteringTextInputFormatter.allow(RegExp(r"^[^0-9][\s\S]*"));
   static final onlyDigits =
-      FilteringTextInputFormatter.allow(RegExp(r"[0-9]+"));
+      FilteringTextInputFormatter.allow(RegExp(r"[0-9]"));
   static final onlyDigitsOrSpace =
-      FilteringTextInputFormatter.allow(RegExp(r"[0-9 ]+"));
+      FilteringTextInputFormatter.allow(RegExp(r"[0-9 ]"));
   static final onlyQuantities =
       FilteringTextInputFormatter.allow(RegExp(r"[1-9][0-9]*"));
+  static final onlyDigitsOrDecimal =
+      FilteringTextInputFormatter.allow(RegExp(r"[\.0-9]"));
 
   static CustomFormatter onlyDigitsCustom({
     int minLenght = 0,
