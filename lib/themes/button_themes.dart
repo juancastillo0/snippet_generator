@@ -35,10 +35,6 @@ abstract class BaseButtonThemeNotifier with PropsSerializable {
       AppNotifier<MaterialTapTargetSize?>(null, name: "tapTargetSize");
   final shape = AppNotifier<OutlinedBorder?>(null, name: "shape");
 
-  Widget form() {
-    return _ButtonForm(props: props);
-  }
-
   static List<SerializableProp> defaultProps(
     BaseButtonThemeNotifier instance,
   ) {
@@ -59,49 +55,6 @@ abstract class BaseButtonThemeNotifier with PropsSerializable {
   }
 }
 
-class _ButtonForm extends StatelessWidget {
-  const _ButtonForm({
-    Key? key,
-    required this.props,
-  }) : super(key: key);
-
-  final Iterable<SerializableProp> props;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorProps = props.whereType<AppNotifier<Color?>>().toSet();
-    return SizedBox(
-      height: 300,
-      child: SingleScrollable(
-        padding: const EdgeInsets.only(right: 6),
-        child: Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Column(
-              children: [
-                ...colorProps.map(
-                  (notifier) => Observer(
-                    builder: (context) => ColorFieldRow(
-                      name: notifier.name,
-                      onChanged: notifier.set,
-                      value: notifier.value ?? Colors.white,
-                    ),
-                  ),
-                )
-              ],
-            ),
-            ...props
-                .cast<AppNotifier<Object?>>()
-                .where((p) => !colorProps.contains(p))
-                .map(GlobalFields.get)
-                .whereType<Widget>()
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class TextButtonThemeNotifier extends BaseButtonThemeNotifier {
   TextButtonThemeNotifier({required String name})

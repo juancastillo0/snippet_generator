@@ -4,6 +4,7 @@ import 'package:snippet_generator/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/models/props_serializable.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/themes/button_themes.dart';
+import 'package:snippet_generator/themes/input_theme.dart';
 
 int _themeCount = 0;
 
@@ -75,6 +76,8 @@ class ThemeStore with PropsSerializable {
     }
   }
 
+  // COLORS
+
   final primaryColor =
       AppNotifier<Color>(_defaultTheme.primaryColor, name: "primaryColor");
   final accentColor =
@@ -103,10 +106,7 @@ class ThemeStore with PropsSerializable {
 
   final ColorSchemeNotifier colorScheme;
 
-  // final colorScheme =
-  //     AppNotifier<ColorScheme>(_defaultTheme.colorScheme, name: "colorScheme");
-
-  final inputDecorationTheme = AppNotifier<InputDecorationTheme>(
+  final inputDecorationTheme = InputDecorationThemeNotifier(
       _defaultTheme.inputDecorationTheme,
       name: "inputDecorationTheme");
   final iconTheme =
