@@ -76,14 +76,26 @@ class ThemesTabView extends HookWidget {
           child: Column(
             children: [
               Padding(
-                padding:
-                    const EdgeInsets.only(left: 12.0, right: 8.0, bottom: 5),
+                padding: const EdgeInsets.only(
+                  left: 12.0,
+                  right: 8.0,
+                  bottom: 5,
+                  top: 5,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     RowTextField(
                       controller: themeCouple.name.controller,
                       label: "Name",
+                    ),
+                    RowBoolField(
+                      notifier: themesStore.debugShowMaterialGrid,
+                      label: "Show Grid",
+                    ),
+                    RowBoolField(
+                      notifier: themesStore.showSemanticsDebugger,
+                      label: "Show Semantics",
                     ),
                     RowBoolField(
                       notifier: themesStore.isUsingDarkTheme,
@@ -122,7 +134,6 @@ class ThemesTabView extends HookWidget {
                               ),
                             ),
                           ),
-                      const _ListTitle(title: "Button Themes"),
                       ...[
                         store.inputDecorationTheme,
                         store.textButtonTheme,
@@ -145,46 +156,189 @@ class ThemesTabView extends HookWidget {
         ),
         Expanded(
           child: Observer(
-            builder: (context) => Theme(
-              data: store.themeData.value,
-              child: Scaffold(
-                appBar: AppBar(
-                  actions: [
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.share),
-                    ),
-                  ],
-                ),
-                body: Center(
-                  child: Card(
-                    child: Container(
-                      padding: const EdgeInsets.all(20.0),
-                      width: 300,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text("Card title"),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              ElevatedButton(
-                                onPressed: () {},
-                                child: const Text("Push me"),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            builder: (context) => MaterialApp(
+              theme: store.themeData.value,
+              debugShowMaterialGrid: themesStore.debugShowMaterialGrid.value,
+              showSemanticsDebugger: themesStore.showSemanticsDebugger.value,
+              debugShowCheckedModeBanner: false,
+              builder: (context, _) => const ThemePreviewScaffold(),
             ),
           ),
         ),
       ],
+    );
+  }
+}
+
+class ThemePreviewScaffold extends StatelessWidget {
+  const ThemePreviewScaffold({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.share),
+          ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: "Home",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list),
+            label: "List",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: "Profile",
+          ),
+        ],
+      ),
+      floatingActionButton: Builder(
+        builder: (context) {
+          return FloatingActionButton(
+            onPressed: () {
+              late final ScaffoldFeatureController _c;
+              _c = ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text(
+                    "You pushed the FloatingActionButton!",
+                  ),
+                  action: SnackBarAction(
+                    label: "Great",
+                    onPressed: () {
+                      _c.close();
+                    },
+                  ),
+                ),
+              );
+            },
+            child: const Icon(Icons.message),
+          );
+        },
+      ),
+      body: const ThemePreviewScaffoldBody(),
+    );
+  }
+}
+
+class ThemePreviewScaffoldBody extends StatelessWidget {
+  const ThemePreviewScaffoldBody({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scrollbar(
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            Card(
+              child: Container(
+                padding: const EdgeInsets.all(20.0),
+                width: 300,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Card title"),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {},
+                          child: const Text("Push me"),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Card(
+              margin: const EdgeInsets.all(32.0),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Form title",
+                      style: Theme.of(context).textTheme.headline5,
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      "Optio occaecati dolor ut illo provident inventore. Itaque accusamus dolore."
+                      " Ut praesentium officiis sint laborum tenetur vero. Omnis at sint dignissimos eum quia corrupti sed."
+                      " Unde distinctio amet non. Minima similique qui voluptates et.",
+                      style: Theme.of(context).textTheme.bodyText1,
+                    ),
+                    const SizedBox(height: 15),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        const Expanded(
+                          child: TextField(
+                            decoration: InputDecoration(
+                              labelText: "Name",
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {},
+                          icon: const Icon(Icons.close),
+                        ),
+                        const SizedBox(width: 100),
+                        TextButton(
+                          onPressed: () {},
+                          // child: const Text("Show Dialog"),
+                          child: const Text("Show Dialog"),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    const SizedBox(
+                      height: 100,
+                      child: TextField(
+                        decoration: InputDecoration(
+                          labelText: "Content",
+                        ),
+                        maxLines: null,
+                        minLines: null,
+                        expands: true,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        OutlinedButton(
+                          onPressed: () {},
+                          child: const Text("Cancel"),
+                        ),
+                        const SizedBox(width: 10),
+                        OutlinedButton(
+                          onPressed: () {},
+                          child: const Text("Send"),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

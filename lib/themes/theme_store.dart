@@ -14,6 +14,11 @@ class ThemesStore with PropsSerializable {
   final isUsingDarkTheme = AppNotifier(false, name: "isUsingDarkTheme");
   final themes = ListNotifier([ThemeCouple()], propKey: "themes");
 
+  final debugShowMaterialGrid =
+      AppNotifier(false, name: "debugShowMaterialGrid");
+  final showSemanticsDebugger =
+      AppNotifier(false, name: "showSemanticsDebugger");
+
   @override
   final String name;
 
@@ -21,6 +26,8 @@ class ThemesStore with PropsSerializable {
   late final Iterable<SerializableProp> props = [
     isUsingDarkTheme,
     themes,
+    debugShowMaterialGrid,
+    showSemanticsDebugger,
   ];
 }
 
