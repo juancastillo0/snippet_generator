@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/fields/base_fields.dart';
-import 'package:snippet_generator/fields/button_select_field.dart';
 import 'package:snippet_generator/fields/fields.dart';
 import 'package:snippet_generator/parsers/flutter_props_parsers.dart';
 
@@ -117,7 +116,7 @@ class PaddingInput extends HookWidget {
 
     return Card(
       child: Container(
-        width: 250,
+        width: 240,
         padding: const EdgeInsets.all(12),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -176,6 +175,7 @@ class PaddingInput extends HookWidget {
                     label: "all",
                     value: value.hasAll ? value.left : null,
                     onChanged: (v) {
+                      // TODO:
                       set(EdgeInsets.all(v ?? 0));
                     },
                   ),
@@ -252,7 +252,6 @@ class SizeInput extends StatelessWidget {
     );
   }
 }
-
 
 // class TextStyleInput extends HookWidget {
 //   const TextStyleInput({Key? key}) : super(key: key);

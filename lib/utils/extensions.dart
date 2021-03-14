@@ -74,4 +74,10 @@ extension ListenableBuilder on Listenable {
   }
 }
 
+extension ValueNotifierSetter<T> on ValueNotifier<T> {
+  void set(T newValue) {
+    this.value = newValue;
+  }
+}
+
 const dynamic importExtensions = null;

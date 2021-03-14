@@ -25,6 +25,9 @@ ThemeData lightTheme() {
     visualDensity: VisualDensity.adaptivePlatformDensity,
     scaffoldBackgroundColor: const Color(0xfff5f8fa),
     textTheme: GoogleFonts.nunitoSansTextTheme(_baseTheme.textTheme),
+    inputDecorationTheme: const InputDecorationTheme(
+      isDense: true,
+    ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         primary: Colors.white,
@@ -53,6 +56,9 @@ ThemeData darkTheme() {
     visualDensity: VisualDensity.adaptivePlatformDensity,
     // scaffoldBackgroundColor: const Color(0xfff5f8fa),
     textTheme: GoogleFonts.nunitoSansTextTheme(_baseTheme.textTheme),
+    inputDecorationTheme: const InputDecorationTheme(
+      isDense: true,
+    ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         primary: Colors.black26,
