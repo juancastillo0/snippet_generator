@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:snippet_generator/fields/base_fields.dart';
 import 'package:snippet_generator/fields/color_field.dart';
 import 'package:snippet_generator/fields/enum_fields.dart';
+import 'package:snippet_generator/fields/flutter_border_fields.dart';
 import 'package:snippet_generator/fields/flutter_fields.dart';
 import 'package:snippet_generator/models/props_serializable.dart';
 import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
@@ -80,6 +81,8 @@ class GlobalFields {
     );
     add<Size>((notifier) => SizeInput(notifier: notifier));
     add<Color>((notifier) => ColorInput(notifier: notifier));
+    add<BorderSide>((notifier) => BorderSideInput(notifier: notifier));
+    add<BorderRadius>((notifier) => BorderRadiusInput(notifier: notifier));
 
     setUpEnumFields();
   }

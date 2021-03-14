@@ -5,7 +5,7 @@ import 'package:snippet_generator/formatters.dart';
 
 class DoubleInput extends HookWidget {
   final String label;
-  final void Function(double) onChanged;
+  final void Function(double?) onChanged;
   final double? value;
 
   const DoubleInput({
@@ -29,6 +29,7 @@ class DoubleInput extends HookWidget {
         labelText: label,
         errorText: input.errorIfTouchedNotEmpty,
       ),
+      onChanged: input.onChangedString,
       inputFormatters: [Formatters.onlyDigitsOrDecimal],
       focusNode: input.focusNode,
       keyboardType: TextInputType.number,
@@ -38,7 +39,7 @@ class DoubleInput extends HookWidget {
 
 class IntInput extends HookWidget {
   final String label;
-  final void Function(int) onChanged;
+  final void Function(int?) onChanged;
   final int? value;
 
   const IntInput({
@@ -55,6 +56,12 @@ class IntInput extends HookWidget {
       onChanged,
       intStringInput,
     );
+    final _buttonStyle = TextButton.styleFrom(
+      padding: EdgeInsets.zero,
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      fixedSize: const Size(20, 20),
+      minimumSize: const Size(20, 20),
+    );
 
     return Row(
       children: [
@@ -62,9 +69,10 @@ class IntInput extends HookWidget {
           child: TextField(
             controller: input.controller,
             decoration: InputDecoration(
-              labelText: label,
+              // labelText: label,
               errorText: input.errorIfTouchedNotEmpty,
             ),
+            onChanged: input.onChangedString,
             inputFormatters: [Formatters.onlyDigits],
             focusNode: input.focusNode,
             keyboardType: TextInputType.number,
@@ -79,7 +87,8 @@ class IntInput extends HookWidget {
                   : () {
                       onChanged(value! + 1);
                     },
-              child: const Icon(Icons.arrow_drop_up),
+              style: _buttonStyle,
+              child: const Icon(Icons.arrow_drop_up, size: 18),
             ),
             TextButton(
               onPressed: value == null
@@ -87,10 +96,11 @@ class IntInput extends HookWidget {
                   : () {
                       onChanged(value! - 1);
                     },
-              child: const Icon(Icons.arrow_drop_down),
+              style: _buttonStyle,
+              child: const Icon(Icons.arrow_drop_down, size: 18),
             ),
           ],
-        )
+        ),
       ],
     );
   }
@@ -98,12 +108,17 @@ class IntInput extends HookWidget {
 
 final doubleStringInput = StringInputSerializer<double>(
   double.tryParse,
-  (v) => v.toString(),
+  (v) {
+    final str = v.toString();
+    return str.endsWith(".0") ? str.substring(0, str.length - 2) : str;
+  },
 );
 
-final intStringInput = StringInputSerializer<int>(
+String objectToString(Object v) => v.toString();
+
+const intStringInput = StringInputSerializer<int>(
   int.tryParse,
-  (v) => v.toString(),
+  objectToString,
 );
 
 class StringInputSerializer<T> {
@@ -120,7 +135,7 @@ class StringInputSerializer<T> {
 
 TextInputParams useTextInput<T>(
   T? value,
-  void Function(T) onChanged,
+  void Function(T?) onChanged,
   StringInputSerializer<T> serializer,
 ) {
   final controller = useTextEditingController();
@@ -132,30 +147,34 @@ TextInputParams useTextInput<T>(
     if (value == null) {
       controller.value = controller.value.copyWith(text: "");
     } else if (serializer.fromString(controller.text) != value) {
+      error.value = null;
       controller.value = controller.value.copyWith(
         text: serializer.asString(value),
       );
     }
   }, [serializer, value]);
 
-  useEffect(() {
-    void _onControllerChange() {
-      final newValue = serializer.fromString(controller.text);
-      final newError = serializer.validate?.call(controller.text, newValue);
+  final onChangedString = useMemoized(() {
+    void _onControllerChange(String newString) {
+      final newValue = serializer.fromString(newString);
+      final newError = serializer.validate?.call(newString, newValue);
 
       if (newValue != null && newError == null) {
-        onChanged(newValue);
+        if (value != newValue) {
+          onChanged(newValue);
+        }
         error.value = null;
+      } else if (newString.isEmpty) {
+        if (value != newValue) {
+          onChanged(null);
+        }
       } else {
         error.value = newError ?? '';
       }
     }
 
-    controller.addListener(_onControllerChange);
-    return () {
-      controller.removeListener(_onControllerChange);
-    };
-  }, [serializer, onChanged]);
+    return _onControllerChange;
+  }, [serializer, value, onChanged]);
 
   useValueChanged<bool, void>(focusNode.hasPrimaryFocus, (prev, _) {
     if (prev && !focusNode.hasPrimaryFocus) {
@@ -168,6 +187,7 @@ TextInputParams useTextInput<T>(
     focusNode: focusNode,
     error: error.value,
     isTouched: isTouched.value,
+    onChangedString: onChangedString,
   );
 }
 
@@ -176,12 +196,14 @@ class TextInputParams {
   final FocusNode focusNode;
   final String? error;
   final bool isTouched;
+  final void Function(String) onChangedString;
 
   const TextInputParams({
     required this.controller,
     required this.focusNode,
     required this.error,
     required this.isTouched,
+    required this.onChangedString,
   });
 
   String? get errorIfTouched => isTouched ? error : null;

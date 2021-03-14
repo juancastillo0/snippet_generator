@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/fields/base_fields.dart';
+import 'package:snippet_generator/fields/button_select_field.dart';
 import 'package:snippet_generator/fields/fields.dart';
 import 'package:snippet_generator/parsers/flutter_props_parsers.dart';
 
@@ -116,8 +117,7 @@ class PaddingInput extends HookWidget {
 
     return Card(
       child: Container(
-        width: 300,
-        height: 220,
+        width: 250,
         padding: const EdgeInsets.all(12),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -176,7 +176,7 @@ class PaddingInput extends HookWidget {
                     label: "all",
                     value: value.hasAll ? value.left : null,
                     onChanged: (v) {
-                      set(EdgeInsets.all(v));
+                      set(EdgeInsets.all(v ?? 0));
                     },
                   ),
                 ),
@@ -237,14 +237,14 @@ class SizeInput extends StatelessWidget {
         DoubleInput(
           label: "width",
           onChanged: (w) => notifier.set(
-            Size(w, notifier.value?.height ?? 0),
+            w == null ? null : Size(w, notifier.value?.height ?? 0),
           ),
           value: notifier.value?.width,
         ),
         DoubleInput(
           label: "height",
           onChanged: (h) => notifier.set(
-            Size(notifier.value?.width ?? 0, h),
+            h == null ? null : Size(notifier.value?.width ?? 0, h),
           ),
           value: notifier.value?.height,
         )
@@ -252,6 +252,24 @@ class SizeInput extends StatelessWidget {
     );
   }
 }
+
+
+// class TextStyleInput extends HookWidget {
+//   const TextStyleInput({Key? key}) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final textTheme = Theme.of(context).textTheme;
+//     final style = useState(TextStyleEnum.bodyText1);
+
+//     return ButtonSelect<TextStyleEnum>(
+//       onChange: (v) => style.value = v,
+//       options: TextStyleEnum.values,
+//       asString: (b) => b.toEnumString(),
+//       selected: style.value,
+//     );
+//   }
+// }
 
 class ColorInput extends StatelessWidget {
   const ColorInput({

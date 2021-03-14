@@ -54,6 +54,10 @@ void setUpEnumFields() {
       (notifier) => EnumInput(notifier: notifier, enumList: FontWeight.values));
   add<FloatingLabelBehavior>((notifier) =>
       EnumInput(notifier: notifier, enumList: FloatingLabelBehavior.values));
+  add<BorderStyle>((notifier) =>
+      EnumInput(notifier: notifier, enumList: BorderStyle.values));
+  add<TextStyleEnum>((notifier) =>
+      EnumInput(notifier: notifier, enumList: TextStyleEnum.values));
 
   add<VisualDensity>(
     (notifier) => DefaultCardInput(
@@ -109,5 +113,56 @@ class EnumInput<E extends Object> extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+enum TextStyleEnum {
+  headline1,
+  headline2,
+  headline3,
+  headline4,
+  headline5,
+  headline6,
+  subtitle1,
+  subtitle2,
+  bodyText1,
+  bodyText2,
+  caption,
+  button,
+  overline,
+}
+
+extension TextStyleEnumTheme on TextStyleEnum {
+  String toEnumString() => this.toString().split(".")[1];
+
+  TextStyle? fromTheme(TextTheme theme) {
+    switch (this) {
+      case TextStyleEnum.headline1:
+        return theme.headline1;
+      case TextStyleEnum.headline2:
+        return theme.headline2;
+      case TextStyleEnum.headline3:
+        return theme.headline3;
+      case TextStyleEnum.headline4:
+        return theme.headline4;
+      case TextStyleEnum.headline5:
+        return theme.headline5;
+      case TextStyleEnum.headline6:
+        return theme.headline6;
+      case TextStyleEnum.subtitle1:
+        return theme.subtitle1;
+      case TextStyleEnum.subtitle2:
+        return theme.subtitle2;
+      case TextStyleEnum.bodyText1:
+        return theme.bodyText1;
+      case TextStyleEnum.bodyText2:
+        return theme.bodyText2;
+      case TextStyleEnum.caption:
+        return theme.caption;
+      case TextStyleEnum.button:
+        return theme.button;
+      case TextStyleEnum.overline:
+        return theme.overline;
+    }
   }
 }

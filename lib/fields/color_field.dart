@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -12,8 +11,35 @@ class ColorFieldRow extends HookWidget {
     required this.name,
     required this.value,
     required this.onChanged,
+    this.width = 180,
   }) : super(key: key);
   final String name;
+  final Color value;
+  final double width;
+  final void Function(Color) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(width: width, child: SelectableText(name)),
+        ColorHoverButton(
+          onChanged: onChanged,
+          value: value,
+        ),
+      ],
+    );
+  }
+}
+
+class ColorHoverButton extends HookWidget {
+  const ColorHoverButton({
+    Key? key,
+    required this.value,
+    required this.onChanged,
+  }) : super(key: key);
+
   final Color value;
   final void Function(Color) onChanged;
 
@@ -62,36 +88,30 @@ class ColorFieldRow extends HookWidget {
       );
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(width: 200, child: SelectableText(name)),
-        PortalEntry(
-          childAnchor: Alignment.centerRight,
-          portalAnchor: Alignment.centerLeft,
-          closeDuration: closeDuration,
-          visible: showColorPicker.value,
-          portal: mouseRegion(
-            AnimatedBuilder(
-              animation: curvedAnimation,
-              builder: (context, snapshot) {
-                return Opacity(
-                  opacity: curvedAnimation.value,
-                  child: _picker(),
-                );
-              },
-            ),
-          ),
-          child: mouseRegion(TextButton(
-            onPressed: () => _showColorPicker(context),
-            child: Container(
-              height: 30,
-              width: 40,
-              color: value,
-            ),
-          )),
+    return PortalEntry(
+      childAnchor: Alignment.centerRight,
+      portalAnchor: Alignment.centerLeft,
+      closeDuration: closeDuration,
+      visible: showColorPicker.value,
+      portal: mouseRegion(
+        AnimatedBuilder(
+          animation: curvedAnimation,
+          builder: (context, snapshot) {
+            return Opacity(
+              opacity: curvedAnimation.value,
+              child: _picker(),
+            );
+          },
         ),
-      ],
+      ),
+      child: mouseRegion(TextButton(
+        onPressed: () => showColorPicker.value = true,
+        child: Container(
+          height: 30,
+          width: 40,
+          color: value,
+        ),
+      )),
     );
   }
 
@@ -127,19 +147,19 @@ class ColorFieldRow extends HookWidget {
     );
   }
 
-  void _showColorPicker(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          child: Container(
-            height: 400,
-            width: 300,
-            padding: const EdgeInsets.all(12),
-            child: _picker(),
-          ),
-        );
-      },
-    );
-  }
+  // void _showColorPicker(BuildContext context) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return Dialog(
+  //         child: Container(
+  //           height: 400,
+  //           width: 300,
+  //           padding: const EdgeInsets.all(12),
+  //           child: _picker(),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 }
