@@ -40,7 +40,8 @@ String parseFieldFromJson(PropertyField e) {
     return "map['${e.name}'] as ${e.type}";
   }
   final parsedResult = e.classConfig!.typeConfig.signatureParserNotifier.value;
-  final generics = parsedResult.value.generics;
+  // TODO: can parsedResult fail?
+  final generics = parsedResult.isSuccess ? parsedResult.value.generics : <SignatureGeneric>[];
   return _parseJsonTypeFromJson("map['${e.name}']", result.value, generics);
 }
 
@@ -79,6 +80,7 @@ String parseFieldToJson(PropertyField e) {
     return "${e.name}'.toJson()";
   }
   final parsedResult = e.classConfig!.typeConfig.signatureParserNotifier.value;
-  final generics = parsedResult.value.generics;
+  // TODO: can parsedResult fail?
+  final generics = parsedResult.isSuccess ? parsedResult.value.generics : <SignatureGeneric>[];
   return _parseJsonTypeToJson(e.name, result.value, generics);
 }
