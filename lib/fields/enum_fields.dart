@@ -52,6 +52,8 @@ void setUpEnumFields() {
       EnumInput(notifier: notifier, enumList: TextDecorationStyle.values));
   add<FontWeight>(
       (notifier) => EnumInput(notifier: notifier, enumList: FontWeight.values));
+  add<FloatingLabelBehavior>((notifier) =>
+      EnumInput(notifier: notifier, enumList: FloatingLabelBehavior.values));
 
   add<VisualDensity>(
     (notifier) => DefaultCardInput(

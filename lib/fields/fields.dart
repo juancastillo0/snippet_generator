@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:snippet_generator/fields/base_fields.dart';
-import 'package:snippet_generator/fields/button_select_field.dart';
+import 'package:snippet_generator/fields/color_field.dart';
 import 'package:snippet_generator/fields/enum_fields.dart';
 import 'package:snippet_generator/fields/flutter_fields.dart';
+import 'package:snippet_generator/models/props_serializable.dart';
+import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
 
 typedef FieldFunc<T> = Widget Function(PropClass<T>);
 
@@ -34,6 +35,7 @@ class GlobalFields {
         value: notifier.value,
       ),
     );
+    // TODO: support EdgeInsetsGeometry
     add<EdgeInsets>(
       (notifier) => PaddingInput(
         key: ValueKey(notifier.name),
@@ -49,6 +51,29 @@ class GlobalFields {
             label: notifier.name,
             onChanged: notifier.set,
             value: notifier.value,
+          ),
+        ],
+      ),
+    );
+    add<int>(
+      (notifier) => DefaultCardInput(
+        label: notifier.name,
+        children: [
+          IntInput(
+            label: notifier.name,
+            onChanged: notifier.set,
+            value: notifier.value,
+          ),
+        ],
+      ),
+    );
+    add<bool>(
+      (notifier) => DefaultCardInput(
+        label: notifier.name,
+        children: [
+          Switch(
+            onChanged: notifier.set,
+            value: notifier.value!,
           ),
         ],
       ),
@@ -71,6 +96,72 @@ class _FunctionWrapper<T> {
       builder: (context, _child) {
         return _func(notifier);
       },
+    );
+  }
+}
+
+class PropsForm extends StatelessWidget {
+  const PropsForm({
+    Key? key,
+    required this.props,
+  }) : super(key: key);
+
+  final Iterable<SerializableProp> props;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorProps = props.whereType<PropClass<Color?>>().toSet();
+    final boolProps = props.whereType<PropClass<bool>>().toSet();
+
+    return SizedBox(
+      height: 300,
+      child: SingleScrollable(
+        padding: const EdgeInsets.only(right: 6),
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Column(
+              children: [
+                ...colorProps.map(
+                  (notifier) => AnimatedBuilder(
+                    animation: notifier,
+                    builder: (context, _) => ColorFieldRow(
+                      name: notifier.name,
+                      onChanged: notifier.set,
+                      value: notifier.value ?? Colors.white,
+                    ),
+                  ),
+                )
+              ],
+            ),
+            Column(
+              children: [
+                ...boolProps.map(
+                  (notifier) => Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(width: 160, child: Text(notifier.name)),
+                      AnimatedBuilder(
+                        animation: notifier,
+                        builder: (context, _) => Checkbox(
+                          onChanged: (value) => notifier.set(value!),
+                          value: notifier.value,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            ),
+            ...props
+                .cast<PropClass<Object?>>()
+                .where((p) => !colorProps.contains(p) && !boolProps.contains(p))
+                .map(GlobalFields.get)
+                .whereType<Widget>()
+          ],
+        ),
+      ),
     );
   }
 }
