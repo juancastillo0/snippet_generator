@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/fields/base_fields.dart';
 import 'package:snippet_generator/fields/color_field.dart';
+import 'package:snippet_generator/fields/enum_fields.dart';
 import 'package:snippet_generator/fields/fields.dart';
 
 class BorderSideInput extends HookWidget {
@@ -196,4 +197,92 @@ extension ExtBorderRadius on BorderRadius {
   bool get hasHorizontal => hasLeft && hasRight;
   bool get hasVertical => hasTop && hasBottom;
   bool get hasAll => hasHorizontal && hasVertical;
+}
+
+enum InputBorderType { outline, underline }
+
+class InputBorderInput extends HookWidget {
+  const InputBorderInput({Key? key, required this.notifier}) : super(key: key);
+  final PropClass<InputBorder?> notifier;
+
+  @override
+  Widget build(BuildContext context) {
+    final value = notifier.value ?? const UnderlineInputBorder();
+
+    late final PropClass<InputBorderType?> type;
+    late final PropClass<BorderSide?> borderSide;
+    late final PropClass<BorderRadius?> borderRadius;
+
+    void _onChange(dynamic _) {
+      if (type.value == InputBorderType.underline) {
+        notifier.set(const UnderlineInputBorder().copyWith(
+          borderRadius: borderRadius.value,
+          borderSide: borderSide.value,
+        ));
+      } else if (type.value == InputBorderType.outline) {
+      notifier.set(const OutlineInputBorder().copyWith(
+          borderRadius: borderRadius.value,
+          borderSide: borderSide.value,
+        ));
+      }
+    }
+
+    type = usePropClass<InputBorderType?>(
+      "type",
+      value is OutlineInputBorder
+          ? InputBorderType.outline
+          : InputBorderType.underline,
+      _onChange,
+    );
+    borderRadius = usePropClass("borderRadius", null, _onChange);
+    borderSide = usePropClass<BorderSide?>("borderSide", null, _onChange);
+
+    return DefaultCardInput(
+      label: notifier.name,
+      children: [
+        EnumInput(
+          notifier: type,
+          enumList: InputBorderType.values,
+          withCard: false,
+        ),
+        if (value is OutlineInputBorder)
+          DoubleInput(
+            label: "gapPadding",
+            onChanged: (v) {
+              notifier.set(value.copyWith(gapPadding: v));
+            },
+            value: value.gapPadding,
+          ),
+        BorderRadiusInput(notifier: borderRadius),
+        BorderSideInput(notifier: borderSide)
+      ],
+    );
+  }
+}
+
+PropClass<T> usePropClass<T>(
+  String name,
+  T value,
+  void Function(T) onChanged, [
+  List<Object?> deps = const [],
+]) {
+  final prop = useMemoized(
+    () => PropClass.fromNotifier(
+      name,
+      ValueNotifier<T>(value),
+    ),
+  );
+
+  useEffect(() {
+    void _l() {
+      onChanged(prop.value);
+    }
+
+    prop.addListener(_l);
+    return () {
+      prop.removeListener(_l);
+    };
+  }, deps);
+
+  return prop;
 }

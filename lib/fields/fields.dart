@@ -81,6 +81,7 @@ class GlobalFields {
     );
     add<Size>((notifier) => SizeInput(notifier: notifier));
     add<Color>((notifier) => ColorInput(notifier: notifier));
+    add<InputBorder>((notifier) => InputBorderInput(notifier: notifier));
     add<BorderSide>((notifier) => BorderSideInput(notifier: notifier));
     add<BorderRadius>((notifier) => BorderRadiusInput(notifier: notifier));
 

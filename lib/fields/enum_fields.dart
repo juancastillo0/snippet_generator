@@ -92,25 +92,31 @@ class EnumInput<E extends Object> extends StatelessWidget {
     Key? key,
     required this.notifier,
     required this.enumList,
+    this.withCard = true,
   }) : super(key: key);
 
   final PropClass<E?> notifier;
   final List<E> enumList;
+  final bool withCard;
 
   static String _enumToString(Object? e) => e.toString().split(".")[1];
 
   @override
   Widget build(BuildContext context) {
+    final child = ButtonSelect<E>(
+      key: ValueKey(notifier.name),
+      selected: notifier.value,
+      options: enumList,
+      asString: _enumToString,
+      onChange: notifier.set,
+    );
+    if (!withCard) {
+      return child;
+    }
     return DefaultCardInput(
       label: notifier.name,
       children: [
-        ButtonSelect<E>(
-          key: ValueKey(notifier.name),
-          selected: notifier.value,
-          options: enumList,
-          asString: _enumToString,
-          onChange: notifier.set,
-        ),
+        child,
       ],
     );
   }
