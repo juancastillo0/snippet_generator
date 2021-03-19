@@ -66,6 +66,8 @@ dependencies:
   file_selector_windows: ^0.0.2
   collection: ^1.15.0-nullsafety.4
 
+  url_launcher: ^6.0.2
+
 dev_dependencies:
   build_runner:
   flutter_test:
