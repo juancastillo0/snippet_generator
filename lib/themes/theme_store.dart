@@ -113,6 +113,9 @@ class ThemeStore with PropsSerializable {
 
   final ColorSchemeNotifier colorScheme;
 
+  final textTheme = AppNotifier<TextTheme>(_defaultTheme.textTheme,
+      name: "textTheme");
+
   final inputDecorationTheme = InputDecorationThemeNotifier(
       _defaultTheme.inputDecorationTheme,
       name: "inputDecorationTheme");
@@ -172,6 +175,7 @@ class ThemeStore with PropsSerializable {
       //
 
       colorScheme: colorScheme.value,
+      textTheme: textTheme.value,
 
       inputDecorationTheme: inputDecorationTheme.value,
       iconTheme: iconTheme.value,
@@ -206,6 +210,7 @@ class ThemeStore with PropsSerializable {
     backgroundColor,
     errorColor,
     toggleableActiveColor,
+    textTheme,
     inputDecorationTheme,
     iconTheme,
     tooltipTheme,

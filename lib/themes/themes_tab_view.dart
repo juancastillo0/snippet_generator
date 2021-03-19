@@ -122,6 +122,7 @@ class ThemesTabView extends HookWidget {
                               ),
                             ),
                           ),
+                      GlobalFields.get(store.textTheme)!,
                       const _ListTitle(title: "Color Scheme"),
                       ...store.colorScheme.props
                           .whereType<AppNotifier<Color>>()
