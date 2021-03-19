@@ -6,8 +6,8 @@ const RESOURCES = {
   "manifest.json": "fd8ca3598f7ec2feef3c301cbeba665b",
 "icons/Icon-192.png": "ac9a721a12bbc803b44f645561ecb1e1",
 "icons/Icon-512.png": "96e752610906ba2a93c65f8abe1645f1",
-"assets/NOTICES": "446bb36d4037306d6a280417af21c2aa",
-"assets/fonts/MaterialIcons-Regular.otf": "1288c9e28052e028aba623321f7826ac",
+"assets/NOTICES": "34b0443b295d7a01c3afd448884c983b",
+"assets/fonts/MaterialIcons-Regular.otf": "27206588da6d3d24f71ec64067b75eb0",
 "assets/AssetManifest.json": "f40047cd935ff96f917c27f76e63daf0",
 "assets/google_fonts/NunitoSans-Black.ttf": "d95152ab5a160491d28b3fce25bf4ff2",
 "assets/google_fonts/Cousine-Italic.ttf": "177a3d2157da07498e805683e8cdaa8d",
@@ -37,9 +37,9 @@ const RESOURCES = {
 "canvaskit_0.25.0/canvaskit.js": "95226282bb562bd618d4df577b10abc6",
 "canvaskit_0.25.0/full/canvaskit.wasm": "4238f9424ec50c2b1c6b184b542cada7",
 "canvaskit_0.25.0/full/canvaskit.js": "d6f5d25a9443bb9507341afc8fd058c5",
-"index.html": "bce9e42cd5e934b1aca3298c63614ac1",
-"/": "bce9e42cd5e934b1aca3298c63614ac1",
-"main.dart.js": "4eb7e0f47492a359cafbfa2340064daf",
+"index.html": "1a8329aa225a30ff2820ee5f2946eef4",
+"/": "1a8329aa225a30ff2820ee5f2946eef4",
+"main.dart.js": "494dd4505a8389c191e88a15f25ff172",
 "version.json": "479ca84fb350de76102ed1d9911e3d0a",
 "favicon.png": "5dcef449791fa27946b3d35ad8803796"
 };
