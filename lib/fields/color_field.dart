@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_portal/flutter_portal.dart';
+import 'package:snippet_generator/utils/extensions.dart';
 
 class ColorFieldRow extends HookWidget {
   const ColorFieldRow({
@@ -51,10 +53,12 @@ class ColorHoverButton extends HookWidget {
     final animationController = useAnimationController(
       duration: closeDuration,
     );
+    final verticalOffset = useState(0.0);
     final curvedAnimation = useMemoized(
       () => animationController.drive(CurveTween(curve: Curves.easeOut)),
       [animationController],
     );
+    const cardHeight = 360.0;
     useValueChanged<bool, void>(showColorPicker.value, (_previous, _result) {
       if (showColorPicker.value) {
         animationController.forward();
@@ -93,25 +97,62 @@ class ColorHoverButton extends HookWidget {
       portalAnchor: Alignment.centerLeft,
       closeDuration: closeDuration,
       visible: showColorPicker.value,
-      portal: mouseRegion(
-        AnimatedBuilder(
-          animation: curvedAnimation,
-          builder: (context, snapshot) {
-            return Opacity(
-              opacity: curvedAnimation.value,
-              child: _picker(),
-            );
-          },
+      portal: Padding(
+        padding: EdgeInsets.only(
+          top: verticalOffset.value > 0 ? verticalOffset.value * 2 : 0,
+          bottom: verticalOffset.value < 0 ? verticalOffset.value * -2 : 0,
+        ),
+        child: mouseRegion(
+          AnimatedBuilder(
+            animation: curvedAnimation,
+            builder: (context, snapshot) {
+              return Opacity(
+                opacity: curvedAnimation.value,
+                child: _picker(),
+              );
+            },
+          ),
         ),
       ),
-      child: mouseRegion(TextButton(
-        onPressed: () => showColorPicker.value = true,
-        child: Container(
-          height: 30,
-          width: 40,
-          color: value,
+      child: mouseRegion(
+        TextButton(
+          onPressed: () => showColorPicker.value = true,
+          child: Container(
+            height: 30,
+            width: 40,
+            color: value,
+            child: Builder(
+              builder: (context) {
+                final screenHeight = MediaQuery.of(context).size.height;
+                if (showColorPicker.value) {
+                  SchedulerBinding.instance!.addPostFrameCallback(
+                    (timeStamp) {
+                      final bounds = context.globalPaintBounds;
+                      if (bounds != null) {
+                        const minMargin = 10.0;
+                        final deltaTop =
+                            bounds.centerRight.dy - cardHeight / 2 - minMargin;
+                        final deltaBottom = screenHeight -
+                            (bounds.centerRight.dy +
+                                cardHeight / 2 +
+                                minMargin);
+                        if (deltaTop < 0) {
+                          verticalOffset.value = -deltaTop;
+                        } else if (deltaBottom < 0) {
+                          verticalOffset.value = deltaBottom;
+                        } else {
+                          verticalOffset.value = 0;
+                        }
+                      }
+                    },
+                  );
+                }
+                return const SizedBox();
+              },
+            ),
+          ),
         ),
-      )),
+      ),
     );
   }
 

@@ -113,28 +113,49 @@ class ThemesTabView extends HookWidget {
                       horizontal: 18,
                     ),
                     children: [
-                      ...store.props.whereType<AppNotifier<Color>>().map(
-                            (notifier) => Observer(
-                              builder: (context) => ColorFieldRow(
-                                name: notifier.name,
-                                onChanged: notifier.set,
-                                value: notifier.value,
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: ListView(
+                                shrinkWrap: true,
+                                children: [
+                                  ...store.props
+                                      .whereType<AppNotifier<Color>>()
+                                      .map(
+                                        (notifier) => Observer(
+                                          builder: (context) => ColorFieldRow(
+                                            name: notifier.name,
+                                            onChanged: notifier.set,
+                                            value: notifier.value,
+                                          ),
+                                        ),
+                                      )
+                                ],
                               ),
                             ),
-                          ),
+                            Expanded(
+                              child: ListView(
+                                shrinkWrap: true,
+                                children: [
+                                  ...store.colorScheme.props
+                                      .whereType<AppNotifier<Color>>()
+                                      .map(
+                                        (notifier) => Observer(
+                                          builder: (context) => ColorFieldRow(
+                                            name: notifier.name,
+                                            onChanged: notifier.set,
+                                            value: notifier.value,
+                                          ),
+                                        ),
+                                      ),
+                                ],
+                              ),
+                            )
+                          ]),
                       GlobalFields.get(store.textTheme)!,
                       const _ListTitle(title: "Color Scheme"),
-                      ...store.colorScheme.props
-                          .whereType<AppNotifier<Color>>()
-                          .map(
-                            (notifier) => Observer(
-                              builder: (context) => ColorFieldRow(
-                                name: notifier.name,
-                                onChanged: notifier.set,
-                                value: notifier.value,
-                              ),
-                            ),
-                          ),
                       ...[
                         store.inputDecorationTheme,
                         store.textButtonTheme,
