@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter/rendering.dart';
 import 'package:mobx/mobx.dart';
-import 'package:snippet_generator/fields/fields.dart';
 import 'package:snippet_generator/models/props_serializable.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
-import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
-import 'package:snippet_generator/themes/themes_tab_view.dart';
+import 'package:snippet_generator/themes/theme_store.dart';
 
 enum ButtonType {
   text,
@@ -20,20 +18,50 @@ abstract class BaseButtonThemeNotifier with PropsSerializable {
 
   BaseButtonThemeNotifier(this.type, {required this.name});
 
-  final alignment = AppNotifier<Alignment?>(null, name: "alignment");
-  final elevation = AppNotifier<double?>(null, name: "elevation");
-  final fixedSize = AppNotifier<Size?>(null, name: "fixedSize");
-  final minimumSize = AppNotifier<Size?>(null, name: "minimumSize");
-  final padding = AppNotifier<EdgeInsets?>(null, name: "padding");
-  final primary = AppNotifier<Color?>(null, name: "primary");
-  final onSurface = AppNotifier<Color?>(null, name: "onSurface");
-  final shadowColor = AppNotifier<Color?>(null, name: "shadowColor");
-  final side = AppNotifier<BorderSide?>(null, name: "side");
-  final visualDensity =
-      AppNotifier<VisualDensity?>(null, name: "visualDensity");
-  final tapTargetSize =
-      AppNotifier<MaterialTapTargetSize?>(null, name: "tapTargetSize");
-  final shape = AppNotifier<OutlinedBorder?>(null, name: "shape");
+  late final alignment = AppNotifier.withDefault<Alignment>(
+      () => defaultValue.value.alignment as Alignment,
+      name: "alignment");
+  late final elevation = AppNotifier.withDefault<double>(
+      () => defaultValue.value.elevation!.resolve({MaterialState.selected})!,
+      name: "elevation");
+  late final fixedSize = AppNotifier.withDefault<Size?>(
+      () => defaultValue.value.fixedSize?.resolve({MaterialState.selected}),
+      name: "fixedSize");
+  late final minimumSize = AppNotifier.withDefault<Size?>(
+      () => defaultValue.value.minimumSize?.resolve({MaterialState.selected}),
+      name: "minimumSize");
+  late final padding = AppNotifier.withDefault<EdgeInsets>(
+      () => defaultValue.value.padding!.resolve({MaterialState.selected})!
+          as EdgeInsets,
+      name: "padding");
+  late final primary = AppNotifier.withDefault<Color>(
+      () => type == ButtonType.elevated
+          ? defaultValue.value.backgroundColor!
+              .resolve({MaterialState.selected})!
+          : defaultValue.value.foregroundColor!
+              .resolve({MaterialState.selected})!,
+      name: "primary");
+  late final onSurface = AppNotifier.withDefault<Color>(
+      () => defaultValue.value.foregroundColor!
+          .resolve({MaterialState.selected})!,
+      name: "onSurface");
+  late final shadowColor = AppNotifier.withDefault<Color>(
+      () => defaultValue.value.shadowColor!.resolve({MaterialState.selected})!,
+      name: "shadowColor");
+  late final side = AppNotifier.withDefault<BorderSide?>(
+      () => defaultValue.value.side?.resolve({MaterialState.selected}),
+      name: "side");
+  late final visualDensity = AppNotifier.withDefault<VisualDensity>(
+      () => defaultValue.value.visualDensity!,
+      name: "visualDensity");
+  late final tapTargetSize = AppNotifier.withDefault<MaterialTapTargetSize>(
+      () => defaultValue.value.tapTargetSize!,
+      name: "tapTargetSize");
+  late final shape = AppNotifier.withDefault<OutlinedBorder>(
+      () => defaultValue.value.shape!.resolve({MaterialState.selected})!,
+      name: "shape");
+
+  Computed<ButtonStyle> get defaultValue;
 
   static List<SerializableProp> defaultProps(
     BaseButtonThemeNotifier instance,
@@ -55,11 +83,14 @@ abstract class BaseButtonThemeNotifier with PropsSerializable {
   }
 }
 
-
 class TextButtonThemeNotifier extends BaseButtonThemeNotifier {
-  TextButtonThemeNotifier({required String name})
+  TextButtonThemeNotifier({required String name, required this.themeStore})
       : super(ButtonType.text, name: name);
-  final backgroundColor = AppNotifier<Color?>(null, name: "backgroundColor");
+  late final backgroundColor = AppNotifier.withDefault<Color>(
+      () => defaultValue.value.backgroundColor!
+          .resolve({MaterialState.selected})!,
+      name: "backgroundColor");
+  final ThemeStore themeStore;
 
   TextButtonThemeData get value => computed.value;
   late final computed = Computed<TextButtonThemeData>(() {
@@ -83,6 +114,40 @@ class TextButtonThemeNotifier extends BaseButtonThemeNotifier {
   });
 
   @override
+  late final Computed<ButtonStyle> defaultValue = Computed(() {
+    final ColorScheme colorScheme = themeStore.colorScheme.value;
+
+    final EdgeInsetsGeometry scaledPadding = ButtonStyleButton.scaledPadding(
+        const EdgeInsets.all(8),
+        const EdgeInsets.symmetric(horizontal: 8),
+        const EdgeInsets.symmetric(horizontal: 4),
+        1 // MediaQuery.maybeOf(context)?.textScaleFactor ?? 1,
+        );
+
+    return TextButton.styleFrom(
+      primary: colorScheme.primary,
+      onSurface: colorScheme.onSurface,
+      backgroundColor: Colors.transparent,
+      shadowColor: themeStore.shadowColor.value,
+      elevation: 0,
+      textStyle: themeStore.textTheme.value.button,
+      padding: scaledPadding,
+      minimumSize: const Size(64, 36),
+      side: null,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4))),
+      enabledMouseCursor: SystemMouseCursors.click,
+      disabledMouseCursor: SystemMouseCursors.forbidden,
+      visualDensity: themeStore.visualDensity.value,
+      tapTargetSize: themeStore.materialTapTargetSize.value,
+      animationDuration: kThemeChangeDuration,
+      enableFeedback: true,
+      alignment: Alignment.center,
+      splashFactory: InkRipple.splashFactory,
+    );
+  });
+
+  @override
   late final List<SerializableProp> props = [
     ...BaseButtonThemeNotifier.defaultProps(this),
     backgroundColor,
@@ -90,9 +155,13 @@ class TextButtonThemeNotifier extends BaseButtonThemeNotifier {
 }
 
 class OutlinedButtonThemeNotifier extends BaseButtonThemeNotifier {
-  OutlinedButtonThemeNotifier({required String name})
+  OutlinedButtonThemeNotifier({required String name, required this.themeStore})
       : super(ButtonType.outlined, name: name);
-  final backgroundColor = AppNotifier<Color?>(null, name: "backgroundColor");
+  late final backgroundColor = AppNotifier.withDefault<Color>(
+      () => defaultValue.value.backgroundColor!
+          .resolve({MaterialState.selected})!,
+      name: "backgroundColor");
+  final ThemeStore themeStore;
 
   OutlinedButtonThemeData get value => computed.value;
   late final computed = Computed<OutlinedButtonThemeData>(() {
@@ -116,6 +185,43 @@ class OutlinedButtonThemeNotifier extends BaseButtonThemeNotifier {
   });
 
   @override
+  late final Computed<ButtonStyle> defaultValue = Computed(() {
+    final ColorScheme colorScheme = themeStore.colorScheme.value;
+
+    final EdgeInsetsGeometry scaledPadding = ButtonStyleButton.scaledPadding(
+        const EdgeInsets.symmetric(horizontal: 16),
+        const EdgeInsets.symmetric(horizontal: 8),
+        const EdgeInsets.symmetric(horizontal: 4),
+        1 // MediaQuery.maybeOf(context)?.textScaleFactor ?? 1,
+        );
+
+    return OutlinedButton.styleFrom(
+      primary: colorScheme.primary,
+      onSurface: colorScheme.onSurface,
+      backgroundColor: Colors.transparent,
+      shadowColor: themeStore.shadowColor.value,
+      elevation: 0,
+      textStyle: themeStore.textTheme.value.button,
+      padding: scaledPadding,
+      minimumSize: const Size(64, 36),
+      side: BorderSide(
+        color: themeStore.colorScheme.value.onSurface.withOpacity(0.12),
+        width: 1,
+      ),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4))),
+      enabledMouseCursor: SystemMouseCursors.click,
+      disabledMouseCursor: SystemMouseCursors.forbidden,
+      visualDensity: themeStore.visualDensity.value,
+      tapTargetSize: themeStore.materialTapTargetSize.value,
+      animationDuration: kThemeChangeDuration,
+      enableFeedback: true,
+      alignment: Alignment.center,
+      splashFactory: InkRipple.splashFactory,
+    );
+  });
+
+  @override
   late final List<SerializableProp> props = [
     ...BaseButtonThemeNotifier.defaultProps(this),
     backgroundColor,
@@ -123,9 +229,13 @@ class OutlinedButtonThemeNotifier extends BaseButtonThemeNotifier {
 }
 
 class ElevatedButtonThemeNotifier extends BaseButtonThemeNotifier {
-  ElevatedButtonThemeNotifier({required String name})
+  ElevatedButtonThemeNotifier({required String name, required this.themeStore})
       : super(ButtonType.elevated, name: name);
-  final onPrimary = AppNotifier<Color?>(null, name: "onPrimary");
+  late final onPrimary = AppNotifier.withDefault<Color>(
+      () => defaultValue.value.foregroundColor!
+          .resolve({MaterialState.selected})!,
+      name: "onPrimary");
+  final ThemeStore themeStore;
 
   ElevatedButtonThemeData get value => computed.value;
   late final computed = Computed<ElevatedButtonThemeData>(() {
@@ -145,6 +255,40 @@ class ElevatedButtonThemeNotifier extends BaseButtonThemeNotifier {
         shape: shape.value,
         onPrimary: onPrimary.value,
       ),
+    );
+  });
+
+  @override
+  late final Computed<ButtonStyle> defaultValue = Computed(() {
+    final ColorScheme colorScheme = themeStore.colorScheme.value;
+
+    final EdgeInsetsGeometry scaledPadding = ButtonStyleButton.scaledPadding(
+        const EdgeInsets.symmetric(horizontal: 16),
+        const EdgeInsets.symmetric(horizontal: 8),
+        const EdgeInsets.symmetric(horizontal: 4),
+        1 //MediaQuery.maybeOf(context)?.textScaleFactor ?? 1,
+        );
+
+    return ElevatedButton.styleFrom(
+      primary: colorScheme.primary,
+      onPrimary: colorScheme.onPrimary,
+      onSurface: colorScheme.onSurface,
+      shadowColor: themeStore.shadowColor.value,
+      elevation: 2,
+      textStyle: themeStore.textTheme.value.button,
+      padding: scaledPadding,
+      minimumSize: const Size(64, 36),
+      side: null,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(4))),
+      enabledMouseCursor: SystemMouseCursors.click,
+      disabledMouseCursor: SystemMouseCursors.forbidden,
+      visualDensity: themeStore.visualDensity.value,
+      tapTargetSize: themeStore.materialTapTargetSize.value,
+      animationDuration: kThemeChangeDuration,
+      enableFeedback: true,
+      alignment: Alignment.center,
+      splashFactory: InkRipple.splashFactory,
     );
   });
 

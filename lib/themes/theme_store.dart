@@ -110,11 +110,19 @@ class ThemeStore with PropsSerializable {
   final toggleableActiveColor = AppNotifier<Color>(
       _defaultTheme.toggleableActiveColor,
       name: "toggleableActiveColor");
+  final shadowColor =
+      AppNotifier<Color>(_defaultTheme.shadowColor, name: "shadowColor");
+
+  final materialTapTargetSize = AppNotifier<MaterialTapTargetSize>(
+      _defaultTheme.materialTapTargetSize,
+      name: "materialTapTargetSize");
+  final visualDensity = AppNotifier<VisualDensity>(_defaultTheme.visualDensity,
+      name: "visualDensity");
 
   final ColorSchemeNotifier colorScheme;
 
-  final textTheme = AppNotifier<TextTheme>(_defaultTheme.textTheme,
-      name: "textTheme");
+  final textTheme =
+      AppNotifier<TextTheme>(_defaultTheme.textTheme, name: "textTheme");
 
   final inputDecorationTheme = InputDecorationThemeNotifier(
       _defaultTheme.inputDecorationTheme,
@@ -138,11 +146,12 @@ class ThemeStore with PropsSerializable {
   final bottomSheetTheme = AppNotifier<BottomSheetThemeData>(
       _defaultTheme.bottomSheetTheme,
       name: "bottomSheetTheme");
-  final textButtonTheme = TextButtonThemeNotifier(name: "textButtonTheme");
-  final elevatedButtonTheme =
-      ElevatedButtonThemeNotifier(name: "elevatedButtonTheme");
-  final outlinedButtonTheme =
-      OutlinedButtonThemeNotifier(name: "outlinedButtonTheme");
+  late final textButtonTheme =
+      TextButtonThemeNotifier(name: "textButtonTheme", themeStore: this);
+  late final elevatedButtonTheme = ElevatedButtonThemeNotifier(
+      name: "elevatedButtonTheme", themeStore: this);
+  late final outlinedButtonTheme = OutlinedButtonThemeNotifier(
+      name: "outlinedButtonTheme", themeStore: this);
   final textSelectionTheme = AppNotifier<TextSelectionThemeData>(
       _defaultTheme.textSelectionTheme,
       name: "textSelectionTheme");
@@ -172,7 +181,10 @@ class ThemeStore with PropsSerializable {
       backgroundColor: backgroundColor.value,
       errorColor: errorColor.value,
       toggleableActiveColor: toggleableActiveColor.value,
+      shadowColor: shadowColor.value,
       //
+      materialTapTargetSize: materialTapTargetSize.value,
+      visualDensity: visualDensity.value,
 
       colorScheme: colorScheme.value,
       textTheme: textTheme.value,
@@ -210,6 +222,9 @@ class ThemeStore with PropsSerializable {
     backgroundColor,
     errorColor,
     toggleableActiveColor,
+    shadowColor,
+    materialTapTargetSize,
+    visualDensity,
     textTheme,
     inputDecorationTheme,
     iconTheme,
@@ -331,35 +346,3 @@ class ColorSchemeNotifier with PropsSerializable {
   set onError(Color _v) => onErrorNotifier.value = _v;
   Color get onError => onErrorNotifier.value;
 }
-
-// class ColorSchemeNotifier extends ValueNotifier<ColorScheme> {
-//   ColorSchemeNotifier(ColorScheme value) : super(value);
-
-//   late final p = [primary];
-
-//   set primary(Color _v) => value = value.copyWith(primary: _v);
-//   Color get primary => value.primary;
-//   set primaryVariant(Color _v) => value = value.copyWith(primaryVariant: _v);
-//   Color get primaryVariant => value.primaryVariant;
-//   set secondary(Color _v) => value = value.copyWith(secondary: _v);
-//   Color get secondary => value.secondary;
-//   set secondaryVariant(Color _v) =>
-//       value = value.copyWith(secondaryVariant: _v);
-//   Color get secondaryVariant => value.secondaryVariant;
-//   set surface(Color _v) => value = value.copyWith(surface: _v);
-//   Color get surface => value.surface;
-//   set background(Color _v) => value = value.copyWith(background: _v);
-//   Color get background => value.background;
-//   set error(Color _v) => value = value.copyWith(error: _v);
-//   Color get error => value.error;
-//   set onPrimary(Color _v) => value = value.copyWith(onPrimary: _v);
-//   Color get onPrimary => value.onPrimary;
-//   set onSecondary(Color _v) => value = value.copyWith(onSecondary: _v);
-//   Color get onSecondary => value.onSecondary;
-//   set onSurface(Color _v) => value = value.copyWith(onSurface: _v);
-//   Color get onSurface => value.onSurface;
-//   set onBackground(Color _v) => value = value.copyWith(onBackground: _v);
-//   Color get onBackground => value.onBackground;
-//   set onError(Color _v) => value = value.copyWith(onError: _v);
-//   Color get onError => value.onError;
-// }
