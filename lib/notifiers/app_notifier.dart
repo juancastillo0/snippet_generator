@@ -1,12 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:mobx/mobx.dart';
+import 'package:mobx/mobx.dart' hide Listenable;
 import 'package:snippet_generator/models/props_serializable.dart';
 import 'package:snippet_generator/models/rebuilder.dart';
 import 'package:snippet_generator/models/serializer.dart';
 import 'package:snippet_generator/fields/fields.dart';
 
 class AppNotifier<T>
+    with ListenableFromObservable
     implements ValueListenable<T>, SerializableProp, PropClass<T> {
   @override
   String get name => observable.name;
@@ -15,7 +16,6 @@ class AppNotifier<T>
 
   final bool isRequired;
   final Observable<T> observable;
-  final _subs = <void Function(), _ListenerCount>{};
 
   @override
   T get value {
@@ -43,6 +43,12 @@ class AppNotifier<T>
     // parent?.registerValue(this);
   }
 
+  static AppNotifierWithDefault<T> withDefault<T>(
+    T Function() computeDefault, {
+    required String name,
+  }) =>
+      AppNotifierWithDefault<T>(computeDefault: computeDefault, name: name);
+
   @override
   Object? toJson() {
     return Serializers.toJson<T>(this.value);
@@ -69,23 +75,34 @@ class AppNotifier<T>
   }
 
   @override
+  void Function() Function(void Function(dynamic)) get observeFunction =>
+      observable.observe;
+}
+
+mixin ListenableFromObservable implements Listenable {
+  void Function() Function(void Function(dynamic)) get observeFunction;
+
+  final _subsListenableFromObservable = <void Function(), _ListenerCount>{};
+
+  @override
   void addListener(VoidCallback listener) {
-    final cancel = observable.observe((_) {
+    final cancel = observeFunction((_) {
       listener();
     });
-    final count = _subs[listener] ?? _ListenerCount(cancel, 0);
+    final count =
+        _subsListenableFromObservable[listener] ?? _ListenerCount(cancel, 0);
     count.count += 1;
-    _subs[listener] = count;
+    _subsListenableFromObservable[listener] = count;
   }
 
   @override
   void removeListener(VoidCallback listener) {
-    final count = _subs[listener];
+    final count = _subsListenableFromObservable[listener];
     if (count != null) {
       count.count -= 1;
       if (count.count == 0) {
         count.cancel();
-        _subs.remove(listener);
+        _subsListenableFromObservable.remove(listener);
       }
     }
   }
@@ -101,6 +118,25 @@ class _ListenerCount {
   );
 }
 
+class AppNotifierWithDefault<T> extends AppNotifier<T?> {
+  final T Function() computeDefault;
+  AppNotifierWithDefault({
+    required String name,
+    required this.computeDefault,
+  }) : super(null, name: name);
+
+  @override
+  T get value => computedValue.value;
+
+  @override
+  void Function() Function(void Function(dynamic)) get observeFunction =>
+      computedValue.observe;
+
+  late final Computed<T> computedValue = Computed<T>(() {
+    final _def = computeDefault();
+    return this.observable.value ?? _def;
+  });
+}
 // extension ValueNotifierSetter<T> on ValueNotifier<T> {
 //   void set(T value) {
 //     this.value = value;
