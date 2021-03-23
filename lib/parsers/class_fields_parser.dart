@@ -37,7 +37,7 @@ const supportedTypes = {
 final fieldsParser =
     (_required.trim().optional() & _name & char(":").optional().trim() & _name)
         .separatedBy(
-  pattern(",;\n\t").trim().star(),
+  pattern(",;\n\t").star().trim(),
   includeSeparators: false,
   optionalSeparatorAtEnd: true,
 )

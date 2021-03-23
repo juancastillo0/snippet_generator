@@ -110,6 +110,9 @@ class ThemeStore with PropsSerializable {
   final toggleableActiveColor = AppNotifier<Color>(
       _defaultTheme.toggleableActiveColor,
       name: "toggleableActiveColor");
+  final dialogBackgroundColor = AppNotifier<Color>(
+      _defaultTheme.dialogBackgroundColor,
+      name: "dialogBackgroundColor");
   final shadowColor =
       AppNotifier<Color>(_defaultTheme.shadowColor, name: "shadowColor");
 
@@ -136,8 +139,7 @@ class ThemeStore with PropsSerializable {
   final scrollbarTheme = AppNotifier<ScrollbarThemeData>(
       _defaultTheme.scrollbarTheme,
       name: "scrollbarTheme");
-  final dialogTheme =
-      AppNotifier<DialogTheme>(_defaultTheme.dialogTheme, name: "dialogTheme");
+  late final dialogTheme = DialogThemeNotifier(this, "dialogTheme");
   final typography =
       AppNotifier<Typography>(_defaultTheme.typography, name: "typography");
   final snackBarTheme = AppNotifier<SnackBarThemeData>(
@@ -181,6 +183,7 @@ class ThemeStore with PropsSerializable {
       backgroundColor: backgroundColor.value,
       errorColor: errorColor.value,
       toggleableActiveColor: toggleableActiveColor.value,
+      dialogBackgroundColor: dialogBackgroundColor.value,
       shadowColor: shadowColor.value,
       //
       materialTapTargetSize: materialTapTargetSize.value,
@@ -222,6 +225,7 @@ class ThemeStore with PropsSerializable {
     backgroundColor,
     errorColor,
     toggleableActiveColor,
+    dialogBackgroundColor,
     shadowColor,
     materialTapTargetSize,
     visualDensity,
@@ -345,4 +349,51 @@ class ColorSchemeNotifier with PropsSerializable {
   final AppNotifier<Color> onErrorNotifier;
   set onError(Color _v) => onErrorNotifier.value = _v;
   Color get onError => onErrorNotifier.value;
+}
+
+class DialogThemeNotifier with PropsSerializable {
+  final ThemeStore themeStore;
+  @override
+  final String name;
+
+  DialogThemeNotifier(this.themeStore, this.name);
+
+  late final AppNotifierWithDefault<Color> backgroundColor =
+      AppNotifier.withDefault(() => themeStore.dialogBackgroundColor.value,
+          name: "backgroundColor");
+  final elevation =
+      AppNotifier.withDefault<double>(() => 24.0, name: "elevation");
+  late final AppNotifierWithDefault<ShapeBorder> shape =
+      AppNotifier.withDefault(
+          () => const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(4.0)),
+              ),
+          name: "shape");
+  late final AppNotifierWithDefault<TextStyle> titleTextStyle =
+      AppNotifier.withDefault(() => themeStore.textTheme.value.headline6!,
+          name: "titleTextStyle");
+  late final AppNotifierWithDefault<TextStyle> contentTextStyle =
+      AppNotifier.withDefault(() => themeStore.textTheme.value.subtitle1!,
+          name: "contentTextStyle");
+
+  DialogTheme get value => computedValue.value;
+
+  late final Computed<DialogTheme> computedValue = Computed(() {
+    return DialogTheme(
+      backgroundColor: backgroundColor.value,
+      elevation: elevation.value,
+      shape: shape.value,
+      titleTextStyle: titleTextStyle.value,
+      contentTextStyle: contentTextStyle.value,
+    );
+  });
+
+  @override
+  late final List<SerializableProp> props = [
+    backgroundColor,
+    elevation,
+    shape,
+    titleTextStyle,
+    contentTextStyle,
+  ];
 }
