@@ -119,7 +119,7 @@ class MenuPortalEntry<T> extends StatelessWidget {
         width: width,
         margin: const EdgeInsets.only(top: 5),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(5),
           boxShadow: const [
             BoxShadow(

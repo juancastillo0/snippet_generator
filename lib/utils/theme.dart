@@ -27,16 +27,23 @@ ThemeData lightTheme() {
     textTheme: GoogleFonts.nunitoSansTextTheme(_baseTheme.textTheme),
     inputDecorationTheme: const InputDecorationTheme(
       isDense: true,
+      filled: true,
+      contentPadding: EdgeInsets.only(top: 7, left: 7, right: 7, bottom: 8),
+      labelStyle: TextStyle(height: 1)
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         primary: Colors.white,
         onPrimary: Colors.black,
+        disabledMouseCursor: SystemMouseCursors.basic,
+        enabledMouseCursor: SystemMouseCursors.click,
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         primary: Colors.black,
+        disabledMouseCursor: SystemMouseCursors.basic,
+        enabledMouseCursor: SystemMouseCursors.click,
       ),
     ),
   );
@@ -58,17 +65,24 @@ ThemeData darkTheme() {
     textTheme: GoogleFonts.nunitoSansTextTheme(_baseTheme.textTheme),
     inputDecorationTheme: const InputDecorationTheme(
       isDense: true,
+      filled: true,
+      contentPadding: EdgeInsets.only(top: 7, left: 7, right: 7, bottom: 8),
+      labelStyle: TextStyle(height: 1)
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         primary: Colors.black26,
         onPrimary: Colors.white,
+        disabledMouseCursor: SystemMouseCursors.basic,
+        enabledMouseCursor: SystemMouseCursors.click,
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-          // primary: Colors.black,
-          ),
+        // primary: Colors.black,
+        disabledMouseCursor: SystemMouseCursors.basic,
+        enabledMouseCursor: SystemMouseCursors.click,
+      ),
     ),
   );
 }

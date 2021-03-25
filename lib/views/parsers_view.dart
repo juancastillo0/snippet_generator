@@ -120,7 +120,6 @@ class ComponentWidgetTab extends HookWidget {
       options: [
         TextButton(
           onPressed: onDelete,
-          style: menuStyle(context),
           child: const Text("delete"),
         )
       ],

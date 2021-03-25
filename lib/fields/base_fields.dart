@@ -69,7 +69,7 @@ class IntInput extends HookWidget {
           child: TextField(
             controller: input.controller,
             decoration: InputDecoration(
-              // labelText: label,
+              labelText: label,
               errorText: input.errorIfTouchedNotEmpty,
             ),
             onChanged: input.onChangedString,
