@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobx/mobx.dart';
 import 'package:snippet_generator/collection_notifier/list_notifier.dart';
+import 'package:snippet_generator/fields/enum_fields.dart';
 import 'package:snippet_generator/fields/fields.dart';
 import 'package:snippet_generator/models/props_serializable.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
@@ -97,73 +98,86 @@ class TextThemeNotifier {
 }
 
 class TextStyleNotifier
-    with ListenableFromObservable
+    with ListenableFromObservable, PropsSerializable
     implements PropClass<TextStyle> {
-  final TextThemeNotifier baseTheme;
+  final TextThemeNotifier textTheme;
   @override
   final String name;
-  final TextStyle Function() defaultValue;
-  TextStyleNotifier(this.defaultValue, this.baseTheme, {required this.name});
+  final TextStyle Function()? defaultStyle;
+
+  TextStyleNotifier(
+    this.textTheme, {
+    this.defaultStyle,
+    required this.name,
+  });
+
+  TextStyle defaultValue() {
+    return defaultStyle?.call() ??
+        baseThemeTextStyle.value.fromTheme(textTheme.computedValue.value)!;
+  }
+
+  final baseThemeTextStyle = AppNotifier<TextStyleEnum>(TextStyleEnum.bodyText1,
+      name: "baseThemeTextStyle");
 
   late final inherit = AppNotifier.withDefault<bool>(
       () => defaultValue().inherit,
       name: "inherit");
   late final color = AppNotifier.withDefault<Color>(() => defaultValue().color!,
       name: "color");
-  late final backgroundColor = AppNotifier.withDefault<Color>(
-      () => defaultValue().backgroundColor!,
+  late final backgroundColor = AppNotifier.withDefault<Color?>(
+      () => defaultValue().backgroundColor,
       name: "backgroundColor");
-  late final fontFamily = AppNotifier.withDefault<String>(
-      () => defaultValue().fontFamily!,
+  late final fontFamily = AppNotifier.withDefault<String?>(
+      () => defaultValue().fontFamily,
       name: "fontFamily");
-  late final fontSize = AppNotifier.withDefault<double>(
-      () => defaultValue().fontSize!,
+  late final fontSize = AppNotifier.withDefault<double?>(
+      () => defaultValue().fontSize,
       name: "fontSize");
-  late final fontWeight = AppNotifier.withDefault<FontWeight>(
-      () => defaultValue().fontWeight!,
+  late final fontWeight = AppNotifier.withDefault<FontWeight?>(
+      () => defaultValue().fontWeight,
       name: "fontWeight");
-  late final fontStyle = AppNotifier.withDefault<FontStyle>(
-      () => defaultValue().fontStyle!,
+  late final fontStyle = AppNotifier.withDefault<FontStyle?>(
+      () => defaultValue().fontStyle,
       name: "fontStyle");
-  late final letterSpacing = AppNotifier.withDefault<double>(
-      () => defaultValue().letterSpacing!,
+  late final letterSpacing = AppNotifier.withDefault<double?>(
+      () => defaultValue().letterSpacing,
       name: "letterSpacing");
-  late final wordSpacing = AppNotifier.withDefault<double>(
-      () => defaultValue().wordSpacing!,
+  late final wordSpacing = AppNotifier.withDefault<double?>(
+      () => defaultValue().wordSpacing,
       name: "wordSpacing");
-  late final textBaseline = AppNotifier.withDefault<TextBaseline>(
-      () => defaultValue().textBaseline!,
+  late final textBaseline = AppNotifier.withDefault<TextBaseline?>(
+      () => defaultValue().textBaseline,
       name: "textBaseline");
-  late final height = AppNotifier.withDefault<double>(
-      () => defaultValue().height!,
+  late final height = AppNotifier.withDefault<double?>(
+      () => defaultValue().height,
       name: "height");
   late final leadingDistribution =
-      AppNotifier.withDefault<ui.TextLeadingDistribution>(
-          () => defaultValue().leadingDistribution!,
+      AppNotifier.withDefault<ui.TextLeadingDistribution?>(
+          () => defaultValue().leadingDistribution,
           name: "leadingDistribution");
-  late final locale = AppNotifier.withDefault<Locale>(
-      () => defaultValue().locale!,
+  late final locale = AppNotifier.withDefault<Locale?>(
+      () => defaultValue().locale,
       name: "locale");
-  late final foreground = AppNotifier.withDefault<Paint>(
-      () => defaultValue().foreground!,
+  late final foreground = AppNotifier.withDefault<Paint?>(
+      () => defaultValue().foreground,
       name: "foreground");
-  late final background = AppNotifier.withDefault<Paint>(
-      () => defaultValue().background!,
+  late final background = AppNotifier.withDefault<Paint?>(
+      () => defaultValue().background,
       name: "background");
-  late final decoration = AppNotifier.withDefault<TextDecoration>(
-      () => defaultValue().decoration!,
+  late final decoration = AppNotifier.withDefault<TextDecoration?>(
+      () => defaultValue().decoration,
       name: "decoration");
-  late final decorationColor = AppNotifier.withDefault<Color>(
-      () => defaultValue().decorationColor!,
+  late final decorationColor = AppNotifier.withDefault<Color?>(
+      () => defaultValue().decorationColor,
       name: "decorationColor");
-  late final decorationStyle = AppNotifier.withDefault<TextDecorationStyle>(
-      () => defaultValue().decorationStyle!,
+  late final decorationStyle = AppNotifier.withDefault<TextDecorationStyle?>(
+      () => defaultValue().decorationStyle,
       name: "decorationStyle");
-  late final decorationThickness = AppNotifier.withDefault<double>(
-      () => defaultValue().decorationThickness!,
+  late final decorationThickness = AppNotifier.withDefault<double?>(
+      () => defaultValue().decorationThickness,
       name: "decorationThickness");
-  late final debugLabel = AppNotifier.withDefault<String>(
-      () => defaultValue().debugLabel!,
+  late final debugLabel = AppNotifier.withDefault<String?>(
+      () => defaultValue().debugLabel,
       name: "debugLabel");
 
   @override
@@ -224,4 +238,28 @@ class TextStyleNotifier
   @override
   void Function() Function(void Function(dynamic)) get observeFunction =>
       computedValue.observe;
+
+  @override
+  late final List<SerializableProp> props = [
+    inherit,
+    color,
+    backgroundColor,
+    fontFamily,
+    fontSize,
+    fontWeight,
+    fontStyle,
+    letterSpacing,
+    wordSpacing,
+    textBaseline,
+    height,
+    leadingDistribution,
+    locale,
+    foreground,
+    background,
+    decoration,
+    decorationColor,
+    decorationStyle,
+    decorationThickness,
+    debugLabel,
+  ];
 }

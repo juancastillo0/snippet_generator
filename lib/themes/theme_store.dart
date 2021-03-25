@@ -5,6 +5,7 @@ import 'package:snippet_generator/models/props_serializable.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/themes/button_themes.dart';
 import 'package:snippet_generator/themes/input_theme.dart';
+import 'package:snippet_generator/themes/text_themes.dart';
 
 int _themeCount = 0;
 
@@ -126,6 +127,8 @@ class ThemeStore with PropsSerializable {
 
   final textTheme =
       AppNotifier<TextTheme>(_defaultTheme.textTheme, name: "textTheme");
+
+  final textThemeNotifier = TextThemeNotifier();
 
   final inputDecorationTheme = InputDecorationThemeNotifier(
       _defaultTheme.inputDecorationTheme,
@@ -372,9 +375,9 @@ class DialogThemeNotifier with PropsSerializable {
   late final AppNotifierWithDefault<TextStyle> titleTextStyle =
       AppNotifier.withDefault(() => themeStore.textTheme.value.headline6!,
           name: "titleTextStyle");
-  late final AppNotifierWithDefault<TextStyle> contentTextStyle =
-      AppNotifier.withDefault(() => themeStore.textTheme.value.subtitle1!,
-          name: "contentTextStyle");
+  late final contentTextStyle = TextStyleNotifier(themeStore.textThemeNotifier,
+      defaultStyle: () => themeStore.textTheme.value.subtitle1!,
+      name: "contentTextStyle");
 
   DialogTheme get value => computedValue.value;
 

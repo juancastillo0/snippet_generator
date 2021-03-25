@@ -20,7 +20,6 @@ class TextThemeInput extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final key = this.key as ValueKey<String>;
     final controller = useTextEditingController();
     final focusNode = useFocusNode();
     final lowercaseText = useState(controller.text);
