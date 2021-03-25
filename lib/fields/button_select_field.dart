@@ -80,7 +80,7 @@ class ButtonSelect<T> extends HookWidget {
                   }
                   if (!checkedShouldBeDropdown.value) {
                     if (buttonTop != ctx.globalPaintBounds!.top) {
-                      // isDropdown.value = true;
+                      isDropdown.value = options.length > 3;
                     }
                     checkedShouldBeDropdown.value = true;
                   }

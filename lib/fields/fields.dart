@@ -8,6 +8,7 @@ import 'package:snippet_generator/fields/flutter_fields.dart';
 import 'package:snippet_generator/fields/text_theme_fields.dart';
 import 'package:snippet_generator/models/props_serializable.dart';
 import 'package:snippet_generator/resizable_scrollable/scrollable.dart';
+import 'package:snippet_generator/themes/text_themes.dart';
 
 typedef FieldFunc<T> = Widget Function(PropClass<T>);
 
@@ -91,6 +92,17 @@ class GlobalFields {
           value: notifier.value,
         ));
 
+    add<TextStyle>((notifier) {
+      final n = notifier;
+      if (n is TextStyleNotifier) {
+        return PropsForm(
+          props: n.props,
+        );
+      } else {
+        return Container();
+      }
+    });
+
     setUpEnumFields();
   }
 }
@@ -121,7 +133,8 @@ class PropsForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorProps = props.whereType<PropClass<Color?>>().toSet();
-    final boolProps = props.whereType<PropClass<bool>>().toSet();
+    final boolProps = props.whereType<PropClass<bool?>>().toSet();
+    final numProps = props.whereType<PropClass<num?>>().toSet();
 
     return SizedBox(
       height: 300,
@@ -164,9 +177,39 @@ class PropsForm extends StatelessWidget {
                 )
               ],
             ),
+            Column(
+              children: [
+                ...numProps.map(
+                  (notifier) => SizedBox(
+                    width: 170,
+                    child: AnimatedBuilder(
+                      animation: notifier,
+                      builder: (context, _) {
+                        if (notifier is PropClass<int?>) {
+                          return IntInput(
+                            onChanged: (value) => notifier.set(value!),
+                            value: notifier.value,
+                            label: notifier.name,
+                          );
+                        } else {
+                          return DoubleInput(
+                            onChanged: (value) => notifier.set(value!),
+                            value: notifier.value as double?,
+                            label: notifier.name,
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                )
+              ],
+            ),
             ...props
                 .cast<PropClass<Object?>>()
-                .where((p) => !colorProps.contains(p) && !boolProps.contains(p))
+                .where((p) =>
+                    !colorProps.contains(p) &&
+                    !boolProps.contains(p) &&
+                    !numProps.contains(p))
                 .map(GlobalFields.get)
                 .whereType<Widget>()
           ],
