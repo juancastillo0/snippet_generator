@@ -154,13 +154,30 @@ class ThemesTabView extends HookWidget {
                               ),
                             )
                           ]),
-                      GlobalFields.get(store.textTheme)!,
+                      SizedBox(
+                        height: 100,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    child: ListView(),
+                                  ),
+                                  GlobalFields.get(store.textTheme)!,
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
                       const _ListTitle(title: "Color Scheme"),
                       ...[
                         store.inputDecorationTheme,
                         store.textButtonTheme,
                         store.elevatedButtonTheme,
                         store.outlinedButtonTheme,
+                        store.dialogTheme,
                       ].expand((innerTheme) sync* {
                         yield _ListTitle(title: innerTheme.name);
                         yield PropsForm(props: innerTheme.props);
