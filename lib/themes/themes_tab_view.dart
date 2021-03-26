@@ -114,10 +114,11 @@ class ThemesTabView extends HookWidget {
                     ),
                     children: [
                       Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: FocusTraversalGroup(
                               child: ListView(
                                 shrinkWrap: true,
                                 children: [
@@ -135,7 +136,9 @@ class ThemesTabView extends HookWidget {
                                 ],
                               ),
                             ),
-                            Expanded(
+                          ),
+                          Expanded(
+                            child: FocusTraversalGroup(
                               child: ListView(
                                 shrinkWrap: true,
                                 children: [
@@ -152,8 +155,10 @@ class ThemesTabView extends HookWidget {
                                       ),
                                 ],
                               ),
-                            )
-                          ]),
+                            ),
+                          )
+                        ],
+                      ),
                       SizedBox(
                         height: 100,
                         child: Row(

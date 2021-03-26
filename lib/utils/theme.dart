@@ -29,7 +29,7 @@ ThemeData lightTheme() {
       isDense: true,
       filled: true,
       contentPadding: EdgeInsets.only(top: 7, left: 7, right: 7, bottom: 8),
-      labelStyle: TextStyle(height: 1)
+      labelStyle: TextStyle(height: 1),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -67,7 +67,7 @@ ThemeData darkTheme() {
       isDense: true,
       filled: true,
       contentPadding: EdgeInsets.only(top: 7, left: 7, right: 7, bottom: 8),
-      labelStyle: TextStyle(height: 1)
+      labelStyle: TextStyle(height: 1),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(

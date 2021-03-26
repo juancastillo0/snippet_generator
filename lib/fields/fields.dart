@@ -113,11 +113,13 @@ class _FunctionWrapper<T> {
   _FunctionWrapper(this._func);
 
   Widget build(PropClass<T> notifier) {
-    return AnimatedBuilder(
-      animation: notifier,
-      builder: (context, _child) {
-        return _func(notifier);
-      },
+    return FocusTraversalGroup(
+      child: AnimatedBuilder(
+        animation: notifier,
+        builder: (context, _child) {
+          return _func(notifier);
+        },
+      ),
     );
   }
 }
@@ -136,83 +138,95 @@ class PropsForm extends StatelessWidget {
     final boolProps = props.whereType<PropClass<bool?>>().toSet();
     final numProps = props.whereType<PropClass<num?>>().toSet();
 
-    return SizedBox(
-      height: 300,
-      child: SingleScrollable(
-        padding: const EdgeInsets.only(right: 6),
-        child: Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Column(
-              children: [
-                ...colorProps.map(
-                  (notifier) => AnimatedBuilder(
-                    animation: notifier,
-                    builder: (context, _) => ColorFieldRow(
-                      name: notifier.name,
-                      onChanged: notifier.set,
-                      value: notifier.value ?? Colors.white,
-                    ),
-                  ),
-                )
-              ],
-            ),
-            Column(
-              children: [
-                ...boolProps.map(
-                  (notifier) => Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(width: 160, child: Text(notifier.name)),
-                      AnimatedBuilder(
+    return FocusTraversalGroup(
+      child: SizedBox(
+        height: 300,
+        child: SingleScrollable(
+          padding: const EdgeInsets.only(right: 6),
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              FocusTraversalGroup(
+                child: Column(
+                  children: [
+                    ...colorProps.map(
+                      (notifier) => AnimatedBuilder(
                         animation: notifier,
-                        builder: (context, _) => Checkbox(
-                          onChanged: (value) => notifier.set(value!),
-                          value: notifier.value,
+                        builder: (context, _) => ColorFieldRow(
+                          name: notifier.name,
+                          onChanged: notifier.set,
+                          value: notifier.value ?? Colors.white,
                         ),
                       ),
-                    ],
-                  ),
-                )
-              ],
-            ),
-            Column(
-              children: [
-                ...numProps.map(
-                  (notifier) => SizedBox(
-                    width: 170,
-                    child: AnimatedBuilder(
-                      animation: notifier,
-                      builder: (context, _) {
-                        if (notifier is PropClass<int?>) {
-                          return IntInput(
-                            onChanged: (value) => notifier.set(value!),
-                            value: notifier.value,
-                            label: notifier.name,
-                          );
-                        } else {
-                          return DoubleInput(
-                            onChanged: (value) => notifier.set(value!),
-                            value: notifier.value as double?,
-                            label: notifier.name,
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                )
-              ],
-            ),
-            ...props
-                .cast<PropClass<Object?>>()
-                .where((p) =>
-                    !colorProps.contains(p) &&
-                    !boolProps.contains(p) &&
-                    !numProps.contains(p))
-                .map(GlobalFields.get)
-                .whereType<Widget>()
-          ],
+                    )
+                  ],
+                ),
+              ),
+              FocusTraversalGroup(
+                child: Column(
+                  children: [
+                    ...boolProps.map(
+                      (notifier) => SizedBox(
+                        width: 180,
+                        child: Row(
+                          children: [
+                            AnimatedBuilder(
+                              animation: notifier,
+                              builder: (context, _) => Checkbox(
+                                onChanged: (value) => notifier.set(value!),
+                                value: notifier.value,
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(notifier.name),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              FocusTraversalGroup(
+                child: Column(
+                  children: [
+                    ...numProps.map(
+                      (notifier) => SizedBox(
+                        width: 150,
+                        child: AnimatedBuilder(
+                          animation: notifier,
+                          builder: (context, _) {
+                            if (notifier is PropClass<int?>) {
+                              return IntInput(
+                                onChanged: (value) => notifier.set(value!),
+                                value: notifier.value,
+                                label: notifier.name,
+                              );
+                            } else {
+                              return DoubleInput(
+                                onChanged: (value) => notifier.set(value!),
+                                value: notifier.value as double?,
+                                label: notifier.name,
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              ...props
+                  .cast<PropClass<Object?>>()
+                  .where((p) =>
+                      !colorProps.contains(p) &&
+                      !boolProps.contains(p) &&
+                      !numProps.contains(p))
+                  .map(GlobalFields.get)
+                  .whereType<Widget>()
+            ],
+          ),
         ),
       ),
     );

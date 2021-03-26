@@ -25,11 +25,11 @@ class ColorFieldRow extends HookWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(width: width, child: SelectableText(name)),
         ColorHoverButton(
           onChanged: onChanged,
           value: value,
         ),
+        SizedBox(width: width, child: SelectableText(name)),
       ],
     );
   }
@@ -118,9 +118,16 @@ class ColorHoverButton extends HookWidget {
         TextButton(
           onPressed: () => showColorPicker.value = true,
           child: Container(
-            height: 30,
+            height: 25,
             width: 40,
-            color: value,
+            margin: const EdgeInsets.symmetric(vertical: 1),
+            decoration: BoxDecoration(
+              color: value,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(width: 1, 
+              // color: Theme.of(context).shadowColor.withOpacity(0.2),
+              ),
+            ),
             child: Builder(
               builder: (context) {
                 final screenHeight = MediaQuery.of(context).size.height;
