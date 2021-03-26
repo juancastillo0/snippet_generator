@@ -24,8 +24,8 @@ class ButtonSelect<T> extends HookWidget {
   final void Function(T) onChange;
 
   @override
-  Widget build(BuildContext ctx) {
-    final theme = Theme.of(ctx);
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final isDropdown = useState(false);
     final checkedShouldBeDropdown = useState(false);
     double? buttonTop;
@@ -35,21 +35,11 @@ class ButtonSelect<T> extends HookWidget {
 
     if (isDropdown.value) {
       return Align(
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: DropdownButton<T>(
-            value: selected,
-            items: options.map((e) {
-              final s = _asString(e);
-              return DropdownMenuItem<T>(
-                value: e,
-                child: Text(s),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) onChange(value);
-            },
-          ),
+        child: CustomDropdownField(
+          options: options,
+          selected: selected,
+          asString: _asString,
+          onChange: onChange,
         ),
       );
     }
@@ -71,15 +61,15 @@ class ButtonSelect<T> extends HookWidget {
               key: Key(s),
               onPressed: () => onChange(e),
               color: e == selected ? theme.primaryColor : null,
-              child: Builder(builder: (ctx) {
+              child: Builder(builder: (context) {
                 SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
                   // print("Text ${ctx.size} ${ctx.globalPaintBounds}");
                   if (buttonTop == null) {
-                    buttonTop = ctx.globalPaintBounds!.top;
+                    buttonTop = context.globalPaintBounds!.top;
                     return;
                   }
                   if (!checkedShouldBeDropdown.value) {
-                    if (buttonTop != ctx.globalPaintBounds!.top) {
+                    if (buttonTop != context.globalPaintBounds!.top) {
                       isDropdown.value = options.length > 3;
                     }
                     checkedShouldBeDropdown.value = true;
@@ -92,6 +82,67 @@ class ButtonSelect<T> extends HookWidget {
               }),
             );
           }).toList(),
+        ),
+      ),
+    );
+  }
+}
+
+class CustomDropdownField<T> extends HookWidget {
+  final Iterable<T> options;
+  final T? selected;
+  final String Function(T) asString;
+  final void Function(T) onChange;
+
+  const CustomDropdownField({
+    Key? key,
+    required this.selected,
+    required this.asString,
+    required this.onChange,
+    required this.options,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final isHovering = useState(false);
+
+    final _baseColor = Theme.of(context).colorScheme.onSurface;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => isHovering.value = true,
+      onExit: (_) => isHovering.value = false,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isHovering.value
+              ? _baseColor.withOpacity(0.08)
+              : _baseColor.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(3),
+        ),
+        padding: const EdgeInsets.only(
+          left: 8,
+          right: 8,
+          bottom: 8,
+          top: 7,
+        ),
+        child: DropdownButton<T>(
+          value: selected,
+          isExpanded: true,
+          isDense: true,
+          items: options.map((e) {
+            final s = asString(e);
+            return DropdownMenuItem<T>(
+              value: e,
+              child: Center(
+                child: Text(
+                  s,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) onChange(value);
+          },
         ),
       ),
     );
