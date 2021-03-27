@@ -28,9 +28,9 @@ class CodeGenerated extends HookWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             ElevatedButton.icon(
-              onPressed: () => Clipboard.setData(
-                ClipboardData(text: sourceCode),
-              ),
+              onPressed: () {
+                rootStore.copySourceCode(sourceCode);
+              },
               style: elevatedStyle(context),
               icon: const Icon(Icons.copy),
               label: const Text("Copy Source Code"),

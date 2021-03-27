@@ -32,6 +32,7 @@ extension TemplateClassConfig on ClassConfig {
 
   String templateClass() {
     return """
+${typeConfig.isDataValue ? "import 'dart:ui';" : ""}
 class $signature {
   ${properties.map((p) => 'final ${p.type} ${p.name};').join('\n  ')}
 
@@ -56,13 +57,30 @@ ${typeConfig.isListenable ? _templateClassNotifier() : ""}
 //   ${className}Notifier($classNameWithGenericIds value): super(value);
     // ${properties.map((p) => "set ${p.name}(${p.type} _v) => value = value.copyWith(${p.name}:  _v);\n"
     //         "${p.type} get ${p.name} => value.${p.name};").join()}
+    final listenableConfig = typeConfig.listenableConfig;
+    final suffix = listenableConfig.suffix.value;
+    final generateGetters = listenableConfig.generateGetters.value;
+    final generateSetters = listenableConfig.generateSetters.value;
+    final notifierClass = listenableConfig.notifierClass.value;
     return """
-class ${className}Notifier${typeConfig.generics} {
-  ${className}Notifier($classNameWithGenericIds value): ${properties.map((p) => "${p.name}Notifier = ValueNotifier<${p.type}>(value.${p.name})").join(",")};
+class ${className}$suffix${typeConfig.generics} {
+  ${className}$suffix($classNameWithGenericIds value): ${properties.map((p) => "${p.name}$suffix = $notifierClass(value.${p.name})").join(",")};
 
-  ${properties.map((p) => "final ValueNotifier<${p.type}> ${p.name}Notifier;\n"
-            "set ${p.name}(${p.type} _v) => ${p.name}Notifier.value = _v;\n"
-            "${p.type} get ${p.name} => ${p.name}Notifier.value;").join()}
+  ${properties.map((p) => "final $notifierClass<${p.type}> ${p.name}$suffix; "
+            '${generateSetters ? "set ${p.name}(${p.type} _v) => ${p.name}$suffix.value = _v; " : ""} '
+            '${generateGetters ? "${p.type} get ${p.name} => ${p.name}$suffix.value;" : ""} ').join()}
+
+  set value($classNameWithGenericIds newValue) {
+${properties.map((p) => "${p.name}$suffix.value = newValue.${p.name};").join()}
+  }
+
+  $classNameWithGenericIds get value {
+    return $className(${properties.map((p) => "${p.name}:${p.name}$suffix.value,").join()});
+  }
+
+  late final props = [
+    ${properties.map((p) => "${p.name}$suffix,").join()}
+  ];
 }
     """;
   }
@@ -93,6 +111,7 @@ $classNameWithGenericIds copyWith(${properties.isEmpty ? "" : "{$_params}"}) {
   }
 
   String _templateClassEquals() {
+    final _joinedHashCodes = properties.map((e) => e.name).join(",");
     return """
 @override
 bool operator ==(Object other) {
@@ -103,7 +122,7 @@ bool operator ==(Object other) {
 }
 
 @override
-int get hashCode => ${properties.isEmpty ? "${typeConfig._const} $_classConstructor().hashCode" : ""} ${properties.map((e) => '${e.name}.hashCode').join(" ^ ")};
+int get hashCode => ${properties.isEmpty ? "${typeConfig._const} $_classConstructor().hashCode" : (properties.length <= 20 ? 'hashValues($_joinedHashCodes)' : 'hashList([$_joinedHashCodes])')};
 """;
   }
 
@@ -123,7 +142,7 @@ ${typeConfig.isSumType ? "@override" : ""}
 Map<String, dynamic> toJson() {
     return {
       ${typeConfig.isSumType ? '"${typeConfig.serializableConfig.discriminator.value}": "${name.asVariableName()}",' : ""}
-      ${properties.map((e) => '"${e.name}": ${parseFieldToJson(e)},').join("\n      ")}
+      ${properties.map((e) => '"${e.name}": ${parseFieldToJson(e)},').join()}
     };
   }
 """;

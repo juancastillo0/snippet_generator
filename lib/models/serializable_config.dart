@@ -7,7 +7,7 @@ class SerializableConfig with PropsSerializable {
   SerializableConfig({required this.name});
   
   @override
-  Iterable<AppNotifier<dynamic>> get props =>
+  late final Iterable<AppNotifier<dynamic>>  props =
       [staticFunction, returnString, suffix, discriminator];
 
   final staticFunction = AppNotifier(true, name: "staticFunction");

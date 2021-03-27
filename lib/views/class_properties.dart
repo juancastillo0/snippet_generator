@@ -173,6 +173,7 @@ class ClassPropertiesTable extends HookWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               InkWell(
+                key: Key("t$index"),
                 onTap: index != 0
                     ? () {
                         data.properties.syncTransaction(() {
@@ -188,6 +189,7 @@ class ClassPropertiesTable extends HookWidget {
                 ),
               ),
               InkWell(
+                key: Key("b$index"),
                 onTap: index != data.properties.length - 1
                     ? () {
                         data.properties.syncTransaction(() {
