@@ -169,7 +169,9 @@ class TypeSettingsView extends HookWidget {
               canTapOnHeader: true,
               headerBuilder: (context, isExpanded) =>
                   Center(child: Text(e.key)),
-              body: _expansionPanelBuilders[e.key]!(typeConfig),
+              body: FocusTraversalGroup(
+                child: _expansionPanelBuilders[e.key]!(typeConfig),
+              ),
             );
           })
           .where((panel) => panel != null)
@@ -210,6 +212,11 @@ final Map<String, Widget Function(TypeConfig)> _expansionPanelBuilders = {
             rowLayout: false,
             controller: listenableConfig.notifierClass.controller,
             label: "Notifier Class",
+          ),
+          RowTextField(
+            rowLayout: false,
+            controller: listenableConfig.nameParam.controller,
+            label: "Name Param",
           ),
         ],
       ),

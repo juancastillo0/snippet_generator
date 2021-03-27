@@ -62,9 +62,10 @@ ${typeConfig.isListenable ? _templateClassNotifier() : ""}
     final generateGetters = listenableConfig.generateGetters.value;
     final generateSetters = listenableConfig.generateSetters.value;
     final notifierClass = listenableConfig.notifierClass.value;
+    final nameParam = listenableConfig.nameParam.value;
     return """
-class ${className}$suffix${typeConfig.generics} {
-  ${className}$suffix($classNameWithGenericIds value): ${properties.map((p) => "${p.name}$suffix = $notifierClass(value.${p.name})").join(",")};
+class $className$suffix${typeConfig.generics} {
+  $className$suffix($classNameWithGenericIds value): ${properties.map((p) => "${p.name}$suffix = $notifierClass(value.${p.name} ${nameParam.isNotEmpty ? ', $nameParam:"${p.name}"' : ''})").join(",")};
 
   ${properties.map((p) => "final $notifierClass<${p.type}> ${p.name}$suffix; "
             '${generateSetters ? "set ${p.name}(${p.type} _v) => ${p.name}$suffix.value = _v; " : ""} '
