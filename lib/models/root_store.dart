@@ -151,6 +151,13 @@ class RootStore {
       .dependOnInheritedWidgetOfExactType<RootStoreProvider>()!
       .rootStore;
 
+  Future<void> copySourceCode(String sourceCode) async {
+    await Clipboard.setData(
+      ClipboardData(text: sourceCode),
+    );
+    _messageEventsController.add(MessageEvent.sourceCodeCopied);
+  }
+
   void downloadJson() {
     final json = {
       "type": selectedType!.toJson(),
@@ -164,7 +171,13 @@ class RootStore {
     downloadToClient(jsonString, "snippet_model.json", "application/json");
   }
 
-  bool importJson(Map<String, dynamic> json) {
+  bool importJson(String jsonString) {
+    Map<String, dynamic> json = const {};
+    try {
+      json = jsonDecode(jsonString) as Map<String, dynamic>;
+    } catch (e, s) {
+      print("jsonDecode error $e\n$s");
+    }
     try {
       final type = TypeConfig.fromJson(json["type"] as Map<String, dynamic>);
 
@@ -187,6 +200,7 @@ class RootStore {
       return true;
     } catch (e, s) {
       print("error $e\n$s");
+      _messageEventsController.add(MessageEvent.errorImportingTypes);
       return false;
     }
   }
@@ -242,6 +256,8 @@ class RootStore {
     await propertyBox.clear();
     await propertyBox.addAll(
         types.values.expand((e) => e.classes).expand((e) => e.properties));
+
+    _messageEventsController.add(MessageEvent.typesSaved);
   }
 
   void setSelectedTab(AppTabs tab) {
@@ -291,51 +307,11 @@ class RootStoreProvider extends InheritedWidget {
 enum MessageEvent {
   typeCopied,
   typesSaved,
-}
-
-MessageEvent? parseMessageEvent(String rawString,
-    {MessageEvent? defaultValue}) {
-  for (final variant in MessageEvent.values) {
-    if (rawString == variant.toEnumString()) {
-      return variant;
-    }
-  }
-  return defaultValue;
+  sourceCodeCopied,
+  errorImportingTypes,
 }
 
 extension MessageEventExtension on MessageEvent {
   String toEnumString() => toString().split(".")[1];
   String enumType() => toString().split(".")[0];
-
-  bool get isTypeCopied => this == MessageEvent.typeCopied;
-  bool get isTypesSaved => this == MessageEvent.typesSaved;
-
-  T when<T>({
-    required T Function() typeCopied,
-    required T Function() typesSaved,
-  }) {
-    switch (this) {
-      case MessageEvent.typeCopied:
-        return typeCopied();
-      case MessageEvent.typesSaved:
-        return typesSaved();
-    }
-  }
-
-  T? maybeWhen<T>({
-    T Function()? typeCopied,
-    T Function()? typesSaved,
-    T Function()? orElse,
-  }) {
-    T Function()? c;
-    switch (this) {
-      case MessageEvent.typeCopied:
-        c = typeCopied;
-        break;
-      case MessageEvent.typesSaved:
-        c = typesSaved;
-        break;
-    }
-    return (c ?? orElse)?.call();
-  }
 }

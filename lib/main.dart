@@ -145,6 +145,11 @@ class TypesTabView extends HookWidget {
   }
 }
 
+enum SnackbarType {
+  error,
+  info,
+}
+
 class RootStoreMessager extends HookWidget {
   const RootStoreMessager({
     Key? key,
@@ -157,18 +162,41 @@ class RootStoreMessager extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final messager = ScaffoldMessenger.of(context);
+    final theme = Theme.of(context);
     useEffect(() {
-      final subs = rootStore.messageEvents.listen((messageEvent) {
-        messageEvent.when(
-          typeCopied: () => messager.showSnackBar(
-            SnackBar(
-              behavior: SnackBarBehavior.floating,
-              width: 350,
-              content: const Text("Type copied"),
+      void _showSnackbar(
+        String content, {
+        SnackbarType type = SnackbarType.info,
+      }) {
+        messager.showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            width: 350,
+            backgroundColor:
+                type == SnackbarType.error ? theme.colorScheme.error : null,
+            content: Text(
+              content,
+              style: theme.textTheme.bodyText1!.copyWith(
+                color: type == SnackbarType.error
+                    ? theme.colorScheme.onError
+                    : theme.colorScheme.onBackground,
+              ),
             ),
           ),
-          typesSaved: () {},
         );
+      }
+
+      final subs = rootStore.messageEvents.listen((messageEvent) {
+        switch (messageEvent) {
+          case MessageEvent.sourceCodeCopied:
+            return _showSnackbar("Source code copied");
+          case MessageEvent.typeCopied:
+            return _showSnackbar("Type copied");
+          case MessageEvent.typesSaved:
+            return _showSnackbar("Types saved");
+          case MessageEvent.errorImportingTypes:
+            return _showSnackbar("Invalid json file", type: SnackbarType.error);
+        }
       });
       return subs.cancel;
     }, [rootStore]);
@@ -177,12 +205,29 @@ class RootStoreMessager extends HookWidget {
   }
 }
 
-ButtonStyle _actionButton(BuildContext context) => TextButton.styleFrom(
-      primary: Colors.white,
-      onSurface: Colors.white,
-      disabledMouseCursor: MouseCursor.defer,
-      enabledMouseCursor: SystemMouseCursors.click,
-      padding: const EdgeInsets.symmetric(horizontal: 17),
+ButtonStyle _actionButton(BuildContext context) {
+  final theme = Theme.of(context);
+  return TextButton.styleFrom(
+    primary: Colors.white,
+    onSurface: Colors.white,
+    disabledMouseCursor: MouseCursor.defer,
+    enabledMouseCursor: SystemMouseCursors.click,
+  ).copyWith(
+    textStyle: MaterialStateProperty.resolveWith((states) {
+      if (states.contains(MaterialState.disabled)) {
+        return theme.textTheme.button!.copyWith(fontWeight: FontWeight.bold);
+      }
+      return theme.textTheme.button;
+    }),
+    foregroundColor: MaterialStateProperty.all(Colors.white),
+  );
+}
+
+ButtonStyle _actionButtonPadded(BuildContext context) =>
+    _actionButton(context).copyWith(
+      padding: MaterialStateProperty.all(
+        const EdgeInsets.symmetric(horizontal: 17),
+      ),
     );
 
 const appTabsTitles = {
@@ -204,14 +249,31 @@ class TabButton extends HookWidget {
     final rootStore = useRootStore(context);
 
     return Observer(builder: (context) {
+      final isSelected = tab == rootStore.selectedTab;
       return TextButton(
         style: _actionButton(context),
-        onPressed: tab == rootStore.selectedTab
+        onPressed: isSelected
             ? null
             : () {
                 rootStore.setSelectedTab(tab);
               },
-        child: Text(appTabsTitles[tab]!),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(
+                bottom: BorderSide(
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.onBackground
+                      : Colors.transparent,
+                  width: 3,
+                ),
+                top: const BorderSide(
+                  color: Colors.transparent,
+                  width: 3,
+                )),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Center(child: Text(appTabsTitles[tab]!)),
+        ),
       );
     });
   }
@@ -228,7 +290,7 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: Rebuilder(builder: (context) {
         return SizedBox(
-          height: 60,
+          height: 46,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: const [
@@ -259,47 +321,24 @@ class _HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         const SizedBox(width: 20),
         TextButton.icon(
-          style: _actionButton(context),
-          onPressed: () async {
-            await rootStore.saveHive();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                behavior: SnackBarBehavior.floating,
-                width: 350,
-                content: const Text("The types where saved correctly"),
-              ),
-            );
-          },
+          style: _actionButtonPadded(context),
+          onPressed: rootStore.saveHive,
           icon: const Icon(Icons.save),
           label: const Text("Save"),
         ),
         TextButton.icon(
-          style: _actionButton(context),
+          style: _actionButtonPadded(context),
           onPressed: () async {
             final jsonString = await importFromClient();
             if (jsonString != null) {
-              bool success = false;
-              try {
-                final json = jsonDecode(jsonString);
-                success = rootStore.importJson(json as Map<String, dynamic>);
-              } catch (e, s) {
-                print("jsonDecode error $e\n$s");
-              }
-              if (!success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    behavior: SnackBarBehavior.floating,
-                    content: Text("Invalid json file"),
-                  ),
-                );
-              }
+              rootStore.importJson(jsonString);
             }
           },
           icon: const Icon(Icons.file_upload),
           label: const Text("Import"),
         ),
         TextButton.icon(
-          style: _actionButton(context),
+          style: _actionButtonPadded(context),
           onPressed: () {
             rootStore.downloadJson();
           },
