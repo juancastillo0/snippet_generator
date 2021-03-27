@@ -201,6 +201,7 @@ class ThemesTabView extends HookWidget {
         Expanded(
           child: Observer(
             builder: (context) => MaterialApp(
+              title: "Snippet Generator",
               theme: store.themeData.value,
               debugShowMaterialGrid: themesStore.debugShowMaterialGrid.value,
               showSemanticsDebugger: themesStore.showSemanticsDebugger.value,
