@@ -183,6 +183,7 @@ class ThemesTabView extends HookWidget {
                         store.elevatedButtonTheme,
                         store.outlinedButtonTheme,
                         store.dialogTheme,
+                        store.tooltipTheme,
                       ].expand((innerTheme) sync* {
                         yield _ListTitle(title: innerTheme.name);
                         yield PropsForm(props: innerTheme.props);

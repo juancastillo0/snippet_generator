@@ -80,9 +80,7 @@ class RowTextField extends StatelessWidget {
         child: TextField(
           controller: controller,
           decoration: InputDecoration(
-            isDense: true,
             labelText: label,
-            border: const OutlineInputBorder(),
           ),
           textCapitalization: TextCapitalization.sentences,
           inputFormatters: inputFormatters,

@@ -6,6 +6,7 @@ import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/themes/button_themes.dart';
 import 'package:snippet_generator/themes/input_theme.dart';
 import 'package:snippet_generator/themes/text_themes.dart';
+import 'package:snippet_generator/themes/tooltip_theme.dart';
 
 int _themeCount = 0;
 
@@ -135,7 +136,7 @@ class ThemeStore with PropsSerializable {
       name: "inputDecorationTheme");
   final iconTheme =
       AppNotifier<IconThemeData>(_defaultTheme.iconTheme, name: "iconTheme");
-  final tooltipTheme = AppNotifier<TooltipThemeData>(_defaultTheme.tooltipTheme,
+  late final tooltipTheme = TooltipThemeNotifier(this,
       name: "tooltipTheme");
   final cardTheme =
       AppNotifier<CardTheme>(_defaultTheme.cardTheme, name: "cardTheme");
