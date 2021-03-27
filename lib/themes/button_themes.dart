@@ -30,7 +30,7 @@ abstract class BaseButtonThemeNotifier with PropsSerializable {
   late final minimumSize = AppNotifier.withDefault<Size?>(
       () => defaultValue.value.minimumSize?.resolve({MaterialState.selected}),
       name: "minimumSize");
-  late final padding = AppNotifier.withDefault<EdgeInsets>(
+  late final padding = AppNotifier.withDefault<EdgeInsetsGeometry>(
       () => defaultValue.value.padding!.resolve({MaterialState.selected})!
           as EdgeInsets,
       name: "padding");

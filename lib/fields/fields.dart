@@ -38,8 +38,7 @@ class GlobalFields {
         value: notifier.value,
       ),
     );
-    // TODO: support EdgeInsetsGeometry
-    add<EdgeInsets>(
+    add<EdgeInsetsGeometry>(
       (notifier) => PaddingInput(
         key: ValueKey(notifier.name),
         set: notifier.set,

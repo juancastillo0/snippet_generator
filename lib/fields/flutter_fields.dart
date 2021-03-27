@@ -102,17 +102,34 @@ class AlignmentInput extends HookWidget {
 class PaddingInput extends HookWidget {
   const PaddingInput({
     required ValueKey<String> key,
-    EdgeInsets? value,
+    EdgeInsetsGeometry? value,
     required this.set,
-  })   : value = value ?? EdgeInsets.zero,
+  })   : _value = value ?? EdgeInsets.zero,
         super(key: key);
 
-  final EdgeInsets value;
+  final EdgeInsetsGeometry _value;
+  // TODO: support directional
   final void Function(EdgeInsets) set;
+
+  static EdgeInsets _mapEdgeInsets(EdgeInsetsGeometry v) {
+    if (v is EdgeInsets) {
+      return v;
+    } else if (v is EdgeInsetsDirectional) {
+      return EdgeInsets.only(
+        bottom: v.bottom,
+        left: v.start,
+        right: v.end,
+        top: v.top,
+      );
+    } else {
+      throw Exception();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final key = this.key as ValueKey<String>;
+    final value = _mapEdgeInsets(_value);
 
     return Card(
       child: Container(
