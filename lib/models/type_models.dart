@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart' hide Listenable;
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/collection_notifier/list_notifier.dart';
+import 'package:snippet_generator/models/listenable_config.dart';
 import 'package:snippet_generator/models/models.dart';
 import 'package:snippet_generator/models/root_store.dart';
 import 'package:snippet_generator/models/serializable_config.dart';
@@ -98,6 +99,7 @@ class TypeConfig
 
   late final AppNotifier<bool> isListenableNotifier;
   bool get isListenable => isListenableNotifier.value;
+  final listenableConfig = ListenableConfig(name: "listenableConfig");
 
   late final AppNotifier<bool> isEnumNotifier;
   bool get isEnum => isEnumNotifier.value;
@@ -147,7 +149,8 @@ class TypeConfig
   })  : key = key ?? uuid.v4(),
         classes = ListNotifier(classes ?? []),
         sumTypeConfig = sumTypeConfig ?? SumTypeConfig(name: "sumTypeConfig"),
-        serializableConfig = serializableConfig ?? SerializableConfig(name: "serializableConfig") {
+        serializableConfig = serializableConfig ??
+            SerializableConfig(name: "serializableConfig") {
     isEnumNotifier = AppNotifier(isEnum ?? false, parent: this);
     isDataValueNotifier = AppNotifier(isDataValue ?? false, parent: this);
     isSumTypeNotifier = AppNotifier(isSumType ?? false, parent: this);
@@ -229,6 +232,7 @@ class TypeConfig
       "advancedConfig": advancedConfig.toJson(),
       "sumTypeConfig": sumTypeConfig.toJson(),
       "serializableConfig": serializableConfig.toJson(),
+      "listenableConfig": listenableConfig.toJson(),
     };
   }
 
@@ -254,7 +258,7 @@ class TypeConfig
         ..trySetFromJson(json["sumTypeConfig"]),
       serializableConfig: SerializableConfig(name: "serializableConfig")
         ..trySetFromJson(json["serializableConfig"]),
-    );
+    )..listenableConfig.trySetFromJson(json["listenableConfig"]);
   }
 
   static final serializer = SerializerFunc<TypeConfig>(fromJson: fromJson);

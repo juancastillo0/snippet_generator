@@ -179,11 +179,44 @@ class TypeSettingsView extends HookWidget {
   }
 }
 
-final Map<String, Widget Function(TypeConfig?)> _expansionPanelBuilders = {
+final Map<String, Widget Function(TypeConfig)> _expansionPanelBuilders = {
   "Data Value": (typeConfig) => const Text("d"),
-  "Listenable": (typeConfig) => const Text("l"),
+  "Listenable": (typeConfig) {
+    final listenableConfig = typeConfig.listenableConfig;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20),
+      child: Wrap(
+        spacing: 15,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          RowBoolField(
+            label: "Setters",
+            notifier: listenableConfig.generateSetters,
+          ),
+          RowBoolField(
+            label: "Props",
+            notifier: listenableConfig.generateProps,
+          ),
+          RowBoolField(
+            label: "Getters",
+            notifier: listenableConfig.generateGetters,
+          ),
+          RowTextField(
+            rowLayout: false,
+            controller: listenableConfig.suffix.controller,
+            label: "Suffix",
+          ),
+          RowTextField(
+            rowLayout: false,
+            controller: listenableConfig.notifierClass.controller,
+            label: "Notifier Class",
+          ),
+        ],
+      ),
+    );
+  },
   "Serializable": (typeConfig) {
-    final serializableConfig = typeConfig!.serializableConfig;
+    final serializableConfig = typeConfig.serializableConfig;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20),
       child: Wrap(
@@ -217,7 +250,7 @@ final Map<String, Widget Function(TypeConfig?)> _expansionPanelBuilders = {
     );
   },
   "Sum Type": (typeConfig) {
-    final sumTypeConfig = typeConfig!.sumTypeConfig;
+    final sumTypeConfig = typeConfig.sumTypeConfig;
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
@@ -241,7 +274,7 @@ final Map<String, Widget Function(TypeConfig?)> _expansionPanelBuilders = {
   },
   "Enum": (typeConfig) => const Text("enum"),
   "Advanced": (typeConfig) {
-    final advancedConfig = typeConfig!.advancedConfig;
+    final advancedConfig = typeConfig.advancedConfig;
     return ConstrainedBox(
       constraints: const BoxConstraints(maxHeight: 420),
       child: Padding(
