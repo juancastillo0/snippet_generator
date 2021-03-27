@@ -28,6 +28,8 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+
+  url_strategy: ^0.2.0
   
   hooks_riverpod: ^0.13.0-nullsafety.3
   
