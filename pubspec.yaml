@@ -64,6 +64,7 @@ dependencies:
 
   file_selector: ^0.8.1
   file_selector_windows: ^0.0.2
+  file_selector_macos: ^0.0.4
   collection: ^1.15.0-nullsafety.4
 
   url_launcher: ^6.0.2
