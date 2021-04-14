@@ -61,6 +61,10 @@ class MyApp extends HookWidget {
             theme: lightTheme(),
             darkTheme: darkTheme(),
             themeMode: rootStore.themeModeNotifier.value,
+            scrollBehavior: const ScrollBehavior().copyWith(
+              scrollbars: false,
+              overscroll: false,
+            ),
             navigatorObservers: [routeObserver],
             home: const MyHomePage(),
           ),
