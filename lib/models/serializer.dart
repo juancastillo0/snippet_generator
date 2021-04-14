@@ -71,6 +71,8 @@ class Serializers {
         return toJsonMap(instance);
       } else if (instance is List || instance is Set) {
         return toJsonList(instance as Iterable);
+      } else if (instance == null && null is T) {
+        return null;
       } else {
         return (instance as dynamic).toJson();
       }
