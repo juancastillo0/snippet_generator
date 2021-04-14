@@ -113,6 +113,14 @@ $classNameWithGenericIds copyWith(${properties.isEmpty ? "" : "{$_params}"}) {
 
   String _templateClassEquals() {
     final _joinedHashCodes = properties.map((e) => e.name).join(",");
+    final String _hashCode;
+    if (properties.length == 1) {
+      _hashCode = '${properties.first.name}.hashCode';
+    } else if (properties.length <= 20) {
+      _hashCode = 'hashValues($_joinedHashCodes)';
+    } else {
+      _hashCode = 'hashList([$_joinedHashCodes])';
+    }
     return """
 @override
 bool operator ==(Object other) {
@@ -123,7 +131,7 @@ bool operator ==(Object other) {
 }
 
 @override
-int get hashCode => ${properties.isEmpty ? "${typeConfig._const} $_classConstructor().hashCode" : (properties.length <= 20 ? 'hashValues($_joinedHashCodes)' : 'hashList([$_joinedHashCodes])')};
+int get hashCode => ${properties.isEmpty ? "${typeConfig._const} $_classConstructor().hashCode" : _hashCode};
 """;
   }
 
