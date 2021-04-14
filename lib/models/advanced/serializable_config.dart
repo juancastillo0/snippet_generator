@@ -5,14 +5,21 @@ class SerializableConfig with PropsSerializable {
   @override
   final String name;
   SerializableConfig({required this.name});
-  
+
   @override
-  late final Iterable<AppNotifier<dynamic>>  props =
-      [staticFunction, returnString, suffix, discriminator];
+  late final Iterable<AppNotifier<dynamic>> props = [
+    staticFunction,
+    returnString,
+    suffix,
+    discriminator,
+    generateToJson,
+    generateFromJson,
+  ];
 
   final staticFunction = AppNotifier(true, name: "staticFunction");
-
   final returnString = AppNotifier(false, name: "returnString");
+  final generateToJson = AppNotifier(false, name: "toJson");
+  final generateFromJson = AppNotifier(false, name: "fromJson");
 
   final suffix = TextNotifier(
     initialText: "Json",

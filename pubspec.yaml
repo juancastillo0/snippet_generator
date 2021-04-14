@@ -45,11 +45,12 @@ dependencies:
 
   mobx: ^2.0.0-nullsafety.2
   flutter_mobx: ^2.0.0-nullsafety.0
-
-  dart_style:
+  y_crdt:
     git:
-      url: https://github.com/dart-lang/dart_style
-      ref: 51a93d9fa37d1b0ae034ca2190c2bdc9ce77ec4f
+      url: https://github.com/juancastillo0/y_crdt_dart
+    # path: ../y_crdt_dart/
+
+  dart_style: ^2.0.0
 
   meta:
   flutter_hooks: ^0.16.0
@@ -76,13 +77,14 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   lint: 
-  test: 
+  test:
 
 dependency_overrides:
-  dart_style:
+  web_socket_channel:
     git:
-      url: https://github.com/dart-lang/dart_style
-      ref: 51a93d9fa37d1b0ae034ca2190c2bdc9ce77ec4f
+      url: https://github.com/juancastillo0/y_crdt_dart
+      path: packages/web_socket_channel
+    # path: ../y_crdt_dart/packages/web_socket_channel
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

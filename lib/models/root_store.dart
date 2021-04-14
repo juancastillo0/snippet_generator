@@ -15,10 +15,13 @@ import 'package:snippet_generator/utils/download_json.dart';
 import 'package:snippet_generator/utils/persistence.dart';
 import 'package:snippet_generator/views/globals.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:y_crdt/y_crdt.dart';
 
 enum AppTabs { types, ui, theme }
 
 class RootStore {
+  // final key = uuid.v4();
+
   TypeItem? lastSelectedItem;
   TypeItem? _selectedItem;
   TypeItem? get selectedItem => _selectedItem;
@@ -30,6 +33,9 @@ class RootStore {
   }
 
   final formatter = DartFormatter();
+
+  final ydoc = Doc();
+  // late final provider = WebrtcProvider("root_store", ydoc, signaling: ['ws://localhost:4444']);
 
   TypeItem? copiedItem;
   final selectedTabNotifier = AppNotifier(AppTabs.ui);
@@ -63,6 +69,9 @@ class RootStore {
         selectedTypeNotifier.value = types.values.first;
       }
     });
+    // provider.on("synced", (_) {
+    //   print("synched");
+    // });
   }
 
   void _handleGlobalTap(_) {

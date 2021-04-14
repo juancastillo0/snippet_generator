@@ -1,6 +1,8 @@
 PODS:
   - file_selector_macos (0.0.1):
     - FlutterMacOS
+  - flutter_webrtc (0.2.2):
+    - FlutterMacOS
   - FlutterMacOS (1.0.0)
   - path_provider_macos (0.0.1):
     - FlutterMacOS
@@ -9,6 +11,7 @@ PODS:
 
 DEPENDENCIES:
   - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
+  - flutter_webrtc (from `Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - path_provider_macos (from `Flutter/ephemeral/.symlinks/plugins/path_provider_macos/macos`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
@@ -16,6 +19,8 @@ DEPENDENCIES:
 EXTERNAL SOURCES:
   file_selector_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos
+  flutter_webrtc:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
   path_provider_macos:
@@ -25,6 +30,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   file_selector_macos: ff6dc948d4ddd34e8602a1f60b7d0b4cc6051a47
+  flutter_webrtc: 2508dc2889ede5edf0db66356e33cf07ca717760
   FlutterMacOS: 57701585bf7de1b3fc2bb61f6378d73bbdea8424
   path_provider_macos: a0a3fd666cb7cd0448e936fb4abad4052961002b
   url_launcher_macos: 45af3d61de06997666568a7149c1be98b41c95d4

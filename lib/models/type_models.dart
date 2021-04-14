@@ -4,69 +4,24 @@ import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart' hide Listenable;
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/collection_notifier/list_notifier.dart';
-import 'package:snippet_generator/models/listenable_config.dart';
+import 'package:snippet_generator/models/advanced/advanced_config.dart';
+import 'package:snippet_generator/models/advanced/listenable_config.dart';
 import 'package:snippet_generator/models/models.dart';
+import 'package:snippet_generator/models/props_serializable.dart';
 import 'package:snippet_generator/models/root_store.dart';
-import 'package:snippet_generator/models/serializable_config.dart';
+import 'package:snippet_generator/models/advanced/serializable_config.dart';
 import 'package:snippet_generator/models/serializer.dart';
-import 'package:snippet_generator/models/sum_type_config.dart';
+import 'package:snippet_generator/models/advanced/sum_type_config.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/notifiers/computed_notifier.dart';
 import 'package:snippet_generator/parsers/class_fields_parser.dart';
 import 'package:snippet_generator/parsers/signature_parser.dart';
 import 'package:snippet_generator/parsers/type_parser.dart';
 import 'package:uuid/uuid.dart';
-
-class AdvancedTypeConfig implements Serializable<AdvancedTypeConfig> {
-  late final TextNotifier customCodeNotifier;
-  String get customCode => customCodeNotifier.text;
-
-  late final AppNotifier<bool> overrideConstructorNotifier;
-  bool get overrideConstructor => overrideConstructorNotifier.value;
-
-  late final AppNotifier<bool> isConstNotifier;
-  bool get isConst => isConstNotifier.value;
-
-  late final Listenable _listenable;
-  Listenable get listenable => _listenable;
-
-  AdvancedTypeConfig({
-    String? customCode,
-    bool? overrideConstructor,
-    bool? isConst,
-  }) {
-    overrideConstructorNotifier = AppNotifier(overrideConstructor ?? false,
-        parent: this, name: "overrideConstructor");
-    customCodeNotifier = TextNotifier(initialText: customCode, parent: this);
-    isConstNotifier =
-        AppNotifier(isConst ?? true, parent: this, name: "isConst");
-
-    _listenable = Listenable.merge([
-      overrideConstructorNotifier,
-      customCodeNotifier.textNotifier,
-      isConstNotifier,
-    ]);
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return {
-      "customCode": customCode,
-      "overrideConstructor": overrideConstructor,
-      "isConst": isConst,
-    };
-  }
-
-  static AdvancedTypeConfig fromJson(Map<String, dynamic> json) {
-    return AdvancedTypeConfig(
-      customCode: json["customCode"] as String?,
-      overrideConstructor: json["overrideConstructor"] as bool?,
-      isConst: json["isConst"] as bool?,
-    );
-  }
-}
+import 'package:y_crdt/y_crdt.dart';
 
 class TypeConfig
+    with ItemsSerializable
     implements Serializable<TypeConfig>, Keyed, Clonable<TypeConfig> {
   @override
   final String key;
@@ -106,7 +61,7 @@ class TypeConfig
 
   // Advanced
 
-  late final AdvancedTypeConfig advancedConfig;
+  final AdvancedTypeConfig advancedConfig;
 
   // Enum
 
@@ -133,6 +88,8 @@ class TypeConfig
 
   RootStore get rootStore => Globals.get<RootStore>();
 
+  late final YMap<Object?> _ymap = rootStore.ydoc.getMap(key);
+
   TypeConfig({
     String? key,
     String? signature,
@@ -150,15 +107,22 @@ class TypeConfig
         classes = ListNotifier(classes ?? []),
         sumTypeConfig = sumTypeConfig ?? SumTypeConfig(name: "sumTypeConfig"),
         serializableConfig = serializableConfig ??
-            SerializableConfig(name: "serializableConfig") {
-    isEnumNotifier = AppNotifier(isEnum ?? false, parent: this);
-    isDataValueNotifier = AppNotifier(isDataValue ?? false, parent: this);
-    isSumTypeNotifier = AppNotifier(isSumType ?? false, parent: this);
-    isSerializableNotifier = AppNotifier(isSerializable ?? true, parent: this);
-    isListenableNotifier = AppNotifier(isListenable ?? false, parent: this);
-    defaultEnumKeyNotifier = AppNotifier(defaultEnumKey, parent: this);
-    this.advancedConfig = advancedConfig ?? AdvancedTypeConfig();
-    signatureNotifier = TextNotifier(initialText: signature, parent: this);
+            SerializableConfig(name: "serializableConfig"),
+        advancedConfig =
+            advancedConfig ?? AdvancedTypeConfig(name: "advancedConfig") {
+    isEnumNotifier = AppNotifier(isEnum ?? false, parent: this, name: "isEnum");
+    isDataValueNotifier =
+        AppNotifier(isDataValue ?? false, parent: this, name: "isDataValue");
+    isSumTypeNotifier =
+        AppNotifier(isSumType ?? false, parent: this, name: "isSumType");
+    isSerializableNotifier = AppNotifier(isSerializable ?? true,
+        parent: this, name: "isSerializable");
+    isListenableNotifier =
+        AppNotifier(isListenable ?? false, parent: this, name: "isListenable");
+    defaultEnumKeyNotifier =
+        AppNotifier(defaultEnumKey, parent: this, name: "defaultEnumKey");
+    signatureNotifier =
+        TextNotifier(initialText: signature, parent: this, name: "signature");
     signatureParserNotifier = ComputedNotifier(
       () => SignatureParser.parser.parse(signatureNotifier.text),
       [signatureNotifier.textNotifier],
@@ -192,7 +156,35 @@ class TypeConfig
       ],
     );
     this.classes.addListener(_setUpDeepListenable);
+    // _setUpCrdt();
     _setUpDeepListenable();
+  }
+
+  void _setUpCrdt() {
+    autorun((reaction) {
+      final serialized = this.toJson();
+      print('_ymap updated mobx: $serialized');
+      transact(_ymap.doc!, (transaction) {
+        for (final entry in serialized.entries) {
+          if (!areEqualDeep(entry.value, _ymap.get(entry.key))) {
+            _ymap.set(entry.key, entry.value);
+          }
+        }
+      });
+    }, delay: 1000);
+    final serialized = this.toJson();
+    print('_ymap updated mobx: $serialized');
+    _ymap.observeDeep((_, __) {
+      print('_ymap updated: ${_ymap.toJSON()}');
+      for (final prop in props) {
+        final value = _ymap.get(prop.name);
+        if (!areEqualDeep(prop.toJson(), value)) {
+          print(
+              '_ymap updated: ${prop.name} from: ${prop.toJson()} to - $value');
+          prop.trySetFromJson(value);
+        }
+      }
+    });
   }
 
   void addVariant() {
@@ -220,20 +212,7 @@ class TypeConfig
 
   @override
   Map<String, dynamic> toJson() {
-    return {
-      "key": key,
-      "signature": signature,
-      "isEnum": isEnum,
-      "isDataValue": isDataValue,
-      "isSumType": isSumType,
-      "isSerializable": isSerializable,
-      "isListenable": isListenable,
-      "defaultEnumKey": defaultEnum?.key,
-      "advancedConfig": advancedConfig.toJson(),
-      "sumTypeConfig": sumTypeConfig.toJson(),
-      "serializableConfig": serializableConfig.toJson(),
-      "listenableConfig": listenableConfig.toJson(),
-    };
+    return super.toJson()..set("key", key);
   }
 
   static TypeConfig fromJson(Map<String, dynamic>? json) {
@@ -246,19 +225,20 @@ class TypeConfig
       isSerializable: json["isSerializable"] as bool?,
       isListenable: json["isListenable"] as bool?,
       defaultEnumKey: json["defaultEnumKey"] as String?,
-      advancedConfig: AdvancedTypeConfig.fromJson(
+      sumTypeConfig: SumTypeConfig(name: "sumTypeConfig")
+        ..trySetFromJson(json["sumTypeConfig"]),
+      serializableConfig: SerializableConfig(name: "serializableConfig")
+        ..trySetFromJson(json["serializableConfig"]),
+    )
+      ..listenableConfig.trySetFromJson(json["listenableConfig"])
+      ..advancedConfig.trySetFromJson(
         json["advancedConfig"] as Map<String, dynamic>? ??
             {
               "customCode": json["customCode"] as String?,
               "overrideConstructor": json["overrideConstructor"] as bool?,
               "isConst": json["isConst"] as bool?,
             },
-      ),
-      sumTypeConfig: SumTypeConfig(name: "sumTypeConfig")
-        ..trySetFromJson(json["sumTypeConfig"]),
-      serializableConfig: SerializableConfig(name: "serializableConfig")
-        ..trySetFromJson(json["serializableConfig"]),
-    )..listenableConfig.trySetFromJson(json["listenableConfig"]);
+      );
   }
 
   static final serializer = SerializerFunc<TypeConfig>(fromJson: fromJson);
@@ -290,6 +270,21 @@ class TypeConfig
   TypeConfig clone() {
     return copyWith(classes: this.classes.map((e) => e.clone()).toList());
   }
+
+  @override
+  late final List<SerializableProp> props = [
+    signatureNotifier,
+    isEnumNotifier,
+    isDataValueNotifier,
+    isSumTypeNotifier,
+    isSerializableNotifier,
+    isListenableNotifier,
+    defaultEnumKeyNotifier,
+    advancedConfig,
+    sumTypeConfig,
+    serializableConfig,
+    listenableConfig,
+  ];
 }
 
 class ClassConfig
