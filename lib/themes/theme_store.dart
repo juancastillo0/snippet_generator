@@ -117,6 +117,15 @@ class ThemeStore with PropsSerializable {
       name: "dialogBackgroundColor");
   final shadowColor =
       AppNotifier<Color>(_defaultTheme.shadowColor, name: "shadowColor");
+  final hintColor = AppNotifier<Color>(_defaultTheme.hintColor, name: "hintColor");
+  final focusColor = AppNotifier<Color>(_defaultTheme.focusColor, name: "focusColor");
+  final hoverColor = AppNotifier<Color>(_defaultTheme.hoverColor, name: "hoverColor");
+  final splashColor = AppNotifier<Color>(_defaultTheme.splashColor, name: "splashColor");
+  final disabledColor = AppNotifier<Color>(_defaultTheme.disabledColor, name: "disabledColor");
+  final highlightColor = AppNotifier<Color>(_defaultTheme.highlightColor, name: "highlightColor");
+  final indicatorColor = AppNotifier<Color>(_defaultTheme.indicatorColor, name: "indicatorColor");
+  final selectedRowColor = AppNotifier<Color>(_defaultTheme.selectedRowColor, name: "selectedRowColor");
+  final unselectedWidgetColor = AppNotifier<Color>(_defaultTheme.unselectedWidgetColor, name: "unselectedWidgetColor");
 
   final materialTapTargetSize = AppNotifier<MaterialTapTargetSize>(
       _defaultTheme.materialTapTargetSize,
@@ -189,6 +198,15 @@ class ThemeStore with PropsSerializable {
       toggleableActiveColor: toggleableActiveColor.value,
       dialogBackgroundColor: dialogBackgroundColor.value,
       shadowColor: shadowColor.value,
+      hintColor: hintColor.value,
+      focusColor: focusColor.value,
+      hoverColor: hoverColor.value,
+      splashColor: splashColor.value,
+      disabledColor: disabledColor.value,
+      highlightColor: highlightColor.value,
+      indicatorColor: indicatorColor.value,
+      selectedRowColor: selectedRowColor.value,
+      unselectedWidgetColor: unselectedWidgetColor.value,
       //
       materialTapTargetSize: materialTapTargetSize.value,
       visualDensity: visualDensity.value,
@@ -231,6 +249,15 @@ class ThemeStore with PropsSerializable {
     toggleableActiveColor,
     dialogBackgroundColor,
     shadowColor,
+    hintColor,
+    focusColor,
+    hoverColor,
+    splashColor,
+    disabledColor,
+    highlightColor,
+    indicatorColor,
+    selectedRowColor,
+    unselectedWidgetColor,
     materialTapTargetSize,
     visualDensity,
     textTheme,

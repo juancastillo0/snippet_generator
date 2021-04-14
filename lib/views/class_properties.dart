@@ -22,32 +22,37 @@ class ClassPropertiesTable extends HookWidget {
       () => data.properties.isNotEmpty,
       [data.properties],
     );
+    const padding = 10.0;
+
     return GestureDetector(
       onTap: () => RootStore.of(context).selectClass(data),
       child: Card(
-        margin: const EdgeInsets.only(top: 10.0, bottom: 8.0),
+        margin: const EdgeInsets.only(top: 10.0, bottom: padding),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 18.0),
+          padding: const EdgeInsets.only(bottom: padding, left: padding, right: padding),
           child: Column(
             children: [
               data.typeConfig.isSumTypeNotifier.rebuild(
                 (isSumType) => isSumType
-                    ? Row(
-                        children: [
-                          RowTextField(
-                            controller: data.nameNotifier.controller,
-                            label: "Class Name",
-                          ),
-                          const Spacer(),
-                          ElevatedButton.icon(
-                            onPressed: () =>
-                                data.typeConfig.classes.remove(data),
-                            style: elevatedStyle(context),
-                            icon: const Icon(Icons.delete),
-                            label: const Text("Remove Class"),
-                          )
-                        ],
-                      )
+                    ? Padding(
+                      padding: const EdgeInsets.only(top: padding),
+                      child: Row(
+                          children: [
+                            RowTextField(
+                              controller: data.nameNotifier.controller,
+                              label: "Class Name",
+                            ),
+                            const Spacer(),
+                            ElevatedButton.icon(
+                              onPressed: () =>
+                                  data.typeConfig.classes.remove(data),
+                              style: elevatedStyle(context),
+                              icon: const Icon(Icons.delete),
+                              label: const Text("Remove Class"),
+                            )
+                          ],
+                        ),
+                    )
                     : const SizedBox(),
                 key: const Key("header"),
               ),

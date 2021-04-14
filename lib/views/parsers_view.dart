@@ -208,7 +208,6 @@ class _ParsersViewBody extends HookWidget {
             builder: (context) {
               final themeCouple =
                   rootStore.themesStore.themes[store.selectedThemeIndex.value];
-              print("ddw");
               return MaterialApp(
                 title: "Snippet Generator",
                 theme: themeCouple.light.themeData.value,
