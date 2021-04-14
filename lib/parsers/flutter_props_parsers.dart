@@ -117,7 +117,7 @@ final fontWeightParser =
 final textDecorationParser =
     ((string("TextDecoration") & char(".").trim()).optional() &
             stringsParser(["none", "overline", "underline", "lineThrough"]))
-        .pick<String>(2)
+        .pick(2)
         .map<TextDecoration>((value) {
   switch (value) {
     case "none":

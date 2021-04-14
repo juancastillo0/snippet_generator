@@ -29,14 +29,15 @@ class ClassPropertiesTable extends HookWidget {
       child: Card(
         margin: const EdgeInsets.only(top: 10.0, bottom: padding),
         child: Padding(
-          padding: const EdgeInsets.only(bottom: padding, left: padding, right: padding),
+          padding: const EdgeInsets.only(
+              bottom: padding, left: padding, right: padding),
           child: Column(
             children: [
               data.typeConfig.isSumTypeNotifier.rebuild(
                 (isSumType) => isSumType
                     ? Padding(
-                      padding: const EdgeInsets.only(top: padding),
-                      child: Row(
+                        padding: const EdgeInsets.only(top: padding),
+                        child: Row(
                           children: [
                             RowTextField(
                               controller: data.nameNotifier.controller,
@@ -52,7 +53,7 @@ class ClassPropertiesTable extends HookWidget {
                             )
                           ],
                         ),
-                    )
+                      )
                     : const SizedBox(),
                 key: const Key("header"),
               ),

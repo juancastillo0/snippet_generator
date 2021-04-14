@@ -3,7 +3,7 @@ import 'package:petitparser/petitparser.dart';
 final identifier = (letter() & (letter() | digit()).star()).flatten();
 
 Parser<T> singleGeneric<T>(Parser<T> p) =>
-    (char("<") & p.trim() & char(">")).pick<T>(1);
+    (char("<") & p.trim() & char(">")).pick(1).cast();
 
 class DoubleGeneric<L, R> {
   const DoubleGeneric(this.left, this.right);
@@ -46,7 +46,7 @@ Parser<T> enumParser<T>(List<T> enumValues, {String? optionalPrefix}) {
     Parser<T> curr =
         string(element.toString().split(".")[1]).map((value) => element);
     if (optionalPrefix != null) {
-      curr = (string("$optionalPrefix.").optional() & curr).pick<T>(1);
+      curr = (string("$optionalPrefix.").optional() & curr).pick(1).cast();
     }
     if (value == null) {
       value = curr;
@@ -121,7 +121,7 @@ Parser<Map<String, T>> structParser<T>(
       return r;
     });
   } else if (optionalName != null) {
-    result = (string(optionalName).trim().optional() & parser).pick(1);
+    result = (string(optionalName).trim().optional() & parser).pick(1).cast();
   }
   return result;
 }
@@ -209,10 +209,10 @@ Parser<List<T>> tupleParser<T>(
             return previousValue;
           })! &
           char(")").trim())
-      .pick<List<T>>(1);
+      .pick(1).cast<List<T>>();
 
   if (optionalName != null) {
-    return (string(optionalName).trim().optional() & parser).pick(1);
+    return (string(optionalName).trim().optional() & parser).pick(1).cast();
   }
   return parser;
 }

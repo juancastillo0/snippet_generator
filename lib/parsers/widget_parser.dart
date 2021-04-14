@@ -613,7 +613,7 @@ void expectIs<T>(dynamic value, [void Function(T)? callback]) {
 }
 
 Parser<T> prefixPoint<T>(Parser<T> parser) {
-  return (char(".").trim().optional() & parser).pick(1);
+  return (char(".").trim().optional() & parser).pick(1).cast();
 }
 
 void main() {
