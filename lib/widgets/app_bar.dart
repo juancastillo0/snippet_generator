@@ -8,6 +8,7 @@ import 'package:snippet_generator/notifiers/rebuilder.dart';
 import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/utils/download_json.dart';
 import 'package:snippet_generator/utils/extensions.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 ButtonStyle _actionButton(BuildContext context) {
   final theme = Theme.of(context);
@@ -148,6 +149,17 @@ class HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
           },
           icon: const Icon(Icons.file_download),
           label: const Text("Export"),
+        ),
+        IconButton(
+          onPressed: () {
+            launch('https://github.com/juancastillo0/snippet_generator');
+          },
+          icon: Image.asset(
+            'assets/images/GitHub-Mark-64px.png',
+            height: 32,
+            color: Colors.white,
+          ),
+          tooltip: 'Github Repository',
         )
       ],
     );
