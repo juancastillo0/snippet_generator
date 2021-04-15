@@ -1,5 +1,5 @@
 import 'package:snippet_generator/parsers/parsers.dart';
-import 'package:snippet_generator/utils/json_type.dart';
+import 'package:snippet_generator/parsers/models/json_type.dart';
 import 'package:snippet_generator/parsers/type_parser.dart';
 import 'package:test/test.dart';
 import 'package:petitparser/petitparser.dart' show TrimmingParserExtension;

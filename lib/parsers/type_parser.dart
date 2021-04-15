@@ -1,6 +1,6 @@
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/parsers/parsers.dart';
-import 'package:snippet_generator/utils/json_type.dart';
+import 'package:snippet_generator/parsers/models/json_type.dart';
 
 // ignore: constant_identifier_names  
 enum CollectionType { List, Set }

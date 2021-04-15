@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:snippet_generator/models/serializer.dart';
-import 'package:snippet_generator/models/type_models.dart';
+import 'package:snippet_generator/globals/serializer.dart';
+import 'package:snippet_generator/types/type_models.dart';
 
 final _boxesMap = {
   TypeConfig: _BoxConfig<TypeConfig>(0, "type", TypeConfig.serializer),

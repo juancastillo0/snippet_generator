@@ -8,7 +8,7 @@
       "name": "snippet_generator",
       "request": "launch",
       "type": "dart",
-      "args": ["--web-renderer", "canvaskit"],
+      "args": ["--web-renderer", "html"],
       "console": "terminal"
     }
   ]

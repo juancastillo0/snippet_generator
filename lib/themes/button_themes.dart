@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mobx/mobx.dart';
-import 'package:snippet_generator/models/props_serializable.dart';
+import 'package:snippet_generator/globals/props_serializable.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/themes/theme_store.dart';
 

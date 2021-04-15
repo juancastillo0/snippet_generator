@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:snippet_generator/formatters.dart';
+import 'package:snippet_generator/utils/formatters.dart';
 
 class DoubleInput extends HookWidget {
   final String label;

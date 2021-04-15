@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:snippet_generator/models/rebuilder.dart';
+import 'package:snippet_generator/notifiers/rebuilder.dart';
 
 class ComputedNotifier<T> extends ComputedNotifierBase<T> {
   ComputedNotifier(

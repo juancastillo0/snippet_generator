@@ -3,7 +3,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/fields/base_fields.dart';
 import 'package:snippet_generator/fields/fields.dart';
-import 'package:snippet_generator/parsers/flutter_props_parsers.dart';
+import 'package:snippet_generator/parsers/widget_parsers/flutter_props_parsers.dart';
 
 class AlignmentInput extends HookWidget {
   const AlignmentInput({

@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart' hide Listenable;
-import 'package:snippet_generator/models/props_serializable.dart';
-import 'package:snippet_generator/models/rebuilder.dart';
-import 'package:snippet_generator/models/serializer.dart';
+import 'package:snippet_generator/globals/props_serializable.dart';
+import 'package:snippet_generator/notifiers/rebuilder.dart';
+import 'package:snippet_generator/globals/serializer.dart';
 import 'package:snippet_generator/fields/fields.dart';
 
 class AppNotifier<T>

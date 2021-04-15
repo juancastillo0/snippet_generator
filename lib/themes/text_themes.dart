@@ -2,10 +2,10 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobx/mobx.dart';
-import 'package:snippet_generator/collection_notifier/list_notifier.dart';
+import 'package:snippet_generator/notifiers/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/fields/enum_fields.dart';
 import 'package:snippet_generator/fields/fields.dart';
-import 'package:snippet_generator/models/props_serializable.dart';
+import 'package:snippet_generator/globals/props_serializable.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
 
 class TextFamily {
