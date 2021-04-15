@@ -229,14 +229,23 @@ final Map<String, Widget Function(TypeConfig)> _expansionPanelBuilders = {
       child: Wrap(
         spacing: 15,
         crossAxisAlignment: WrapCrossAlignment.center,
+        alignment: WrapAlignment.center,
         children: [
           RowBoolField(
             label: "from/to String",
             notifier: serializableConfig.returnString,
           ),
           RowBoolField(
-            label: "Static Function",
+            label: "Static From Json",
             notifier: serializableConfig.staticFunction,
+          ),
+          RowBoolField(
+            label: "To Json",
+            notifier: serializableConfig.generateToJson
+          ),
+          RowBoolField(
+            label: "From Json",
+            notifier: serializableConfig.generateFromJson,
           ),
           RowTextField(
             rowLayout: false,

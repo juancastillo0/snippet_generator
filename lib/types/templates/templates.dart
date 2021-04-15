@@ -32,7 +32,7 @@ extension TemplateClassConfig on ClassConfig {
 
   String templateClass() {
     return """
-${typeConfig.isDataValue ? "import 'dart:ui';" : ""}
+${typeConfig.isDataValue && !typeConfig.isSumType ? "import 'dart:ui';" : ""}
 class $signature {
   ${properties.map((p) => 'final ${p.type} ${p.name};').join('\n  ')}
 
@@ -43,8 +43,8 @@ class $signature {
   ${typeConfig.isDataValue ? _templateClassCopyWith() : ""}
   ${typeConfig.isDataValue ? _templateClassClone() : ""}
   ${typeConfig.isDataValue ? _templateClassEquals() : ""}
-  ${typeConfig.isSerializable ? _templateClassFromJson() : ""}
-  ${typeConfig.isSerializable ? _templateClassToJson() : ""}
+  ${typeConfig.isSerializable && typeConfig.serializableConfig.generateFromJson.value ? _templateClassFromJson() : ""}
+  ${typeConfig.isSerializable && typeConfig.serializableConfig.generateToJson.value ? _templateClassToJson() : ""}
 
 }
 
@@ -242,6 +242,7 @@ extension TemplateTypeConfig on TypeConfig {
   String templateSumType() {
     return """
 ${!this.rootStore.isCodeGenNullSafe ? "import 'package:meta/meta.dart';" : ""}
+${isDataValue ? "import 'dart:ui';" : ""}
 
 abstract class $signature {
   ${advancedConfig.overrideConstructor ? '' : '$_const $name._();'}
@@ -280,8 +281,8 @@ abstract class $signature {
   ${sumTypeConfig.enumDiscriminant.value ? "Type$name get typeEnum;" : ""}
   ${sumTypeConfig.genericMappers.value ? _templateGenericMappers() : ""}
 
-  ${isSerializable ? _templateSymTypeFromJson() : ""}
-  ${isSerializable ? "Map<String, dynamic> toJson();" : ""}
+  ${isSerializable && serializableConfig.generateFromJson.value ? _templateSymTypeFromJson() : ""}
+  ${isSerializable && serializableConfig.generateToJson.value ? "Map<String, dynamic> toJson();" : ""}
   }
 
   ${sumTypeConfig.enumDiscriminant.value ? templateTypeEnum() : ""}
