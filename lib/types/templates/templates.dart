@@ -1,3 +1,10 @@
+import 'package:petitparser/petitparser.dart';
+import 'package:snippet_generator/notifiers/computed_notifier.dart';
+import 'package:snippet_generator/parsers/signature_parser.dart';
+import 'package:snippet_generator/types/advanced/advanced_config.dart';
+import 'package:snippet_generator/types/advanced/serializable_config.dart';
+import 'package:snippet_generator/types/advanced/sum_type_config.dart';
+import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/types/type_models.dart';
 import 'package:snippet_generator/types/templates/serde_templates.dart';
 import 'package:snippet_generator/utils/extensions.dart';
@@ -10,7 +17,20 @@ extension CasingString on String {
   String asVariableName() => replaceFirst("_", "").firstToLowerCase();
 }
 
-extension TemplateClassConfig on ClassConfig {
+extension _ClassConfigTemplateExtension on ClassConfig {
+  String get _classNameWithGenericIds => templates._classNameWithGenericIds;
+}
+
+class TemplateClassConfig {
+  final ClassConfig innerClass;
+
+  const TemplateClassConfig(this.innerClass);
+
+  TypeConfig get typeConfig => innerClass.typeConfig;
+  List<PropertyField> get properties => innerClass.properties;
+  List<PropertyField> get propertiesSorted => innerClass.propertiesSorted;
+  String get name => innerClass.name;
+
   String get className => typeConfig.isSumType ? name : typeConfig.name;
   String get _classConstructor {
     return className;
@@ -24,10 +44,11 @@ extension TemplateClassConfig on ClassConfig {
     return typeConfig.rootStore.isCodeGenNullSafe ? "?" : "/*?*/";
   }
 
-  String get classNameWithGenericIds => "$className${typeConfig.genericIds}";
+  String get _classNameWithGenericIds =>
+      "$className${typeConfig.templates.genericIds}";
 
   String get signature => typeConfig.isSumType
-      ? '$name${typeConfig.generics} extends ${typeConfig.name}${typeConfig.genericIds}'
+      ? '$name${typeConfig.templates.generics} extends ${typeConfig.name}${typeConfig.templates.genericIds}'
       : typeConfig.signature;
 
   String templateClass() {
@@ -36,7 +57,7 @@ ${typeConfig.isDataValue && !typeConfig.isSumType ? "import 'dart:ui';" : ""}
 class $signature {
   ${properties.map((p) => 'final ${p.type} ${p.name};').join('\n  ')}
 
-  ${typeConfig._const} $_classConstructor(${_templateClassParams()})${typeConfig.isSumType ? ": super._()" : ""};
+  ${typeConfig.templates._const} $_classConstructor(${_templateClassParams()})${typeConfig.isSumType ? ": super._()" : ""};
 
   ${typeConfig.isSumType && typeConfig.sumTypeConfig.enumDiscriminant.value ? "@override\nType${typeConfig.name} get typeEnum => Type${typeConfig.name}.${name.asVariableName()};" : ""}
 
@@ -53,7 +74,7 @@ ${typeConfig.isListenable ? _templateClassNotifier() : ""}
   }
 
   String _templateClassNotifier() {
-// class ${className}Notifier${typeConfig.generics} extends ValueNotifier<$classNameWithGenericIds> {
+// class ${className}Notifier${typeConfig.templates.generics} extends ValueNotifier<$classNameWithGenericIds> {
 //   ${className}Notifier($classNameWithGenericIds value): super(value);
     // ${properties.map((p) => "set ${p.name}(${p.type} _v) => value = value.copyWith(${p.name}:  _v);\n"
     //         "${p.type} get ${p.name} => value.${p.name};").join()}
@@ -64,18 +85,18 @@ ${typeConfig.isListenable ? _templateClassNotifier() : ""}
     final notifierClass = listenableConfig.notifierClass.value;
     final nameParam = listenableConfig.nameParam.value;
     return """
-class $className$suffix${typeConfig.generics} {
-  $className$suffix($classNameWithGenericIds value): ${properties.map((p) => "${p.name}$suffix = $notifierClass(value.${p.name} ${nameParam.isNotEmpty ? ', $nameParam:"${p.name}"' : ''})").join(",")};
+class $className$suffix${typeConfig.templates.generics} {
+  $className$suffix($_classNameWithGenericIds value): ${properties.map((p) => "${p.name}$suffix = $notifierClass(value.${p.name} ${nameParam.isNotEmpty ? ', $nameParam:"${p.name}"' : ''})").join(",")};
 
   ${properties.map((p) => "final $notifierClass<${p.type}> ${p.name}$suffix; "
             '${generateSetters ? "set ${p.name}(${p.type} _v) => ${p.name}$suffix.value = _v; " : ""} '
             '${generateGetters ? "${p.type} get ${p.name} => ${p.name}$suffix.value;" : ""} ').join()}
 
-  set value($classNameWithGenericIds newValue) {
+  set value($_classNameWithGenericIds newValue) {
 ${properties.map((p) => "${p.name}$suffix.value = newValue.${p.name};").join()}
   }
 
-  $classNameWithGenericIds get value {
+  $_classNameWithGenericIds get value {
     return $className(${properties.map((p) => "${p.name}:${p.name}$suffix.value,").join()});
   }
 
@@ -92,8 +113,8 @@ ${properties.map((p) => "${p.name}$suffix.value = newValue.${p.name};").join()}
             '${p.type}${p.type.endsWith("?") ? "" : _nullable} ${p.name},')
         .join('\n    ');
     return """
-$classNameWithGenericIds copyWith(${properties.isEmpty ? "" : "{$_params}"}) {
-    return ${properties.isEmpty ? typeConfig._const : ""} $_classConstructor(
+$_classNameWithGenericIds copyWith(${properties.isEmpty ? "" : "{$_params}"}) {
+    return ${properties.isEmpty ? typeConfig.templates._const : ""} $_classConstructor(
       ${propertiesSorted.map((e) => "${e.isPositional ? '' : '${e.name}:'} ${e.name} ?? this.${e.name},").join("\n      ")}
     );
   }
@@ -124,21 +145,21 @@ $classNameWithGenericIds copyWith(${properties.isEmpty ? "" : "{$_params}"}) {
     return """
 @override
 bool operator ==(Object other) {
-  if (other is $classNameWithGenericIds){
+  if (other is $_classNameWithGenericIds){
     return ${properties.isEmpty ? "true" : properties.map((e) => 'this.${e.name} == other.${e.name}').join(" && ")};
   }
   return false;
 }
 
 @override
-int get hashCode => ${properties.isEmpty ? "${typeConfig._const} $_classConstructor().hashCode" : _hashCode};
+int get hashCode => ${properties.isEmpty ? "${typeConfig.templates._const} $_classConstructor().hashCode" : _hashCode};
 """;
   }
 
   String _templateClassFromJson() {
     return """
-static $classNameWithGenericIds fromJson${typeConfig.generics}(Map<String, dynamic> map) {
-    return ${properties.isEmpty ? typeConfig._const : ""} $_classConstructor(
+static $_classNameWithGenericIds fromJson${typeConfig.templates.generics}(Map<String, dynamic> map) {
+    return ${properties.isEmpty ? typeConfig.templates._const : ""} $_classConstructor(
       ${propertiesSorted.map((e) => "${e.isPositional ? '' : '${e.name}:'} ${parseFieldFromJson(e)},").join("\n      ")}
     );
   }
@@ -193,7 +214,20 @@ Map<String, dynamic> toJson() {
   }
 }
 
-extension TemplateTypeConfig on TypeConfig {
+class TemplateTypeConfig {
+  final TypeConfig innerType;
+
+  const TemplateTypeConfig(this.innerType);
+
+  AdvancedTypeConfig get advancedConfig => innerType.advancedConfig;
+  RootStore get rootStore => innerType.rootStore;
+  List<ClassConfig> get classes => innerType.classes;
+  SumTypeConfig get sumTypeConfig => innerType.sumTypeConfig;
+  SerializableConfig get serializableConfig => innerType.serializableConfig;
+  ComputedNotifier<Result<SignatureParser>> get signatureParserNotifier =>
+      innerType.signatureParserNotifier;
+  String get name => innerType.name;
+
   String get genericIds {
     final result = this.signatureParserNotifier.value;
     if (result.isSuccess) {
@@ -216,7 +250,7 @@ extension TemplateTypeConfig on TypeConfig {
   String get generics {
     final result = this.signatureParserNotifier.value;
     if (result.isSuccess) {
-      return signature.replaceFirst(name, "");
+      return innerType.signature.replaceFirst(name, "");
     } else {
       return "";
     }
@@ -242,38 +276,38 @@ extension TemplateTypeConfig on TypeConfig {
   String templateSumType() {
     return """
 ${!this.rootStore.isCodeGenNullSafe ? "import 'package:meta/meta.dart';" : ""}
-${isDataValue ? "import 'dart:ui';" : ""}
+${innerType.isDataValue ? "import 'dart:ui';" : ""}
 
-abstract class $signature {
+abstract class ${innerType.signature} {
   ${advancedConfig.overrideConstructor ? '' : '$_const $name._();'}
 
   ${advancedConfig.customCode}
   
-  ${classes.map((c) => "$_const factory $name.${c.name.asVariableName()}(${c.templateFactoryParams()}) = ${c._classConstructor};").join("\n  ")}
+  ${classes.map((c) => "$_const factory $name.${c.name.asVariableName()}(${c.templates.templateFactoryParams()}) = ${c.templates._classConstructor};").join("\n  ")}
 
   ${_repeatedPropsTemplate()}
   
   _T when<_T>({${classes.map((c) => "$_required _T Function(${_funcParams(c)}) ${c.name.asVariableName()},").join("\n    ")}}){
     final v = this;
-    ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) {return ${c.name.asVariableName()}(${_funcParamsCall(c)});}").join("\nelse ")}
+    ${classes.map((c) => "if (v is ${c._classNameWithGenericIds}) {return ${c.name.asVariableName()}(${_funcParamsCall(c)});}").join("\nelse ")}
     $_throwNotFoundVariant
   }
 
   _T maybeWhen<_T>({$_required _T Function() orElse, ${classes.map((c) => "_T Function(${_funcParams(c)})$_nullable ${c.name.asVariableName()},").join("\n    ")}}){
     final v = this;
-    ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) {return ${c.name.asVariableName()} != null ? ${c.name.asVariableName()}(${_funcParamsCall(c)}) : orElse.call();}").join("\nelse ")}
+    ${classes.map((c) => "if (v is ${c._classNameWithGenericIds}) {return ${c.name.asVariableName()} != null ? ${c.name.asVariableName()}(${_funcParamsCall(c)}) : orElse.call();}").join("\nelse ")}
     $_throwNotFoundVariant
   }
 
-  _T map<_T>({${classes.map((c) => "$_required _T Function(${c.classNameWithGenericIds} value) ${c.name.asVariableName()},").join("\n    ")}}){
+  _T map<_T>({${classes.map((c) => "$_required _T Function(${c._classNameWithGenericIds} value) ${c.name.asVariableName()},").join("\n    ")}}){
     final v = this;
-    ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) {return ${c.name.asVariableName()}(v);}").join("\nelse ")}
+    ${classes.map((c) => "if (v is ${c._classNameWithGenericIds}) {return ${c.name.asVariableName()}(v);}").join("\nelse ")}
     $_throwNotFoundVariant
   }
 
-  _T maybeMap<_T>({$_required _T Function() orElse, ${classes.map((c) => "_T Function(${c.classNameWithGenericIds} value)$_nullable ${c.name.asVariableName()},").join("\n    ")}}){
+  _T maybeMap<_T>({$_required _T Function() orElse, ${classes.map((c) => "_T Function(${c._classNameWithGenericIds} value)$_nullable ${c.name.asVariableName()},").join("\n    ")}}){
     final v = this;
-    ${classes.map((c) => "if (v is ${c.classNameWithGenericIds}) {return ${c.name.asVariableName()} != null ? ${c.name.asVariableName()}(v) : orElse.call();}").join("\nelse ")}
+    ${classes.map((c) => "if (v is ${c._classNameWithGenericIds}) {return ${c.name.asVariableName()} != null ? ${c.name.asVariableName()}(v) : orElse.call();}").join("\nelse ")}
     $_throwNotFoundVariant
   }
 
@@ -281,13 +315,13 @@ abstract class $signature {
   ${sumTypeConfig.enumDiscriminant.value ? "Type$name get typeEnum;" : ""}
   ${sumTypeConfig.genericMappers.value ? _templateGenericMappers() : ""}
 
-  ${isSerializable && serializableConfig.generateFromJson.value ? _templateSymTypeFromJson() : ""}
-  ${isSerializable && serializableConfig.generateToJson.value ? "Map<String, dynamic> toJson();" : ""}
+  ${innerType.isSerializable && serializableConfig.generateFromJson.value ? _templateSymTypeFromJson() : ""}
+  ${innerType.isSerializable && serializableConfig.generateToJson.value ? "Map<String, dynamic> toJson();" : ""}
   }
 
   ${sumTypeConfig.enumDiscriminant.value ? templateTypeEnum() : ""}
   
-  ${classes.map((c) => c.templateClass()).join("\n")}
+  ${classes.map((c) => c.templates.templateClass()).join("\n")}
 
   
   """;
@@ -380,9 +414,9 @@ abstract class $signature {
     return """
 static $name$genericIds fromJson$generics(Map<String, dynamic> map) {
   switch (map["${serializableConfig.discriminator.value}"] as String) {
-    ${classes.map((e) => 'case "${e.name.asVariableName()}": return ${e.className}.fromJson$genericIds(map);').join("\n    ")}
+    ${classes.map((e) => 'case "${e.name.asVariableName()}": return ${e.templates.className}.fromJson$genericIds(map);').join("\n    ")}
     default:
-      throw Exception('Invalid discriminator for $signature.fromJson \${map["${serializableConfig.discriminator.value}"]}. Input map: \$map');
+      throw Exception('Invalid discriminator for ${innerType.signature}.fromJson \${map["${serializableConfig.discriminator.value}"]}. Input map: \$map');
   }
 }
 """;

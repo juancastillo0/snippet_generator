@@ -70,23 +70,10 @@ class TypeCodeGenerated extends HookWidget {
   Widget build(BuildContext context) {
     final rootStore = useRootStore(context);
     final TypeConfig typeConfig = useSelectedType(context);
-    useListenable(typeConfig.deepListenable);
     useListenable(rootStore.isCodeGenNullSafeNotifier);
 
     return Observer(builder: (context) {
-      String sourceCode;
-      if (typeConfig.isEnum) {
-        sourceCode = typeConfig.templateEnum();
-      } else if (typeConfig.isSumType) {
-        sourceCode = typeConfig.templateSumType();
-      } else {
-        final _class = typeConfig.classes[0];
-        sourceCode = _class.templateClass();
-      }
-      try {
-        sourceCode = rootStore.formatter.format(sourceCode);
-      } catch (_) {}
-      return CodeGenerated(sourceCode: sourceCode);
+      return CodeGenerated(sourceCode: typeConfig.sourceCode.value);
     });
   }
 }

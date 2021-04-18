@@ -17,6 +17,7 @@ import 'package:snippet_generator/notifiers/computed_notifier.dart';
 import 'package:snippet_generator/parsers/class_fields_parser.dart';
 import 'package:snippet_generator/parsers/signature_parser.dart';
 import 'package:snippet_generator/parsers/type_parser.dart';
+import 'package:snippet_generator/types/templates/templates.dart';
 import 'package:uuid/uuid.dart';
 import 'package:y_crdt/y_crdt.dart';
 
@@ -38,6 +39,24 @@ class TypeConfig
       return signature;
     }
   }
+
+  late final templates = TemplateTypeConfig(this);
+
+  late final Computed<String> sourceCode = Computed(() {
+    String sourceCode;
+    if (isEnum) {
+      sourceCode = templates.templateEnum();
+    } else if (isSumType) {
+      sourceCode = templates.templateSumType();
+    } else {
+      final _class = classes[0];
+      sourceCode = _class.templates.templateClass();
+    }
+    try {
+      sourceCode = rootStore.formatter.format(sourceCode);
+    } catch (_) {}
+    return sourceCode;
+  });
 
   // Settings
 
@@ -80,11 +99,6 @@ class TypeConfig
         "Sum Type": isSumTypeNotifier,
         "Enum": isEnumNotifier,
       };
-
-  final _deepListenable = AppNotifier<Listenable?>(null);
-  Listenable get deepListenable => _deepListenable.value!;
-  Listenable? _listenable;
-  Listenable? get listenable => _listenable;
 
   RootStore get rootStore => Globals.get<RootStore>();
 
@@ -136,18 +150,6 @@ class TypeConfig
       [defaultEnumKeyNotifier, this.classes],
     );
 
-    _listenable = Listenable.merge([
-      isEnumNotifier,
-      isDataValueNotifier,
-      isSumTypeNotifier,
-      isSerializableNotifier,
-      isListenableNotifier,
-      signatureNotifier.textNotifier,
-      this.advancedConfig.listenable,
-      this.classes,
-      defaultEnumNotifier
-    ]);
-
     hasVariants = ComputedNotifier(
       () => this.isEnum || this.isSumType,
       [
@@ -155,9 +157,7 @@ class TypeConfig
         isSumTypeNotifier,
       ],
     );
-    this.classes.addListener(_setUpDeepListenable);
     // _setUpCrdt();
-    _setUpDeepListenable();
   }
 
   void _setUpCrdt() {
@@ -189,25 +189,6 @@ class TypeConfig
 
   void addVariant() {
     classes.add(ClassConfig(typeConfigKey: key));
-  }
-
-  Set<AppNotifier<Listenable?>> __s = <AppNotifier<Listenable>>{};
-  void _setUpDeepListenable() {
-    final _s = classes.map((e) => e._deepListenable).toSet();
-
-    __s.difference(_s).forEach((element) {
-      element.removeListener(_setUpDeepListenable);
-    });
-    _s.difference(__s).forEach((element) {
-      element.addListener(_setUpDeepListenable);
-    });
-    __s = _s;
-
-    _deepListenable.value = Listenable.merge([
-      _deepListenable,
-      _listenable,
-      ...classes.map((e) => e.deepListenable),
-    ]);
   }
 
   @override
@@ -300,6 +281,8 @@ class ClassConfig
   late final Computed<Result<List<RawField>>> parsedRawImport = Computed(
     () => fieldsParser.parse(rawImport.text),
   );
+
+  late final TemplateClassConfig templates = TemplateClassConfig(this);
 
   late final AppNotifier<bool> isReorderingNotifier;
   bool get isReordering => isReorderingNotifier.value;
