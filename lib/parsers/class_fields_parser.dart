@@ -1,7 +1,7 @@
 import 'package:petitparser/petitparser.dart';
 
 final _validString =
-    ((letter() | char("_")) & (letter() | digit() | pattern("_?")).star())
+    ((letter() | char("_")) & (letter() | digit() | pattern("_?<>")).star())
         .flatten();
 
 final _name =
@@ -42,48 +42,44 @@ final fieldsParser =
   optionalSeparatorAtEnd: true,
 )
         .map<List<RawField>>((value) {
-  final leftStrings = <String>[];
-  final isRequiredList = <bool>[];
-  final rightStrings = <String>[];
+  final leftTyped = <RawField>[];
+  final rightTyped = <RawField>[];
+
   int typeIsRightCount = 0;
   for (final List _field in List.castFrom(value)) {
     final List<String?> field = List.castFrom(_field);
     final String left = field[1]!;
     final String right = field[3]!;
     // final String? defaultValue = field.last;
-
-    isRequiredList.add(field[0] != null);
+    final _isRequired = field[0] != null;
 
     final lowerLeft = left.toLowerCase();
     if (supportedTypes.containsKey(lowerLeft)) {
       typeIsRightCount -= 1;
-      leftStrings.add(supportedTypes[lowerLeft]!);
-    } else {
-      leftStrings.add(left);
     }
 
     final lowerRight = right.toLowerCase();
     if (supportedTypes.containsKey(lowerRight)) {
       typeIsRightCount += 1;
-      rightStrings.add(supportedTypes[lowerRight]!);
-    } else {
-      rightStrings.add(right);
     }
+
+    leftTyped.add(
+      RawField(
+        isRequired: _isRequired,
+        name: right,
+        type: supportedTypes[lowerLeft] ?? left,
+      ),
+    );
+    rightTyped.add(
+      RawField(
+        isRequired: _isRequired,
+        name: left,
+        type: supportedTypes[lowerRight] ?? right,
+      ),
+    );
   }
 
-  return Iterable<int>.generate(leftStrings.length)
-      .map((i) => typeIsRightCount > 0
-          ? RawField(
-              name: leftStrings[i],
-              type: rightStrings[i],
-              isRequired: isRequiredList[i],
-            )
-          : RawField(
-              name: rightStrings[i],
-              type: leftStrings[i],
-              isRequired: isRequiredList[i],
-            ))
-      .toList();
+  return typeIsRightCount > 0 ? rightTyped : leftTyped;
 });
 
 class RawField {
@@ -91,7 +87,7 @@ class RawField {
   final String type;
   final bool isRequired;
 
-  RawField({
+  const RawField({
     required this.name,
     required this.type,
     required this.isRequired,
