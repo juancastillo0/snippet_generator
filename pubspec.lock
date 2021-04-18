@@ -239,6 +239,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.0.2"
+  file_system_access:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "75441a4282c3513f4fc90313a9d3027142502ea1"
+      url: "https://github.com/juancastillo0/file_system_access_web"
+    source: git
+    version: "0.0.1"
   fixnum:
     dependency: transitive
     description:

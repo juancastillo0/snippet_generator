@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-
+import 'package:file_system_access/file_system_access.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -47,14 +47,71 @@ class RootStore {
 
   final themesStore = ThemesStore(name: "themesStore");
 
-  final MapNotifier<String, TypeConfig> types =
-      MapNotifier<String, TypeConfig>();
+  final types = MapNotifier<String, TypeConfig>();
 
   final selectedTypeNotifier = AppNotifier<TypeConfig?>(null);
   TypeConfig? get selectedType => selectedTypeNotifier.value;
 
   final isCodeGenNullSafeNotifier = AppNotifier<bool>(true);
   bool get isCodeGenNullSafe => isCodeGenNullSafeNotifier.value;
+
+  final directoryHandle = AppNotifier<FileSystemDirectoryHandle?>(null);
+
+  Future<void> selectDirectory() async {
+    final directory = await FileSystem.instance.showDirectoryPicker();
+    final permission = await directory.requestPermission(
+        mode: FileSystemPermissionMode.readwrite);
+    if (permission == PermissionStateEnum.granted) {
+      if (directoryHandle.value != null) {
+        final currentDir = directoryHandle.value!;
+        if (await currentDir.isSameEntry(directory)) {
+          return;
+        } else {
+          typeFiles.clear();
+        }
+      }
+      directoryHandle.value = directory;
+      await _saveTypeFiles(directory);
+    }
+  }
+
+  final Map<String, _FileForType> typeFiles = {};
+
+  Future<void> _saveTypeFiles(FileSystemDirectoryHandle directory) async {
+    final Map<String, TypeConfig> typesToSave = types.map(
+      (key, value) => MapEntry("${value.name.trim()}.dart", value),
+    );
+    typesToSave.remove(".dart");
+
+    final _futs = typesToSave.entries.map((entry) async {
+      final type = entry.value;
+      final previous = typeFiles[entry.key];
+
+      try {
+        final sourceCode = type.sourceCode.value;
+        final _hashCode = sourceCode.hashCode;
+        if (previous != null && previous.sourceCodeHashCode == _hashCode) {
+          return;
+        }
+        final file = await directory.getFileHandle(entry.key, create: true);
+        final writable = await file.createWritable();
+
+        await writable.write(FileSystemWriteChunkType.string(sourceCode));
+        await writable.close();
+        typeFiles[entry.key] = _FileForType(_hashCode, type, file);
+      } catch (_) {}
+    });
+    await Future.wait(_futs);
+
+    final _futsDelete = [...typeFiles.entries]
+        .where((element) => !typesToSave.containsKey(element.key))
+        .map((e) async {
+      final fileHandle = e.value.fileHandle;
+      await directory.removeEntry(fileHandle.name, recursive: true);
+      typeFiles.remove(e.key);
+    });
+    await Future.wait(_futsDelete);
+  }
 
   final _messageEventsController = StreamController<MessageEvent>.broadcast();
   Stream<MessageEvent> get messageEvents => _messageEventsController.stream;
@@ -136,6 +193,7 @@ class RootStore {
 
   void removeType(TypeConfig type) {
     types.remove(type.key);
+    // final typeFile = typeFiles.values.firstWhereOrNull((element) => false);
     if (types.isEmpty) {
       addType();
     } else if (type == selectedTypeNotifier.value) {
@@ -266,12 +324,23 @@ class RootStore {
     await propertyBox.addAll(
         types.values.expand((e) => e.classes).expand((e) => e.properties));
 
+    if (directoryHandle.value != null) {
+      await _saveTypeFiles(directoryHandle.value!);
+    }
     _messageEventsController.add(MessageEvent.typesSaved);
   }
 
   void setSelectedTab(AppTabs tab) {
     this.selectedTabNotifier.value = tab;
   }
+}
+
+class _FileForType {
+  final int sourceCodeHashCode;
+  final TypeConfig type;
+  final FileSystemFileHandle fileHandle;
+
+  _FileForType(this.sourceCodeHashCode, this.type, this.fileHandle);
 }
 
 void _loadItem<T extends Keyed>(

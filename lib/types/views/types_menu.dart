@@ -18,10 +18,39 @@ class TypesMenu extends HookWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 16.0, top: 6.0),
-          child: Text(
-            "Types",
-            style: context.textTheme.headline5,
+          padding: const EdgeInsets.only(bottom: 6.0, top: 6.0, left: 6.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Types",
+                    style: context.textTheme.headline5,
+                  ),
+                  IconButton(
+                    onPressed: rootStore.selectDirectory,
+                    splashRadius: 28,
+                    icon: const Icon(Icons.folder),
+                  ),
+                ],
+              ),
+              rootStore.directoryHandle.rebuild(
+                (value) => value == null
+                    ? const SizedBox()
+                    : Tooltip(
+                        message: value.name,
+                        child: SelectableText(
+                          value.name,
+                          style: context.textTheme.caption,
+                          maxLines: 1,
+                          // overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+              )
+            ],
           ),
         ),
         Expanded(
