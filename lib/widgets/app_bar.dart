@@ -39,6 +39,7 @@ const appTabsTitles = {
   AppTabs.ui: "Widgets",
   AppTabs.types: "Types",
   AppTabs.theme: "Themes",
+  AppTabs.database: "Data",
 };
 
 class TabButton extends HookWidget {
@@ -104,6 +105,7 @@ class HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
               TabButton(tab: AppTabs.types),
               TabButton(tab: AppTabs.ui),
               TabButton(tab: AppTabs.theme),
+              TabButton(tab: AppTabs.database),
             ],
           ),
         );

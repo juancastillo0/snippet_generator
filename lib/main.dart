@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_portal/flutter_portal.dart';
+import 'package:snippet_generator/database/database_view.dart';
 import 'package:snippet_generator/globals/models.dart';
 import 'package:snippet_generator/notifiers/rebuilder.dart';
 import 'package:snippet_generator/types/root_store.dart';
@@ -92,6 +93,7 @@ class MyHomePage extends StatelessWidget {
                 TypesTabView(),
                 ParsersView(),
                 ThemesTabView(),
+                DatabaseTabView(),
               ],
             );
           },
