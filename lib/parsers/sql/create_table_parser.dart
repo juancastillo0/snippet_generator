@@ -1,4 +1,9 @@
+// ignore_for_file: constant_identifier_names
 import 'package:petitparser/petitparser.dart';
+import 'package:snippet_generator/parsers/sql/data_type_model.dart';
+import 'package:snippet_generator/parsers/sql/data_type_parser.dart';
+import 'package:snippet_generator/parsers/sql/table_models.dart';
+import 'package:snippet_generator/utils/extensions.dart';
 
 Parser<String> _token(String str) {
   return stringIgnoreCase(str).trim();
@@ -14,10 +19,20 @@ final _symbol = (char('`') & pattern('^`').star().flatten() & char('`'))
         .cast<String>() |
     word().plus().flatten().trim();
 
-final createTableParser = _token('CREATE') &
-    _token('TABLE') &
-    _symbol &
-    parens(_tableItem.separatedBy(char(',').trim()));
+final createTableParser = (_token('CREATE') &
+        _token('TABLE') &
+        _symbol &
+        parens(
+            _tableItem.separatedBy(char(',').trim(), includeSeparators: false)))
+    .map((value) {
+  final list = value[3] as List;
+  return SqlTable(
+    name: value[2] as String,
+    columns: list.whereType<SqlColumn>().toList(),
+    tableKeys: list.whereType<SqlTableKey>().toList(),
+    foreignKeys: list.whereType<SqlForeignKey>().toList(),
+  );
+});
 
 final _tableItem = _columnDefinition | _constraintDefinition | _indexDefinition;
 
@@ -63,74 +78,83 @@ final _referenceDefinition = _token('REFERENCES') &
             referenceOptionParser)
         .optional();
 
-final referenceOptionParser = _token('RESTRICT') |
-    _token('CASCADE') |
-    _token('SET') & _token('NULL') |
-    _token('NO') & _token('ACTION') |
-    _token('SET') & _token('DEFAULT');
+enum ReferenceOption {
+  RESTRICT,
+  CASCADE,
+  SET_NULL,
+  NO_ACTION,
+  SET_DEFAULT,
+}
 
-final _columnDefinition = _symbol &
-    _typeParser &
-    _collate.optional() &
-    (_token('NOT').optional() & _token('NULL')).optional() &
-    (_token('DEFAULT') & _sqlLiteral.trim()).optional() &
-    (_token('VISIBLE') | _token('INVISIBLE')).optional() &
-    _token('AUTO_INCREMENT').optional() &
-    (_token('UNIQUE') & _token('KEY').optional()).optional() &
-    (_token('PRIMARY').optional() & _token('KEY')).optional();
+final referenceOptionParser = (_token('RESTRICT') |
+        _token('CASCADE') |
+        _token('SET') & _token('NULL') |
+        _token('NO') & _token('ACTION') |
+        _token('SET') & _token('DEFAULT'))
+    .map((value) {
+  final String _str;
+  if (value is List) {
+    _str = value.join('_');
+  } else {
+    _str = value as String;
+  }
+  return parseEnum(_str, ReferenceOption.values, caseSensitive: false)!;
+});
 
-final _sqlLiteral = _stringLiteral |
-    _token('NULL') |
-    digit().plus().flatten() |
-    _token('CURRENT_TIMESTAMP');
-final _stringLiteral = (char("'") & pattern("^'").star().flatten() & char("'"))
-    .pick(1)
+final _columnDefinition = (_symbol &
+        sqlDataTypeParser &
+        ((_token('NOT').optional() & _token('NULL')).optional() &
+                (_token('DEFAULT') & _sqlLiteral.trim()).optional() &
+                (_token('VISIBLE') | _token('INVISIBLE')).optional() &
+                _token('AUTO_INCREMENT').optional() &
+                (_token('UNIQUE') & _token('KEY').optional()).optional() &
+                (_token('PRIMARY').optional() & _token('KEY')).optional() &
+                collateParser.optional() |
+            collateParser.optional() &
+                (_token('GENERATED') & _token('ALWAYS')).optional() &
+                _token('AS') &
+                _sqlLiteral.trim() &
+                (_token('VIRTUAL') | _token('STORED')).optional() &
+                (_token('NOT').optional() & _token('NULL')).optional() &
+                (_token('VISIBLE') | _token('INVISIBLE')).optional() &
+                (_token('UNIQUE') & _token('KEY').optional()).optional() &
+                (_token('PRIMARY').optional() & _token('KEY')).optional()))
+    .map((value) {
+  final name = value[0] as String;
+  final type = value[1] as SqlType;
+
+  final opts = value[2] as List;
+
+  if (opts[2] != 'AS') {
+    return SqlColumn(
+      name: name,
+      type: type,
+      nullable: opts[0] == null || opts[0][0] == null,
+      defaultValue: opts[1] == null ? null : opts[1][1] as String,
+      visible:
+          opts[2] == null || (opts[2] as String).toUpperCase() == 'VISIBLE',
+      autoIncrement: opts[3] != null,
+      unique: opts[4] != null,
+      primary: opts[5] != null,
+      collation: opts[6] as String?,
+    );
+  } else {
+    return SqlColumn(
+      name: name,
+      type: type,
+    );
+  }
+});
+
+final _sqlLiteral = (sqlStringLiteral |
+        _token('NULL') |
+        digit().plus().flatten() |
+        _token('CURRENT_TIMESTAMP'))
     .cast<String>();
+final sqlStringLiteral =
+    (char("'") & pattern("^'").star().flatten() & char("'"))
+        .pick(1)
+        .cast<String>();
 
-final _typeParser =
-    _numericTypeParser | _dateTypeParser | _stringTypeParser | _token('JSON');
-
-final _numericTypeParser = (((stringIgnoreCase('TINY') |
-                    stringIgnoreCase('SMALL') |
-                    stringIgnoreCase('MEDIUM') |
-                    stringIgnoreCase('BIG'))
-                .optional() &
-            stringIgnoreCase('INT') &
-            parens(pattern('1-9') & pattern('0-9').star().flatten())
-                .optional()) |
-        (_token('DOUBLE') & _token('PRECISION').optional() |
-                _token('FLOAT') |
-                _token('DECIMAL')) &
-            parens(pattern('1-9') &
-                pattern('0-9').star().flatten() &
-                (char(',').trim() &
-                        pattern('1-9') &
-                        pattern('0-9').star().flatten())
-                    .optional())) &
-    _token('UNSIGNED').optional() &
-    _token('ZEROFILL').optional();
-
-final _dateTypeParser =
-    (_token('TIMESTAMP') | _token('TIME') | _token('DATETIME')) &
-            parens(pattern('0-6')).optional() |
-        _token('DATE') |
-        _token('YEAR');
-
-final _stringTypeParser =
-    ((_token('CHAR') | _token('BINARY') | _token('BLOB') | _token('TEXT')) &
-                parens(pattern('0-9').plus().flatten()).optional() |
-            (_token('VARCHAR') | _token('VARBINARY')) &
-                parens(pattern('0-9').plus().flatten()) |
-            _token('TINYTEXT') |
-            _token('MEDIUMTEXT') |
-            _token('LONGTEXT') |
-            _token('TINYBLOB') |
-            _token('MEDIUMBLOB') |
-            _token('LONGBLOB') |
-            (_token('ENUM') | _token('SET')) &
-                parens(_stringLiteral.separatedBy(char(',').trim()))) &
-        (_token('CHARACTER') & _token('SET') & word().plus().flatten().trim())
-            .optional() &
-        _collate.optional();
-
-final _collate = _token('COLLATE') & word().plus().flatten().trim();
+final collateParser =
+    (_token('COLLATE') & word().plus().flatten().trim()).pick(1).cast<String>();

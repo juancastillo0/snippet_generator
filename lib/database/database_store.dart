@@ -3,6 +3,7 @@ import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/globals/props_serializable.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/parsers/sql/create_table_parser.dart';
+import 'package:snippet_generator/parsers/sql/table_models.dart';
 
 class DatabaseStore with PropsSerializable {
   @override
@@ -12,7 +13,7 @@ class DatabaseStore with PropsSerializable {
 
   final rawTableDefinition = TextNotifier();
 
-  late final Computed<Result<List<Object?>>> parsedTableDefinition = Computed(
+  late final Computed<Result<SqlTable>> parsedTableDefinition = Computed(
     () => createTableParser.parse(rawTableDefinition.text),
   );
 

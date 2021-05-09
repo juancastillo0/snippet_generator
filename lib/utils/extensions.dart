@@ -41,10 +41,11 @@ extension IndexedMap<T> on Iterable<T> {
   }
 }
 
-T? parseEnum<T>(String rawString, List<T> enumValues) {
+T? parseEnum<T>(String rawString, List<T> enumValues, {bool caseSensitive = true}) {
+  final _rawStringComp = caseSensitive ? rawString : rawString.toLowerCase();
   for (final value in enumValues) {
-    final str = value.toString();
-    if (str == rawString || str.split(".")[1] == rawString) {
+    final str = caseSensitive ? value.toString() : value.toString().toLowerCase();
+    if (str == _rawStringComp || str.split(".")[1] == _rawStringComp) {
       return value;
     }
   }
