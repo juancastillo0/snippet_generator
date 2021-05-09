@@ -1,3 +1,4 @@
+// ignore_for_file: constant_identifier_names
 import 'package:snippet_generator/parsers/sql/data_type_model.dart';
 
 class SqlTable {
@@ -11,7 +12,14 @@ class SqlTable {
     final index = columns.indexWhere((col) => col.primary);
     return index == -1
         ? null
-        : SqlTableKey.primary(columns: [columns[index].name]);
+        : SqlTableKey.primary(
+            columns: [
+              SqlKeyItem(
+                columnName: columns[index].name,
+                ascendent: true, // TODO:
+              )
+            ],
+          );
   }
 
   final List<SqlColumn> columns;
@@ -27,53 +35,175 @@ class SqlTable {
 
   @override
   String toString() {
-    return """SqlTable(name: $name, columns: $columns, tableKeys: $tableKeys, foreignKeys: $foreignKeys)""";
+    return """SqlTable{name: $name, columns: $columns, primaryKey: $primaryKey, tableKeys: $tableKeys, foreignKeys: $foreignKeys}""";
   }
 }
 
-class SqlTableKey {
-  final String? name;
+enum SqlIndexType {
+  BTREE,
+  HASH,
+  FULLTEXT,
+  SPATIAL,
+}
 
-  final bool indexed;
+extension SqlIndexTypeExt on SqlIndexType {
+  String toJson() => toString().split('.')[1];
+}
+
+class SqlTableKey {
+  final String? constraintName;
+  final String? indexName;
+
+  final SqlIndexType index;
   final bool unique;
   final bool primary;
 
-  final List<String> columns;
+  final List<SqlKeyItem> columns;
 
   const SqlTableKey({
-    this.name,
-    required this.indexed,
+    this.constraintName,
+    String? indexName,
+    required SqlIndexType? index,
     required this.unique,
     required this.primary,
     required this.columns,
-  }) : assert(!primary || (indexed && unique));
+  })  : assert(!primary || unique),
+        assert(!primary || (indexName == null || indexName == 'PRIMARY')),
+        index = index ?? SqlIndexType.BTREE,
+        indexName = primary ? 'PRIMARY' : indexName;
 
   factory SqlTableKey.primary({
-    String? name,
-    required List<String> columns,
+    String? constraintName,
+    SqlIndexType? index,
+    required List<SqlKeyItem> columns,
   }) {
     return SqlTableKey(
-      name: name,
-      indexed: true,
+      constraintName: constraintName,
+      index: index,
       primary: true,
       unique: true,
       columns: columns,
     );
   }
+
+  @override
+  String toString() {
+    return 'SqlTableKey${toJson()}';
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'constraintName': constraintName,
+      'indexName': indexName,
+      'index': index.toJson(),
+      'unique': unique,
+      'primary': primary,
+      'columns': columns.map((x) => x.toJson()).toList(),
+    };
+  }
 }
 
 class SqlForeignKey {
-  final String? name;
+  final String? constraintName;
+  final String? indexName;
   final List<String> ownColumns;
-  final String referencedTable;
-  final List<String> referencedColumns;
+  final SqlReference reference;
 
   const SqlForeignKey({
-    this.name,
+    this.constraintName,
+    this.indexName,
     required this.ownColumns,
-    required this.referencedTable,
-    required this.referencedColumns,
+    required this.reference,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'constraintName': constraintName,
+      'indexName': indexName,
+      'ownColumns': ownColumns,
+      'reference': reference.toJson(),
+    };
+  }
+
+  @override
+  String toString() {
+    return 'SqlForeignKey${toJson()}';
+  }
+}
+
+class SqlKeyItem {
+  final String columnName;
+  final bool ascendent;
+
+  const SqlKeyItem({
+    required this.columnName,
+    required this.ascendent,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'columnName': columnName,
+      'ascendent': ascendent,
+    };
+  }
+
+  @override
+  String toString() {
+    return '${toJson()}';
+  }
+}
+
+enum ReferenceMatchType {
+  FULL,
+  PARTIAL,
+  SIMPLE,
+}
+
+extension ReferenceMatchTypeExt on ReferenceMatchType {
+  String toJson() => toString().split('.')[1];
+}
+
+class SqlReference {
+  final String referencedTable;
+  final ReferenceMatchType? matchType;
+  final ReferenceOption? onDelete;
+  final ReferenceOption? onUpdate;
+  final List<SqlKeyItem> columns;
+
+  SqlReference({
+    required this.referencedTable,
+    required this.matchType,
+    required this.onDelete,
+    required this.onUpdate,
+    required this.columns,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'referencedTable': referencedTable,
+      'matchType': matchType?.toJson(),
+      'onDelete': onDelete?.toJson(),
+      'onUpdate': onUpdate?.toJson(),
+      'columns': columns.map((x) => x.toJson()).toList(),
+    };
+  }
+
+  @override
+  String toString() {
+    return 'SqlReference${toJson()}';
+  }
+}
+
+enum ReferenceOption {
+  RESTRICT,
+  CASCADE,
+  SET_NULL,
+  NO_ACTION,
+  SET_DEFAULT,
+}
+
+extension ReferenceOptionExt on ReferenceOption {
+  String toJson() => toString().split('.')[1];
 }
 
 class SqlColumn {
@@ -108,7 +238,7 @@ class SqlColumn {
 
   @override
   String toString() {
-    return toJson().toString();
+    return 'SqlColumn${toJson()}';
   }
 
   Map<String, dynamic> toJson() {

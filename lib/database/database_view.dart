@@ -15,7 +15,6 @@ class DatabaseTabView extends HookWidget {
     return Row(
       children: [
         Expanded(
-          flex: 2,
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: TextField(
@@ -31,13 +30,40 @@ class DatabaseTabView extends HookWidget {
           ),
         ),
         Expanded(
+          flex: 2,
           child: Observer(
             builder: (context) {
               final parseResult = store.parsedTableDefinition.value;
-              return Text(parseResult.toString());
+              return Column(
+                children: [
+                  Expanded(
+                    child: DataTable(
+                      columns: const [
+                        DataColumn(label: Text('Name')),
+                        DataColumn(label: Text('Type')),
+                        DataColumn(label: Text('Nullable')),
+                        DataColumn(label: Text('Default')),
+                      ],
+                      rows: [],
+                    ),
+                  ),
+                  Expanded(
+                    child: DataTable(
+                      columns: const [
+                        DataColumn(label: Text('Name')),
+                        DataColumn(label: Text('Type')),
+                        DataColumn(label: Text('Nullable')),
+                        DataColumn(label: Text('Default')),
+                      ],
+                      rows: [],
+                    ),
+                  ),
+                  Expanded(child: Text(parseResult.toString())),
+                ],
+              );
             },
           ),
-        ),
+        )
       ],
     );
   }
