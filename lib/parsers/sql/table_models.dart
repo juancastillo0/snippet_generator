@@ -1,5 +1,8 @@
 // ignore_for_file: constant_identifier_names
+import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/parsers/sql/data_type_model.dart';
+import 'package:snippet_generator/parsers/sql/table_models_templates.dart';
+import 'package:snippet_generator/utils/extensions.dart';
 
 class SqlTable {
   final String name;
@@ -25,12 +28,18 @@ class SqlTable {
   final List<SqlColumn> columns;
   final List<SqlTableKey> tableKeys;
   final List<SqlForeignKey> foreignKeys;
+  final List<Token<String>> errors;
+  final Token? token;
 
-  const SqlTable({
+  late final templates = SqlTableTemplate(table: this);
+
+  SqlTable({
     required this.name,
     required this.columns,
     required this.tableKeys,
     required this.foreignKeys,
+    this.errors = const [],
+    this.token,
   });
 
   @override
@@ -59,6 +68,7 @@ class SqlTableKey {
   final bool primary;
 
   final List<SqlKeyItem> columns;
+  final Token? token;
 
   const SqlTableKey({
     this.constraintName,
@@ -67,8 +77,10 @@ class SqlTableKey {
     required this.unique,
     required this.primary,
     required this.columns,
+    this.token,
   })  : assert(!primary || unique),
         assert(!primary || (indexName == null || indexName == 'PRIMARY')),
+        assert(constraintName == null || unique || primary),
         index = index ?? SqlIndexType.BTREE,
         indexName = primary ? 'PRIMARY' : indexName;
 
@@ -125,10 +137,33 @@ class SqlForeignKey {
     };
   }
 
+  List<Tuple3<SqlForeignKey, String, SqlKeyItem>> colItems() {
+    return ownColumns
+        .mapIndex(
+          (c, ind) => ind >= reference.columns.length
+              ? null
+              : Tuple3(
+                  this,
+                  c,
+                  reference.columns[ind],
+                ),
+        )
+        .whereType<Tuple3<SqlForeignKey, String, SqlKeyItem>>()
+        .toList();
+  }
+
   @override
   String toString() {
     return 'SqlForeignKey${toJson()}';
   }
+}
+
+class Tuple3<F, S, L> {
+  final F first;
+  final S second;
+  final L last;
+
+  const Tuple3(this.first, this.second, this.last);
 }
 
 class SqlKeyItem {
@@ -166,24 +201,25 @@ extension ReferenceMatchTypeExt on ReferenceMatchType {
 class SqlReference {
   final String referencedTable;
   final ReferenceMatchType? matchType;
-  final ReferenceOption? onDelete;
-  final ReferenceOption? onUpdate;
+  final ReferenceOption onDelete;
+  final ReferenceOption onUpdate;
   final List<SqlKeyItem> columns;
 
   SqlReference({
     required this.referencedTable,
     required this.matchType,
-    required this.onDelete,
-    required this.onUpdate,
+    ReferenceOption? onDelete,
+    ReferenceOption? onUpdate,
     required this.columns,
-  });
+  })  : onDelete = onDelete ?? ReferenceOption.NO_ACTION,
+        onUpdate = onUpdate ?? ReferenceOption.NO_ACTION;
 
   Map<String, dynamic> toJson() {
     return {
       'referencedTable': referencedTable,
       'matchType': matchType?.toJson(),
-      'onDelete': onDelete?.toJson(),
-      'onUpdate': onUpdate?.toJson(),
+      'onDelete': onDelete.toJson(),
+      'onUpdate': onUpdate.toJson(),
       'columns': columns.map((x) => x.toJson()).toList(),
     };
   }
@@ -219,6 +255,7 @@ class SqlColumn {
   final String? generatedValue;
   final bool virtual;
   final bool alwaysGenerated;
+  final SqlColumnTokens? tokens;
 
   const SqlColumn({
     required this.name,
@@ -233,6 +270,7 @@ class SqlColumn {
     this.generatedValue,
     this.virtual = false,
     this.alwaysGenerated = false,
+    this.tokens,
   })  : assert(generatedValue == null || defaultValue == null),
         assert(generatedValue == null || alwaysGenerated == false);
 
@@ -245,6 +283,58 @@ class SqlColumn {
     return {
       'name': name,
       'type': type.toJson(),
+      'autoIncrement': autoIncrement,
+      'unique': unique,
+      'primary': primary,
+      'defaultValue': defaultValue,
+      'nullable': nullable,
+      'collation': collation,
+      'visible': visible,
+      'generatedValue': generatedValue,
+      'virtual': virtual,
+      'alwaysGenerated': alwaysGenerated,
+    };
+  }
+}
+
+class SqlColumnTokens {
+  final Token? name;
+  final Token? type;
+  final Token? autoIncrement;
+  final Token? unique;
+  final Token? primary;
+  final Token? defaultValue;
+  final Token? nullable;
+  final Token? collation;
+  final Token? visible;
+  final Token? generatedValue;
+  final Token? virtual;
+  final Token? alwaysGenerated;
+
+  const SqlColumnTokens({
+    required this.name,
+    required this.type,
+    required this.autoIncrement,
+    required this.unique,
+    required this.primary,
+    required this.defaultValue,
+    required this.nullable,
+    required this.collation,
+    required this.visible,
+    required this.generatedValue,
+    required this.virtual,
+    required this.alwaysGenerated,
+  });
+
+  @override
+  String toString() {
+    return 'SqlColumn${toJson()}';
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'type': type,
       'autoIncrement': autoIncrement,
       'unique': unique,
       'primary': primary,

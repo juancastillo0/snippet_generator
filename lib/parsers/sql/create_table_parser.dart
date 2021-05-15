@@ -19,6 +19,12 @@ final _symbol = ((char('`') & pattern('^`').star().flatten() & char('`'))
         word().plus().flatten().trim())
     .cast<String>();
 
+final createTableListParser = createTableParser.separatedBy<SqlTable>(
+  char(';').trim(),
+  includeSeparators: false,
+  optionalSeparatorAtEnd: true,
+);
+
 final createTableParser = (_token('CREATE') &
         _token('TABLE') &
         _symbol &
@@ -31,10 +37,18 @@ final createTableParser = (_token('CREATE') &
     columns: list.whereType<SqlColumn>().toList(),
     tableKeys: list.whereType<SqlTableKey>().toList(),
     foreignKeys: list.whereType<SqlForeignKey>().toList(),
+    errors: list.whereType<Token<String>>().toList(),
   );
 });
 
-final _tableItem = _columnDefinition | _constraintDefinition | _indexDefinition;
+final _tableItem = _columnDefinition |
+    _constraintDefinition |
+    _indexDefinition |
+    ((char(',') | char('(') | char(')')).neg().plus() &
+            (char('(') & char(')').neg().star() & char(')')).optional())
+        .plus()
+        .flatten()
+        .token();
 
 final _constraintDefinition = ((_token('CONSTRAINT') & _symbol.optional())
             .optional() &
@@ -85,7 +99,9 @@ final _indexDefinition = (((_token('INDEX') | _token('KEY')) &
                 (_token('INDEX') | _token('KEY')).optional() &
                 _symbol.optional()) &
         _keysParser)
-    .map((value) {
+    .token()
+    .map((tokenValue) {
+  final value = tokenValue.value;
   final list = value.first as List;
   final f = (list.first as String).toUpperCase();
   final String? index;
@@ -107,6 +123,7 @@ final _indexDefinition = (((_token('INDEX') | _token('KEY')) &
         : parseEnum(index, SqlIndexType.values, caseSensitive: false),
     columns: columns,
     indexName: name,
+    token: tokenValue,
   );
 });
 
@@ -142,21 +159,21 @@ final _referenceDefinition = (_token('REFERENCES') &
         (_token('MATCH') &
                 (_token('FULL') | _token('PARTIAL') | _token('SIMPLE')))
             .optional() &
-        (_token('ON') &
-                (_token('DELETE') | _token('UPDATE')) &
-                referenceOptionParser)
-            .optional())
+        (_token('ON') & _token('DELETE') & referenceOptionParser).optional() &
+        (_token('ON') & _token('UPDATE') & referenceOptionParser).optional())
     .map((value) {
   final tableName = value[1] as String;
   final match = value[3] is List ? value[3][1] as String : null;
+  final onDelete = value[4] is List ? value[4].last as ReferenceOption : null;
+  final onUpdate = value[5] is List ? value[5].last as ReferenceOption : null;
   return SqlReference(
     referencedTable: tableName,
     matchType: match == null
         ? null
         : parseEnum(match, ReferenceMatchType.values, caseSensitive: false),
     columns: value[2] as List<SqlKeyItem>,
-    onDelete: null,
-    onUpdate: null,
+    onDelete: onDelete,
+    onUpdate: onUpdate,
   );
 });
 
@@ -175,15 +192,19 @@ final referenceOptionParser = (_token('RESTRICT') |
   return parseEnum(_str, ReferenceOption.values, caseSensitive: false)!;
 });
 
-final _columnDefinition = (_symbol &
-        sqlDataTypeParser &
-        ((_token('NOT').optional() & _token('NULL')).optional() &
-                (_token('DEFAULT') & _sqlLiteral.trim()).optional() &
-                (_token('VISIBLE') | _token('INVISIBLE')).optional() &
-                _token('AUTO_INCREMENT').optional() &
-                (_token('UNIQUE') & _token('KEY').optional()).optional() &
-                (_token('PRIMARY').optional() & _token('KEY')).optional() &
-                collateParser.optional() |
+final _columnDefinition = (_symbol.token() &
+        sqlDataTypeParser.token() &
+        ((_token('NOT').optional() & _token('NULL')).token().optional() &
+                (_token('DEFAULT') & _sqlLiteral.trim()).token().optional() &
+                (_token('VISIBLE') | _token('INVISIBLE')).token().optional() &
+                _token('AUTO_INCREMENT').token().optional() &
+                (_token('UNIQUE') & _token('KEY').optional())
+                    .token()
+                    .optional() &
+                (_token('PRIMARY').optional() & _token('KEY'))
+                    .token()
+                    .optional() &
+                collateParser.token().optional() |
             collateParser.optional() &
                 (_token('GENERATED') & _token('ALWAYS')).optional() &
                 _token('AS') &
@@ -194,28 +215,45 @@ final _columnDefinition = (_symbol &
                 (_token('UNIQUE') & _token('KEY').optional()).optional() &
                 (_token('PRIMARY').optional() & _token('KEY')).optional()))
     .map((value) {
-  final name = value[0] as String;
-  final type = value[1] as SqlType;
+  final name = value[0] as Token<String>;
+  final type = value[1] as Token<SqlType>;
 
   final opts = value[2] as List;
 
   if (opts[2] != 'AS') {
-    return SqlColumn(
+    final tokens = SqlColumnTokens(
       name: name,
       type: type,
-      nullable: opts[0] == null || opts[0][0] == null,
-      defaultValue: opts[1] == null ? null : opts[1][1] as String,
-      visible:
-          opts[2] == null || (opts[2] as String).toUpperCase() == 'VISIBLE',
-      autoIncrement: opts[3] != null,
-      unique: opts[4] != null,
-      primary: opts[5] != null,
-      collation: opts[6] as String?,
+      nullable: opts[0] as Token?,
+      defaultValue: opts[1] as Token?,
+      visible: opts[2] as Token?,
+      autoIncrement: opts[3] as Token?,
+      unique: opts[4] as Token?,
+      primary: opts[5] as Token?,
+      collation: opts[6] as Token?,
+      alwaysGenerated: null,
+      generatedValue: null,
+      virtual: null,
+    );
+    return SqlColumn(
+      name: name.value,
+      type: type.value,
+      nullable: (tokens.nullable?.value as List?)?.get(0) == null,
+      defaultValue: tokens.defaultValue == null
+          ? null
+          : tokens.defaultValue!.value[1] as String,
+      visible: tokens.visible == null ||
+          (tokens.visible!.value as String).toUpperCase() == 'VISIBLE',
+      autoIncrement: tokens.autoIncrement != null,
+      unique: tokens.unique != null,
+      primary: tokens.primary != null,
+      collation: tokens.collation?.value as String?,
+      tokens: tokens,
     );
   } else {
     return SqlColumn(
-      name: name,
-      type: type,
+      name: name.value,
+      type: type.value,
     );
   }
 });
@@ -232,3 +270,9 @@ final sqlStringLiteral =
 
 final collateParser =
     (_token('COLLATE') & word().plus().flatten().trim()).pick(1).cast<String>();
+
+extension GetFromList<T> on List<T> {
+  T? get(int index) {
+    return length <= index || index < 0 ? null : this[index];
+  }
+}
