@@ -41,10 +41,12 @@ extension IndexedMap<T> on Iterable<T> {
   }
 }
 
-T? parseEnum<T>(String rawString, List<T> enumValues, {bool caseSensitive = true}) {
+T? parseEnum<T>(String rawString, List<T> enumValues,
+    {bool caseSensitive = true}) {
   final _rawStringComp = caseSensitive ? rawString : rawString.toLowerCase();
   for (final value in enumValues) {
-    final str = caseSensitive ? value.toString() : value.toString().toLowerCase();
+    final str =
+        caseSensitive ? value.toString() : value.toString().toLowerCase();
     if (str == _rawStringComp || str.split(".")[1] == _rawStringComp) {
       return value;
     }
@@ -78,6 +80,16 @@ extension ListenableBuilder on Listenable {
 extension ValueNotifierSetter<T> on ValueNotifier<T> {
   void set(T newValue) {
     this.value = newValue;
+  }
+}
+
+extension MapSetter<K, T> on Map<K, T> {
+  void set(K key, T newValue) {
+    this[key] = newValue;
+  }
+
+  T? get(K key) {
+    return this[key];
   }
 }
 

@@ -150,11 +150,16 @@ class AppNotifierWithDefault<T> extends AppNotifier<T?> {
 class TextNotifier extends AppNotifier<String> {
   TextNotifier({
     String? initialText,
+    TextEditingController? controller,
     dynamic parent,
     String? name,
     bool? isRequired,
-  })  : controller = TextEditingController(text: initialText),
-        super(initialText ?? '', name: name, isRequired: isRequired) {
+  })  : controller = controller ?? TextEditingController(text: initialText),
+        super(controller?.text ?? initialText ?? '', name: name, isRequired: isRequired) {
+    _init();
+  }
+
+  void _init() {
     controller.addListener(() {
       if (this.value != controller.text) {
         this.value = controller.text;
