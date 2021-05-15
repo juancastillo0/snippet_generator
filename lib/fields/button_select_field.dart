@@ -93,6 +93,7 @@ class CustomDropdownField<T> extends HookWidget {
   final T? selected;
   final String Function(T) asString;
   final void Function(T) onChange;
+  final EdgeInsetsGeometry? padding;
 
   const CustomDropdownField({
     Key? key,
@@ -100,6 +101,7 @@ class CustomDropdownField<T> extends HookWidget {
     required this.asString,
     required this.onChange,
     required this.options,
+    this.padding,
   }) : super(key: key);
 
   @override
@@ -118,7 +120,7 @@ class CustomDropdownField<T> extends HookWidget {
               : _baseColor.withOpacity(0.05),
           borderRadius: BorderRadius.circular(3),
         ),
-        padding: const EdgeInsets.only(
+        padding: padding ?? const EdgeInsets.only(
           left: 8,
           right: 8,
           bottom: 8,

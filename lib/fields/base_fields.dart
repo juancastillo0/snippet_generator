@@ -51,6 +51,7 @@ class IntInput extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    const _size = 20.0;
     final input = useTextInput<int>(
       value,
       onChanged,
@@ -59,8 +60,8 @@ class IntInput extends HookWidget {
     final _buttonStyle = TextButton.styleFrom(
       padding: EdgeInsets.zero,
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      fixedSize: const Size(20, 20),
-      minimumSize: const Size(20, 20),
+      fixedSize: const Size(_size, _size),
+      minimumSize: const Size(_size, _size),
     );
 
     return Row(
@@ -88,7 +89,7 @@ class IntInput extends HookWidget {
                       onChanged(value! + 1);
                     },
               style: _buttonStyle,
-              child: const Icon(Icons.arrow_drop_up, size: 18),
+              child: const Icon(Icons.arrow_drop_up, size: _size - 2),
             ),
             TextButton(
               onPressed: value == null
@@ -97,7 +98,7 @@ class IntInput extends HookWidget {
                       onChanged(value! - 1);
                     },
               style: _buttonStyle,
-              child: const Icon(Icons.arrow_drop_down, size: 18),
+              child: const Icon(Icons.arrow_drop_down, size: _size - 2),
             ),
           ],
         ),
