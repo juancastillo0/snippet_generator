@@ -9,14 +9,6 @@ import 'package:snippet_generator/types/type_models.dart';
 import 'package:snippet_generator/types/templates/serde_templates.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 
-extension CasingString on String {
-  String firstToLowerCase() =>
-      length > 0 ? substring(0, 1).toLowerCase() + substring(1) : this;
-  String firstToUpperCase() =>
-      length > 0 ? substring(0, 1).toUpperCase() + substring(1) : this;
-  String asVariableName() => replaceFirst("_", "").firstToLowerCase();
-}
-
 extension _ClassConfigTemplateExtension on ClassConfig {
   String get _classNameWithGenericIds => templates._classNameWithGenericIds;
 }
