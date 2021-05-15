@@ -42,6 +42,8 @@ CREATE TABLE `type_message` (
 );
 """;
 
+enum TextView { import, dartCode }
+
 class DatabaseStore with PropsSerializable {
   @override
   final String name;
@@ -67,6 +69,10 @@ class DatabaseStore with PropsSerializable {
     () => createTableListParser.parse(rawTableDefinition.text),
   );
 
+  List<SqlTable> get tablesOrEmpty => parsedTableDefinition.value.isSuccess
+      ? parsedTableDefinition.value.value
+      : const [];
+
   final _selectedIndex = AppNotifier(0, name: 'selectedIndex');
   late final Computed<SqlTable?> selectedTable = Computed(
     () => parsedTableDefinition.value.isSuccess &&
@@ -78,6 +84,8 @@ class DatabaseStore with PropsSerializable {
   void selectIndex(int index) {
     _selectedIndex.value = index;
   }
+
+  final selectedTab = AppNotifier(TextView.import);
 
   List<TextRange> _errors() => parsedTableDefinition.value.isSuccess
       ? parsedTableDefinition.value.value

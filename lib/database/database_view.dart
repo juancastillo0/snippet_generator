@@ -10,8 +10,9 @@ import 'package:snippet_generator/globals/hook_observer.dart';
 import 'package:snippet_generator/parsers/sql/data_type_model.dart';
 import 'package:snippet_generator/parsers/sql/table_models.dart';
 import 'package:snippet_generator/types/root_store.dart';
-import 'package:snippet_generator/utils/extensions.dart';
+import 'package:snippet_generator/types/views/code_generated.dart';
 import 'package:snippet_generator/utils/formatters.dart';
+import 'package:snippet_generator/widgets/horizontal_item_list.dart';
 
 double get _columnSpacing => 14;
 double get _dataRowHeight => 26;
@@ -35,66 +36,95 @@ class DatabaseTabView extends HookWidget {
       children: [
         Expanded(
           flex: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: TextField(
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-              style: GoogleFonts.cousine(fontSize: 13),
-              controller: store.rawTableDefinition.controller,
-              expands: true,
-              maxLines: null,
-              minLines: null,
-            ),
-          ),
+          child: Observer(builder: (context) {
+            final tab = store.selectedTab;
+
+            return Column(
+              children: [
+                HorizontalItemList<TextView>(
+                  items: TextView.values,
+                  onSelected: (v, index) {
+                    tab.value = v;
+                  },
+                  selected: tab.value,
+                  buildItem: (e) =>
+                      Text(e == TextView.import ? 'Import' : 'Dart Code'),
+                ),
+                Expanded(
+                  child: IndexedStack(
+                    index: tab.value.index,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: LayoutBuilder(
+                          builder: (context, box) {
+                            return SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Observer(builder: (context) {
+                                final list =
+                                    store.rawTableDefinition.value.split('\n');
+                                final _maxCharacters = list.isEmpty
+                                    ? 100
+                                    : list
+                                        .reduce(
+                                          (value, element) =>
+                                              value.length > element.length
+                                                  ? value
+                                                  : element,
+                                        )
+                                        .length;
+                                final _w = _maxCharacters * 8 + 20.0;
+                                return SizedBox(
+                                  width: box.maxWidth > _w ? box.maxWidth : _w,
+                                  child: TextField(
+                                    decoration: const InputDecoration(
+                                      border: OutlineInputBorder(),
+                                    ),
+                                    style: GoogleFonts.cousine(fontSize: 13),
+                                    controller:
+                                        store.rawTableDefinition.controller,
+                                    expands: true,
+                                    maxLines: null,
+                                    minLines: null,
+                                  ),
+                                );
+                              }),
+                            );
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                        child: CodeGenerated(
+                          sourceCode: store.selectedTable.value?.templates
+                                  .dartClass(store.tablesOrEmpty) ??
+                              'Invalid SQL Code',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }),
         ),
         Expanded(
           flex: 5,
           child: Column(
             children: [
-              Observer(builder: (context) {
-                final parseResult = store.parsedTableDefinition.value;
-                final colorScheme = Theme.of(context).colorScheme;
-                return Container(
-                  height: 35,
-                  margin: const EdgeInsets.only(bottom: 7),
-                  decoration: BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        color: colorScheme.onSurface.withOpacity(0.1),
-                        blurRadius: 3,
-                        spreadRadius: 1,
-                      )
-                    ],
-                    color: colorScheme.surface,
-                  ),
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      ...parseResult.isFailure
-                          ? []
-                          : parseResult.value.mapIndex(
-                              (e, index) => TextButton(
-                                style: TextButton.styleFrom(
-                                  backgroundColor:
-                                      store.selectedTable.value == e
-                                          ? colorScheme.primary.withOpacity(0.2)
-                                          : null,
-                                  shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.zero,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  store.selectIndex(index);
-                                },
-                                child: Text(e.name),
-                              ),
-                            )
-                    ],
-                  ),
-                );
-              }),
+              Observer(
+                builder: (context) {
+                  final parseResult = store.tablesOrEmpty;
+                  return HorizontalItemList<SqlTable>(
+                    items: parseResult,
+                    onSelected: (_, index) {
+                      store.selectIndex(index);
+                    },
+                    selected: store.selectedTable.value,
+                    buildItem: (e) => Text(e.name),
+                  );
+                },
+              ),
               Expanded(
                 flex: 1,
                 child: SingleChildScrollView(
