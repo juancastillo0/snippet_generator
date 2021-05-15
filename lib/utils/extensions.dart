@@ -93,4 +93,41 @@ extension MapSetter<K, T> on Map<K, T> {
   }
 }
 
+extension CasingString on String {
+  String firstToLowerCase() =>
+      length > 0 ? substring(0, 1).toLowerCase() + substring(1) : this;
+  String firstToUpperCase() =>
+      length > 0 ? substring(0, 1).toUpperCase() + substring(1) : this;
+  String asVariableName() => replaceFirst("_", "").firstToLowerCase();
+
+  String snakeToCamel({bool firstUpperCase = false}) {
+    int lastIndex = 0;
+    int index = 0;
+
+    final buffer = StringBuffer();
+
+    void _add() {
+      if (index <= lastIndex) {
+        return;
+      }
+      final _toAdd = this.substring(lastIndex, index);
+      buffer.write(lastIndex != 0 || firstUpperCase
+          ? _toAdd.firstToUpperCase()
+          : _toAdd);
+    }
+
+    for (final codeUnit in this.codeUnits) {
+      final char = String.fromCharCode(codeUnit);
+      if (char == '_') {
+        _add();
+        lastIndex = index + 1;
+      }
+      index += 1;
+    }
+    _add();
+
+    return buffer.toString();
+  }
+}
+
 const dynamic importExtensions = null;

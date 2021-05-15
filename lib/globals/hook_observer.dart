@@ -647,11 +647,11 @@ BuildContext useContext() {
 }
 
 /// A [HookWidget] that defer its `build` to a callback
-class HookObserverBuilder extends HookObserverWidget {
+class HookObserver extends HookObserverWidget {
   /// Creates a widget that delegates its build to a callback.
   ///
   /// The [builder] argument must not be null.
-  const HookObserverBuilder({
+  const HookObserver({
     required this.builder,
     Key? key,
   }) : super(key: key);
