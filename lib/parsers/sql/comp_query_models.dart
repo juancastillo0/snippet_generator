@@ -29,7 +29,7 @@ extension ToSqlBinaryComp on BinaryCompOperator {
   }
 }
 
-class SqlNullComp<T> extends SqlWhereModel {
+class SqlNullComp<T extends SqlValue<T>> extends SqlBoolValue {
   final SqlValue<T> value;
   final bool negated;
 
@@ -41,7 +41,7 @@ class SqlNullComp<T> extends SqlWhereModel {
   }
 }
 
-class SqlCompBinary<T> extends SqlWhereModel {
+class SqlCompBinary<T extends SqlValue<T>> extends SqlBoolValue {
   final SqlValue<T> left;
   final SqlValue<T> right;
   final BinaryCompOperator op;
@@ -54,7 +54,7 @@ class SqlCompBinary<T> extends SqlWhereModel {
   }
 }
 
-class SqlIn<T> extends SqlWhereModel {
+class SqlIn<T extends SqlValue<T>> extends SqlBoolValue {
   final SqlValue<T> value;
   final List<SqlValue<T>> list;
 

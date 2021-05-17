@@ -1,24 +1,24 @@
-abstract class SqlWhereModel {
-  const SqlWhereModel();
+import 'package:snippet_generator/parsers/sql/sql_values.dart';
 
-  const factory SqlWhereModel.rawSql(String sql) = SqlWhereRaw;
+abstract class SqlBoolValue extends SqlValue<SqlBoolValue> {
+  const SqlBoolValue();
 
-  SqlWhereModel and(SqlWhereModel other) =>
-      _SqBoolOp(BoolOperand.and, [this, other]);
+  const factory SqlBoolValue.rawSql(String sql) = SqlWhereRaw;
 
-  SqlWhereModel or(SqlWhereModel other) =>
-      _SqBoolOp(BoolOperand.or, [this, other]);
+  SqlBoolValue and(SqlBoolValue other) =>
+      _SqBoolOp(BoolOperator.and, [this, other]);
 
-  SqlWhereModel neg() => _SqlNegOp(this);
+  SqlBoolValue or(SqlBoolValue other) =>
+      _SqBoolOp(BoolOperator.or, [this, other]);
 
-  String toSql();
+  SqlBoolValue neg() => _SqlNegOp(this);
 }
 
 // BETWEEN
 // EXISTS
 // LIKE
 
-class SqlWhereRaw extends SqlWhereModel {
+class SqlWhereRaw extends SqlBoolValue {
   final String rawSql;
 
   const SqlWhereRaw(this.rawSql);
@@ -27,32 +27,30 @@ class SqlWhereRaw extends SqlWhereModel {
   String toSql() => rawSql;
 }
 
-enum BoolOperand {
+enum BoolOperator {
   and,
   or,
 }
 
-class _SqBoolOp extends SqlWhereModel {
-  final List<SqlWhereModel> operands;
-  final BoolOperand op;
+class _SqBoolOp extends SqlBoolValue {
+  final List<SqlBoolValue> operands;
+  final BoolOperator op;
 
   const _SqBoolOp(this.op, this.operands);
 
   @override
-  SqlWhereModel and(SqlWhereModel other) {
-    if (op == BoolOperand.and) {
-      operands.add(other);
-      return this;
+  SqlBoolValue and(SqlBoolValue other) {
+    if (op == BoolOperator.and) {
+      return _SqBoolOp(op, [...operands, other]);
     } else {
       return super.and(other);
     }
   }
 
   @override
-  SqlWhereModel or(SqlWhereModel other) {
-    if (op == BoolOperand.or) {
-      operands.add(other);
-      return this;
+  SqlBoolValue or(SqlBoolValue other) {
+    if (op == BoolOperator.or) {
+      return _SqBoolOp(op, [...operands, other]);
     } else {
       return super.or(other);
     }
@@ -63,18 +61,18 @@ class _SqBoolOp extends SqlWhereModel {
     return '(' +
         operands
             .map((e) => e.toSql())
-            .join(op == BoolOperand.or ? ' OR ' : ' AND ') +
+            .join(op == BoolOperator.or ? ' OR ' : ' AND ') +
         ')';
   }
 }
 
-class _SqlNegOp extends SqlWhereModel {
-  final SqlWhereModel inner;
+class _SqlNegOp extends SqlBoolValue {
+  final SqlBoolValue inner;
 
   const _SqlNegOp(this.inner);
 
   @override
-  SqlWhereModel neg() {
+  SqlBoolValue neg() {
     return inner;
   }
 
