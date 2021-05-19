@@ -23,8 +23,8 @@ jobs:
         with:
           channel: "dev"
       
-      - run: flutter channel master
-      - run: flutter upgrade
+      # - run: flutter channel master
+      # - run: flutter upgrade
 
       - name: Enable Flutter web
         run: flutter config --enable-web
