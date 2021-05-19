@@ -1,11 +1,16 @@
-import 'package:snippet_generator/parsers/sql/bool_query_models.dart';
-import 'package:snippet_generator/parsers/sql/comp_query_models.dart';
+import 'package:snippet_generator/database/models/bool_query_models.dart';
+import 'package:snippet_generator/database/models/comp_query_models.dart';
+
+export 'package:snippet_generator/database/models/bool_query_models.dart';
+export 'package:snippet_generator/database/models/comp_query_models.dart';
+export 'package:snippet_generator/database/models/order_query_models.dart';
 
 abstract class SqlValue<T extends SqlValue<T>> {
   const SqlValue();
 
   const factory SqlValue.raw(String raw) = SqlRawValue;
   const factory SqlValue.rawFn(String Function() raw) = SqlRawFuncValue;
+  const factory SqlValue.coalesce(List<T> values) = SqlCoalesceValue;
   const factory SqlValue.caseWhen(
     List<MapEntry<SqlBoolValue, T>> conditions, {
     T? elseValue,
@@ -46,6 +51,17 @@ abstract class SqlValue<T extends SqlValue<T>> {
 
   SqlBoolValue isNotNull() => SqlNullComp(this, negated: true);
   SqlBoolValue isNull() => SqlNullComp(this, negated: false);
+}
+
+class SqlCoalesceValue<T extends SqlValue<T>> extends SqlValue<T> {
+  final List<T> values;
+
+  const SqlCoalesceValue(this.values);
+
+  @override
+  String toSql() {
+    return "COALESCE(${values.map((e) => e.toSql()).join(',')})";
+  }
 }
 
 class SqlCaseValue<T extends SqlValue<T>> extends SqlValue<T> {
@@ -98,6 +114,21 @@ class SqlStringValue extends SqlValue<SqlStringValue> {
 
   @override
   String toSql() => "'$value'";
+}
+
+extension SqlStringValueExt on SqlValue<SqlStringValue> {
+  SqlValue<SqlBoolValue> like(String pattern) {
+    return SqlBoolLikeValue(this, pattern);
+  }
+}
+
+class SqlBoolLikeValue extends SqlBoolValue {
+  final SqlValue<SqlStringValue> value;
+  final String pattern;
+  const SqlBoolLikeValue(this.value, this.pattern);
+
+  @override
+  String toSql() => "(${value.toSql()} LIKE '$pattern')";
 }
 
 abstract class SqlNumValue extends SqlValue<SqlNumValue> {
@@ -184,7 +215,7 @@ extension SqlJsonValueExt on SqlValue<SqlJsonValue> {
   }
 }
 
-enum SqlDateVariant {
+enum SqlDateType {
   dateTime,
   date,
   time,
@@ -193,24 +224,24 @@ enum SqlDateVariant {
 
 class SqlDateValue extends SqlValue<SqlDateValue> {
   final DateTime value;
-  final SqlDateVariant variant;
+  final SqlDateType variant;
   const SqlDateValue(this.value, this.variant);
 
-  const SqlDateValue.dateTime(this.value) : variant = SqlDateVariant.dateTime;
-  const SqlDateValue.date(this.value) : variant = SqlDateVariant.date;
-  const SqlDateValue.time(this.value) : variant = SqlDateVariant.time;
-  const SqlDateValue.year(this.value) : variant = SqlDateVariant.year;
+  const SqlDateValue.dateTime(this.value) : variant = SqlDateType.dateTime;
+  const SqlDateValue.date(this.value) : variant = SqlDateType.date;
+  const SqlDateValue.time(this.value) : variant = SqlDateType.time;
+  const SqlDateValue.year(this.value) : variant = SqlDateType.year;
 
   @override
   String toSql() {
     switch (variant) {
-      case SqlDateVariant.dateTime:
+      case SqlDateType.dateTime:
         return "'${value.toString()}'";
-      case SqlDateVariant.date:
+      case SqlDateType.date:
         return "'${value.toString().split(' ')[0]}'";
-      case SqlDateVariant.time:
+      case SqlDateType.time:
         return "'${value.toString().split(' ')[1]}'";
-      case SqlDateVariant.year:
+      case SqlDateType.year:
         return value.year.toString();
     }
   }

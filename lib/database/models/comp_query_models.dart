@@ -1,5 +1,5 @@
-import 'package:snippet_generator/parsers/sql/bool_query_models.dart';
-import 'package:snippet_generator/parsers/sql/sql_values.dart';
+import 'package:snippet_generator/database/models/bool_query_models.dart';
+import 'package:snippet_generator/database/models/sql_values.dart';
 
 enum BinaryCompOperator {
   eq,
