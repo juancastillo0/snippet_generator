@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:snippet_generator/database/database_store.dart';
+import 'package:snippet_generator/database/models/sql_values.dart';
 import 'package:snippet_generator/fields/base_fields.dart';
 import 'package:snippet_generator/fields/button_select_field.dart';
 import 'package:snippet_generator/globals/hook_observer.dart';
@@ -12,6 +13,7 @@ import 'package:snippet_generator/parsers/sql/table_models.dart';
 import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/types/views/code_generated.dart';
 import 'package:snippet_generator/utils/formatters.dart';
+import 'package:snippet_generator/utils/tt.dart';
 import 'package:snippet_generator/widgets/horizontal_item_list.dart';
 
 double get _columnSpacing => 14;
@@ -47,8 +49,9 @@ class DatabaseTabView extends HookWidget {
                     tab.value = v;
                   },
                   selected: tab.value,
-                  buildItem: (e) =>
-                      Text(e == TextView.import ? 'Import' : 'Dart Code'),
+                  buildItem: (e) => Text(e == TextView.import
+                      ? 'Import'
+                      : (e == TextView.dartCode ? 'Dart Code' : 'Sql Builder')),
                 ),
                 Expanded(
                   child: IndexedStack(
@@ -100,6 +103,22 @@ class DatabaseTabView extends HookWidget {
                                   .dartClass(store.tablesOrEmpty) ??
                               'Invalid SQL Code',
                         ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                        child: Builder(builder: (context) {
+                          final cols = MessageCols('message');
+                          return CodeGenerated(
+                            sourceCode: Message.selectSql(
+                              withRoom: true,
+                              limit: const SqlLimit(100, offset: 50),
+                              orderBy: [
+                                SqlOrderItem(cols.numId),
+                              ],
+                              where: cols.read.equalTo(4.sql).or(cols.text.like('%bbb%')),
+                            ),
+                          );
+                        }),
                       ),
                     ],
                   ),

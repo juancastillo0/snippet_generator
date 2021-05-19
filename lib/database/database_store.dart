@@ -42,7 +42,7 @@ CREATE TABLE `type_message` (
 );
 """;
 
-enum TextView { import, dartCode }
+enum TextView { import, dartCode, sqlBuilder }
 
 class DatabaseStore with PropsSerializable {
   @override
