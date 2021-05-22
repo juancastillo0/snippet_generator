@@ -49,9 +49,17 @@ class DatabaseTabView extends HookWidget {
                     tab.value = v;
                   },
                   selected: tab.value,
-                  buildItem: (e) => Text(e == TextView.import
-                      ? 'Import'
-                      : (e == TextView.dartCode ? 'Dart Code' : 'Sql Builder')),
+                  buildItem: (e) {
+                    const _m = {
+                      TextView.import: 'Import Sql',
+                      TextView.dartCode: 'Dart Code',
+                      TextView.sqlCode: 'Sql Code',
+                      TextView.sqlBuilder: 'Sql Builder',
+                    };
+                    return Text(
+                      _m[e]!,
+                    );
+                  },
                 ),
                 Expanded(
                   child: IndexedStack(
@@ -107,16 +115,29 @@ class DatabaseTabView extends HookWidget {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 6.0),
                         child: Builder(builder: (context) {
-                          final cols = MessageCols('message');
                           return CodeGenerated(
-                            sourceCode: Message.selectSql(
-                              withRoom: true,
-                              limit: const SqlLimit(100, offset: 50),
-                              orderBy: [
-                                SqlOrderItem(cols.numId),
-                              ],
-                              where: cols.read.equalTo(4.sql).or(cols.text.like('%bbb%')),
-                            ),
+                            sourceCode: store.selectedTable.value?.sqlTemplates
+                                    .toSql() ??
+                                'Invalid SQL Code',
+                          );
+                        }),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                        child: Builder(builder: (context) {
+                          final cols = MessageCols('message');
+                          final _sqlQuery = Message.selectSql(
+                            withRoom: true,
+                            limit: const SqlLimit(100, offset: 50),
+                            orderBy: [
+                              SqlOrderItem(cols.numId, nullsFirst: true),
+                            ],
+                            where: cols.read
+                                .equalTo(4.sql)
+                                .or(cols.text.like('%bbb%')),
+                          );
+                          return CodeGenerated(
+                            sourceCode: _sqlQuery,
                           );
                         }),
                       ),
@@ -507,7 +528,7 @@ class IndexesTable extends HookObserverWidget {
                                 '${e.columnName}${e.ascendent ? "" : " DESC"}')
                             .join(' , '),
                         maxLines: 1)),
-                    DataCell(SelectableText(e.index.toJson(), maxLines: 1)),
+                    DataCell(SelectableText(e.indexType.toJson(), maxLines: 1)),
                     DataCell(
                         SelectableText(e.unique ? 'YES' : 'NO', maxLines: 1)),
                   ],

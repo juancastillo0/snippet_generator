@@ -42,7 +42,7 @@ CREATE TABLE `type_message` (
 );
 """;
 
-enum TextView { import, dartCode, sqlBuilder }
+enum TextView { import, dartCode, sqlCode, sqlBuilder }
 
 class DatabaseStore with PropsSerializable {
   @override
@@ -68,6 +68,8 @@ class DatabaseStore with PropsSerializable {
   late final Computed<Result<List<SqlTable>>> parsedTableDefinition = Computed(
     () => createTableListParser.parse(rawTableDefinition.text),
   );
+
+  final tables = AppNotifier<List<SqlTable>>([]);
 
   List<SqlTable> get tablesOrEmpty => parsedTableDefinition.value.isSuccess
       ? parsedTableDefinition.value.value
