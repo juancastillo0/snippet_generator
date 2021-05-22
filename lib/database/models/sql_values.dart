@@ -1,7 +1,9 @@
 import 'package:snippet_generator/database/models/bool_query_models.dart';
+import 'package:snippet_generator/database/models/collect_query_models.dart';
 import 'package:snippet_generator/database/models/comp_query_models.dart';
 
 export 'package:snippet_generator/database/models/bool_query_models.dart';
+export 'package:snippet_generator/database/models/collect_query_models.dart';
 export 'package:snippet_generator/database/models/comp_query_models.dart';
 export 'package:snippet_generator/database/models/order_query_models.dart';
 
@@ -10,11 +12,17 @@ abstract class SqlValue<T extends SqlValue<T>> {
 
   const factory SqlValue.raw(String raw) = SqlRawValue;
   const factory SqlValue.rawFn(String Function() raw) = SqlRawFuncValue;
-  const factory SqlValue.coalesce(List<T> values) = SqlCoalesceValue;
+  const factory SqlValue.coalesce(List<SqlValue<T>> values) = SqlCoalesceValue;
   const factory SqlValue.caseWhen(
     List<MapEntry<SqlBoolValue, T>> conditions, {
     T? elseValue,
   }) = SqlCaseValue;
+  const factory SqlValue.greatest(List<SqlValue<T>> values,
+      {required bool nullWithAnyNull}) = SqlAggCompValue.greatest;
+  const factory SqlValue.least(List<SqlValue<T>> values,
+      {required bool nullWithAnyNull}) = SqlAggCompValue.least;
+  const factory SqlValue.nullValue() = SqlNullValue;
+
   static SqlDateValue dateTime(DateTime value) => SqlDateValue.dateTime(value);
   static SqlDateValue date(DateTime value) => SqlDateValue.date(value);
   static SqlDateValue time(DateTime value) => SqlDateValue.time(value);
@@ -25,8 +33,6 @@ abstract class SqlValue<T extends SqlValue<T>> {
   static SqlDoubleValue decimal(double value) => SqlDoubleValue(value);
   static SqlJsonValue json(String value) => SqlJsonValue(value);
 
-  // ignore: prefer_void_to_null
-  static const nullValue = SqlNullValue();
   static const currentTimestamp =
       SqlValue<SqlDateValue>.raw('CURRENT_TIMESTAMP()');
   static const currentDate = SqlValue<SqlDateValue>.raw('CURRENT_DATE()');
@@ -51,34 +57,7 @@ abstract class SqlValue<T extends SqlValue<T>> {
 
   SqlBoolValue isNotNull() => SqlNullComp(this, negated: true);
   SqlBoolValue isNull() => SqlNullComp(this, negated: false);
-}
-
-class SqlCoalesceValue<T extends SqlValue<T>> extends SqlValue<T> {
-  final List<T> values;
-
-  const SqlCoalesceValue(this.values);
-
-  @override
-  String toSql() {
-    return "COALESCE(${values.map((e) => e.toSql()).join(',')})";
-  }
-}
-
-class SqlCaseValue<T extends SqlValue<T>> extends SqlValue<T> {
-  final List<MapEntry<SqlBoolValue, T>> conditions;
-  final T? elseValue;
-
-  const SqlCaseValue(this.conditions, {this.elseValue});
-
-  @override
-  String toSql() {
-    return """
-CASE
-${conditions.map((e) => 'WHEN ${e.key.toSql()} THEN ${e.value.toSql()}')}
-ELSE ${elseValue == null ? 'NULL' : elseValue!.toSql()}
-END
-""";
-  }
+  SqlValue<T> ifNull(SqlValue<T> value) => SqlCoalesceValue([this, value]);
 }
 
 class SqlRawValue<T extends SqlValue<T>> extends SqlValue<T> {
@@ -101,7 +80,7 @@ class SqlRawFuncValue<T extends SqlValue<T>> extends SqlValue<T> {
   }
 }
 
-class SqlNullValue extends SqlValue<SqlNullValue> {
+class SqlNullValue<T extends SqlValue<T>> extends SqlValue<T> {
   const SqlNullValue();
 
   @override

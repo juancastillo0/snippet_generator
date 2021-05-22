@@ -3,11 +3,12 @@ import 'package:snippet_generator/database/models/sql_values.dart';
 class SqlOrderItem {
   final SqlValue value;
   final bool desc;
+  final bool nullsFirst;
 
-  const SqlOrderItem(this.value, {this.desc = false});
+  const SqlOrderItem(this.value, {this.desc = false, this.nullsFirst = false});
 
   String toSql() {
-    return '${value.toSql()} ${desc ? "DESC" : "ASC"}';
+    return '${nullsFirst && !desc ? "${value.toSql()} IS NOT NULL," : ""}${value.toSql()} ${desc ? "DESC" : "ASC"}';
   }
 }
 

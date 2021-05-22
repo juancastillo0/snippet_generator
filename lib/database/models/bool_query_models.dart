@@ -4,6 +4,8 @@ abstract class SqlBoolValue extends SqlValue<SqlBoolValue> {
   const SqlBoolValue();
 
   const factory SqlBoolValue.rawSql(String sql) = SqlWhereRaw;
+  static const SqlValue<SqlBoolValue> trueValue = SqlWhereRaw('TRUE');
+  static const SqlValue<SqlBoolValue> falseValue = SqlWhereRaw('FALSE');
 }
 
 extension SqlBoolValueExt on SqlValue<SqlBoolValue> {
