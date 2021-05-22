@@ -1,4 +1,6 @@
 // ignore_for_file: constant_identifier_names
+import 'dart:math';
+
 import 'package:snippet_generator/utils/extensions.dart';
 
 abstract class SqlType {
@@ -20,7 +22,7 @@ abstract class SqlType {
     required String? characterSet,
   }) = _Enumeration;
   const factory SqlType.integer({
-    required int bits,
+    required int bytes,
     required bool unsigned,
     required bool zerofill,
   }) = _Integer;
@@ -33,6 +35,52 @@ abstract class SqlType {
   }) = _Decimal;
   const factory SqlType.json() = _Json;
 
+  String toSql() {
+    return this.map(
+      date: (date) {
+        return '${date.type.toEnumString()}${date.fractionalSeconds == null ? "" : "(${date.fractionalSeconds})"}';
+      },
+      string: (string) {
+        if (string.variableSize) {
+          final _m2 = {
+            pow(2, 8) - 1: 'TINY',
+            pow(2, 16) - 1: '',
+            pow(2, 24) - 1: 'MEDIUM',
+            pow(2, 32) - 1: 'LONG',
+          };
+          if (_m2.containsKey(string.size)) {
+            final prefix = _m2[string.size]!;
+            return '$prefix${string.binary ? "BLOB" : "TEXT"}';
+          } else {
+            return '${string.binary ? "VARBINARY" : "VARCHAR"}(${string.size})';
+          }
+        } else {
+          return '${string.binary ? "BINARY" : "CHAR"}(${string.size})';
+        }
+      },
+      enumeration: (enumeration) {
+        return '${enumeration.allowMultipleValues ? "SET" : "ENUM"} (${enumeration.variants.map((e) => "'$e'").join(",")})';
+      },
+      integer: (integer) {
+        const _mapSize = {
+          1: 'TINY',
+          2: 'SMALL',
+          3: 'MEDIUM',
+          4: '',
+          8: 'BIG',
+        };
+        return '${_mapSize[integer.bytes]!}INT${integer.unsigned ? " UNSIGNED" : ""}${integer.zerofill ? " ZEROFILL" : ""}';
+      },
+      decimal: (decimal) {
+        final reper = decimal.type.toEnumString();
+        return '$reper(${decimal.digitsTotal},${decimal.digitsDecimal})${decimal.unsigned ? " UNSIGNED" : ""}${decimal.zerofill ? " ZEROFILL" : ""}';
+      },
+      json: (json) {
+        return 'JSON';
+      },
+    );
+  }
+
   _T when<_T>({
     required _T Function(SqlDateVariant type, int? fractionalSeconds) date,
     required _T Function(
@@ -41,7 +89,7 @@ abstract class SqlType {
     required _T Function(List<String> variants, bool allowMultipleValues,
             String? characterSet)
         enumeration,
-    required _T Function(int bits, bool unsigned, bool zerofill) integer,
+    required _T Function(int bytes, bool unsigned, bool zerofill) integer,
     required _T Function(int digitsTotal, int digitsDecimal, bool unsigned,
             bool zerofill, SqlDecimalType type)
         decimal,
@@ -55,7 +103,7 @@ abstract class SqlType {
     } else if (v is _Enumeration) {
       return enumeration(v.variants, v.allowMultipleValues, v.characterSet);
     } else if (v is _Integer) {
-      return integer(v.bits, v.unsigned, v.zerofill);
+      return integer(v.bytes, v.unsigned, v.zerofill);
     } else if (v is _Decimal) {
       return decimal(
           v.digitsTotal, v.digitsDecimal, v.unsigned, v.zerofill, v.type);
@@ -73,7 +121,7 @@ abstract class SqlType {
     _T Function(List<String> variants, bool allowMultipleValues,
             String? characterSet)?
         enumeration,
-    _T Function(int bits, bool unsigned, bool zerofill)? integer,
+    _T Function(int bytes, bool unsigned, bool zerofill)? integer,
     _T Function(int digitsTotal, int digitsDecimal, bool unsigned,
             bool zerofill, SqlDecimalType type)?
         decimal,
@@ -92,7 +140,7 @@ abstract class SqlType {
           : orElse.call();
     } else if (v is _Integer) {
       return integer != null
-          ? integer(v.bits, v.unsigned, v.zerofill)
+          ? integer(v.bytes, v.unsigned, v.zerofill)
           : orElse.call();
     } else if (v is _Decimal) {
       return decimal != null
@@ -383,12 +431,12 @@ class _Enumeration extends SqlType {
 }
 
 class _Integer extends SqlType {
-  final int bits;
+  final int bytes;
   final bool unsigned;
   final bool zerofill;
 
   const _Integer({
-    required this.bits,
+    required this.bytes,
     required this.unsigned,
     required this.zerofill,
   }) : super._();
@@ -398,7 +446,7 @@ class _Integer extends SqlType {
 
   static _Integer fromJson(Map<String, dynamic> map) {
     return _Integer(
-      bits: map['bits'] as int,
+      bytes: map['bytes'] as int,
       unsigned: map['unsigned'] as bool,
       zerofill: map['zerofill'] as bool,
     );
@@ -408,7 +456,7 @@ class _Integer extends SqlType {
   Map<String, dynamic> toJson() {
     return {
       "runtimeType": "integer",
-      "bits": bits,
+      "bytes": bytes,
       "unsigned": unsigned,
       "zerofill": zerofill,
     };
@@ -416,7 +464,10 @@ class _Integer extends SqlType {
 }
 
 class _Decimal extends SqlType {
+  /// total number of digits (precision)
   final int digitsTotal;
+
+  /// number of digits after the decimal point (scale)
   final int digitsDecimal;
   final bool unsigned;
   final bool zerofill;

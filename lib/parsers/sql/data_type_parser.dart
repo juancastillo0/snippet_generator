@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/parsers/parsers.dart';
 import 'package:snippet_generator/parsers/sql/create_table_parser.dart';
@@ -39,17 +41,17 @@ final _numericTypeParser = ((((stringIgnoreCase('TINY') |
   final zerofill = value[value.length - 1] != null;
 
   if (props is List && props[1] is String) {
-    final variant = (props[0] as String? ?? 'REGULAR').toUpperCase();
+    final variant = (props[0] as String? ?? '').toUpperCase();
 
     const _mapSize = {
       'TINY': 1,
       'SMALL': 2,
       'MEDIUM': 3,
-      'REGULAR': 4,
+      '': 4,
       'BIG': 8,
     };
     return SqlType.integer(
-      bits: _mapSize[variant]!,
+      bytes: _mapSize[variant]!,
       unsigned: unsigned,
       zerofill: zerofill,
     );
@@ -161,7 +163,9 @@ final _stringTypeParser = (((_token('CHAR') |
   return SqlType.string(
     variableSize: !const ['CHAR', 'BINARY'].contains(_keyUpper),
     binary: _keyUpper.contains(RegExp('BLOB|BINARY')),
-    size: size ?? _m[_keyUpper.replaceAll(RegExp('BLOB|TEXT'), '')] ?? 1,
+    size: size ??
+        (pow(2, _m[_keyUpper.replaceAll(RegExp('BLOB|TEXT'), '')] ?? 1) - 1)
+            .toInt(),
     characterSet: characterSet,
   );
 });
