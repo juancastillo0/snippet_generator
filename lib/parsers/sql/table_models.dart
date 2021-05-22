@@ -1,6 +1,7 @@
 // ignore_for_file: constant_identifier_names
 import 'package:petitparser/petitparser.dart';
-import 'package:snippet_generator/database/models/table_models_templates.dart';
+import 'package:snippet_generator/database/models/table_models_dart_templates.dart';
+import 'package:snippet_generator/database/models/table_models_sql_templates.dart';
 import 'package:snippet_generator/parsers/sql/data_type_model.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 
@@ -31,7 +32,8 @@ class SqlTable {
   final List<Token<String>> errors;
   final Token? token;
 
-  late final templates = SqlTableTemplate(table: this);
+  late final templates = SqlTableDartTemplate(table: this);
+  late final sqlTemplates = SqlTableSqlTemplate(table: this);
 
   SqlTable({
     required this.name,
@@ -63,7 +65,7 @@ class SqlTableKey {
   final String? constraintName;
   final String? indexName;
 
-  final SqlIndexType index;
+  final SqlIndexType indexType;
   final bool unique;
   final bool primary;
 
@@ -73,7 +75,7 @@ class SqlTableKey {
   const SqlTableKey({
     this.constraintName,
     String? indexName,
-    required SqlIndexType? index,
+    required SqlIndexType? indexType,
     required this.unique,
     required this.primary,
     required this.columns,
@@ -81,7 +83,7 @@ class SqlTableKey {
   })  : assert(!primary || unique),
         assert(!primary || (indexName == null || indexName == 'PRIMARY')),
         assert(constraintName == null || unique || primary),
-        index = index ?? SqlIndexType.BTREE,
+        indexType = indexType ?? SqlIndexType.BTREE,
         indexName = primary ? 'PRIMARY' : indexName;
 
   factory SqlTableKey.primary({
@@ -91,7 +93,7 @@ class SqlTableKey {
   }) {
     return SqlTableKey(
       constraintName: constraintName,
-      index: index,
+      indexType: index,
       primary: true,
       unique: true,
       columns: columns,
@@ -107,7 +109,7 @@ class SqlTableKey {
     return {
       'constraintName': constraintName,
       'indexName': indexName,
-      'index': index.toJson(),
+      'index': indexType.toJson(),
       'unique': unique,
       'primary': primary,
       'columns': columns.map((x) => x.toJson()).toList(),

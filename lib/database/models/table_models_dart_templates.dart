@@ -3,12 +3,12 @@ import 'package:snippet_generator/parsers/sql/data_type_model.dart';
 import 'package:snippet_generator/parsers/sql/table_models.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 
-class SqlTableTemplate {
+class SqlTableDartTemplate {
   final SqlTable table;
 
   final _formatter = DartFormatter();
 
-  SqlTableTemplate({required this.table});
+  SqlTableDartTemplate({required this.table});
 
   String dartClass(List<SqlTable> allTables) {
     final mapAllTables = allTables.fold<Map<String, SqlTable>>(

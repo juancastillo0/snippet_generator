@@ -82,7 +82,7 @@ final _constraintDefinition = ((_token('CONSTRAINT') & _symbol.optional())
     return SqlTableKey(
       constraintName: constraintName,
       indexName: primary ? 'PRIMARY' : f[2] as String?,
-      index: list[1] as SqlIndexType?,
+      indexType: list[1] as SqlIndexType?,
       primary: primary,
       unique: true,
       columns: list.last as List<SqlKeyItem>,
@@ -118,7 +118,7 @@ final _indexDefinition = (((_token('INDEX') | _token('KEY')) &
   return SqlTableKey(
     primary: false,
     unique: false,
-    index: index == null
+    indexType: index == null
         ? null
         : parseEnum(index, SqlIndexType.values, caseSensitive: false),
     columns: columns,
