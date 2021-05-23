@@ -16,12 +16,16 @@ class ButtonSelect<T> extends HookWidget {
     required this.selected,
     required this.onChange,
     this.asString,
+    this.alwaysButtons = false,
+    this.wrapHorizontal = false,
   }) : super(key: key);
 
   final Iterable<T> options;
   final T? selected;
   final String Function(T)? asString;
   final void Function(T) onChange;
+  final bool alwaysButtons;
+  final bool wrapHorizontal;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +37,7 @@ class ButtonSelect<T> extends HookWidget {
     String _asString(T e) =>
         asString == null ? e.toString() : asString!.call(e);
 
-    if (isDropdown.value) {
+    if (isDropdown.value && !alwaysButtons) {
       return Align(
         child: CustomDropdownField(
           options: options,
@@ -44,23 +48,41 @@ class ButtonSelect<T> extends HookWidget {
       );
     }
 
+    Widget _buildButtons(List<Widget> children) {
+      if (wrapHorizontal) {
+        return Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          runAlignment: WrapAlignment.center,
+          children: children,
+        );
+      } else {
+        return ButtonBar(
+          alignment: MainAxisAlignment.center,
+          layoutBehavior: ButtonBarLayoutBehavior.constrained,
+          buttonPadding: EdgeInsets.zero,
+          children: children,
+        );
+      }
+    }
+
     return Visibility(
       // TODO: can be calculate when we need a dropdown?
       visible: options.length <= 3 || checkedShouldBeDropdown.value,
       maintainState: true,
       child: Padding(
         padding: const EdgeInsets.only(top: 8.0),
-        child: ButtonBar(
-          alignment: MainAxisAlignment.center,
-          layoutBehavior: ButtonBarLayoutBehavior.constrained,
-          buttonPadding: EdgeInsets.zero,
-          children: options.map((e) {
+        child: _buildButtons(
+          options.map((e) {
             final s = _asString(e);
 
-            return FlatButton(
+            return TextButton(
               key: Key(s),
               onPressed: () => onChange(e),
-              color: e == selected ? theme.primaryColor : null,
+              style: TextButton.styleFrom(
+                backgroundColor: e == selected ? theme.colorScheme.primary : null,
+                primary: e == selected ? theme.colorScheme.onPrimary : null
+              ),
               child: Builder(builder: (context) {
                 SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
                   // print("Text ${ctx.size} ${ctx.globalPaintBounds}");
@@ -120,12 +142,13 @@ class CustomDropdownField<T> extends HookWidget {
               : _baseColor.withOpacity(0.05),
           borderRadius: BorderRadius.circular(3),
         ),
-        padding: padding ?? const EdgeInsets.only(
-          left: 8,
-          right: 8,
-          bottom: 8,
-          top: 7,
-        ),
+        padding: padding ??
+            const EdgeInsets.only(
+              left: 8,
+              right: 8,
+              bottom: 8,
+              top: 7,
+            ),
         child: DropdownButton<T>(
           value: selected,
           isExpanded: true,
