@@ -43,15 +43,8 @@ final _numericTypeParser = ((((stringIgnoreCase('TINY') |
   if (props is List && props[1] is String) {
     final variant = (props[0] as String? ?? '').toUpperCase();
 
-    const _mapSize = {
-      'TINY': 1,
-      'SMALL': 2,
-      'MEDIUM': 3,
-      '': 4,
-      'BIG': 8,
-    };
     return SqlType.integer(
-      bytes: _mapSize[variant]!,
+      bytes: SqlType.sqlIntegerBytes[variant]!,
       unsigned: unsigned,
       zerofill: zerofill,
     );
@@ -75,13 +68,16 @@ final _numericTypeParser = ((((stringIgnoreCase('TINY') |
       type: fixed
           ? SqlDecimalType.FIXED
           : (float ? SqlDecimalType.FLOAT : SqlDecimalType.DOUBLE),
-      digitsTotal: digits[0] as int? ?? (fixed ? 10 : 65),
+      digitsTotal: digits[0] as int? ??
+          (fixed
+              ? SqlTypeDecimal.defaultDigitsTotalFixed
+              : SqlTypeDecimal.defaultDigitsTotalNotFixed),
       digitsDecimal: digits[1][1] as int? ??
           (fixed
-              ? 0
+              ? SqlTypeDecimal.defaultDigitsDecimalFixed
               : float
-                  ? 7
-                  : 15),
+                  ? SqlTypeDecimal.defaultDigitsDecimalFloat
+                  : SqlTypeDecimal.defaultDigitsDecimalDouble),
       unsigned: unsigned,
       zerofill: zerofill,
     );

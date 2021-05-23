@@ -1,6 +1,7 @@
 // ignore_for_file: constant_identifier_names
 import 'dart:math';
 
+import 'package:snippet_generator/globals/option.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 
 abstract class SqlType {
@@ -9,31 +10,85 @@ abstract class SqlType {
   const factory SqlType.date({
     required SqlDateVariant type,
     required int? fractionalSeconds,
-  }) = _Date;
+  }) = SqlTypeDate;
   const factory SqlType.string({
     required bool variableSize,
     required bool binary,
     required int size,
     required String? characterSet,
-  }) = _String;
+  }) = SqlTypeString;
   const factory SqlType.enumeration({
     required List<String> variants,
     required bool allowMultipleValues,
     required String? characterSet,
-  }) = _Enumeration;
+  }) = SqlTypeEnumeration;
   const factory SqlType.integer({
     required int bytes,
     required bool unsigned,
     required bool zerofill,
-  }) = _Integer;
+  }) = SqlTypeInteger;
   const factory SqlType.decimal({
     required int digitsTotal,
     required int digitsDecimal,
     required bool unsigned,
     required bool zerofill,
     required SqlDecimalType type,
-  }) = _Decimal;
-  const factory SqlType.json() = _Json;
+  }) = SqlTypeDecimal;
+  const factory SqlType.json() = SqlTypeJson;
+
+  static const sqlIntegerBytes = {
+    'TINY': 1,
+    'SMALL': 2,
+    'MEDIUM': 3,
+    '': 4,
+    'BIG': 8,
+  };
+
+  static const sqlIntegerBytesRev = {
+    1: 'TINY',
+    2: 'SMALL',
+    3: 'MEDIUM',
+    4: '',
+    8: 'BIG',
+  };
+
+  static final sqlStringSizeRev = {
+    pow(2, 8) - 1: 'TINY',
+    pow(2, 16) - 1: '',
+    pow(2, 24) - 1: 'MEDIUM',
+    pow(2, 32) - 1: 'LONG',
+  };
+
+  static const defaultSqlTypes = {
+    TypeSqlType.date: SqlType.date(
+      type: SqlDateVariant.DATETIME,
+      fractionalSeconds: 0,
+    ),
+    TypeSqlType.decimal: SqlType.decimal(
+      type: SqlDecimalType.DOUBLE,
+      unsigned: false,
+      zerofill: false,
+      digitsTotal: SqlTypeDecimal.defaultDigitsTotalNotFixed,
+      digitsDecimal: SqlTypeDecimal.defaultDigitsDecimalDouble,
+    ),
+    TypeSqlType.json: SqlType.json(),
+    TypeSqlType.integer: SqlType.integer(
+      bytes: 4,
+      unsigned: false,
+      zerofill: false,
+    ),
+    TypeSqlType.enumeration: SqlType.enumeration(
+      allowMultipleValues: false,
+      variants: [''],
+      characterSet: null,
+    ),
+    TypeSqlType.string: SqlType.string(
+      binary: false,
+      size: 255,
+      characterSet: null,
+      variableSize: true,
+    ),
+  };
 
   String toSql() {
     return this.map(
@@ -42,14 +97,8 @@ abstract class SqlType {
       },
       string: (string) {
         if (string.variableSize) {
-          final _m2 = {
-            pow(2, 8) - 1: 'TINY',
-            pow(2, 16) - 1: '',
-            pow(2, 24) - 1: 'MEDIUM',
-            pow(2, 32) - 1: 'LONG',
-          };
-          if (_m2.containsKey(string.size)) {
-            final prefix = _m2[string.size]!;
+          if (sqlStringSizeRev.containsKey(string.size)) {
+            final prefix = sqlStringSizeRev[string.size]!;
             return '$prefix${string.binary ? "BLOB" : "TEXT"}';
           } else {
             return '${string.binary ? "VARBINARY" : "VARCHAR"}(${string.size})';
@@ -62,18 +111,18 @@ abstract class SqlType {
         return '${enumeration.allowMultipleValues ? "SET" : "ENUM"} (${enumeration.variants.map((e) => "'$e'").join(",")})';
       },
       integer: (integer) {
-        const _mapSize = {
-          1: 'TINY',
-          2: 'SMALL',
-          3: 'MEDIUM',
-          4: '',
-          8: 'BIG',
-        };
-        return '${_mapSize[integer.bytes]!}INT${integer.unsigned ? " UNSIGNED" : ""}${integer.zerofill ? " ZEROFILL" : ""}';
+        return '${sqlIntegerBytesRev[integer.bytes]!}INT${integer.unsigned ? " UNSIGNED" : ""}${integer.zerofill ? " ZEROFILL" : ""}';
       },
       decimal: (decimal) {
         final reper = decimal.type.toEnumString();
-        return '$reper(${decimal.digitsTotal},${decimal.digitsDecimal})${decimal.unsigned ? " UNSIGNED" : ""}${decimal.zerofill ? " ZEROFILL" : ""}';
+        final String _digits;
+        if (decimal.type == SqlDecimalType.FIXED ||
+            !decimal.hasDefaultNumDigits()) {
+          _digits = '(${decimal.digitsTotal},${decimal.digitsDecimal})';
+        } else {
+          _digits = '';
+        }
+        return '$reper$_digits${decimal.unsigned ? " UNSIGNED" : ""}${decimal.zerofill ? " ZEROFILL" : ""}';
       },
       json: (json) {
         return 'JSON';
@@ -96,18 +145,18 @@ abstract class SqlType {
     required _T Function() json,
   }) {
     final v = this;
-    if (v is _Date) {
+    if (v is SqlTypeDate) {
       return date(v.type, v.fractionalSeconds);
-    } else if (v is _String) {
+    } else if (v is SqlTypeString) {
       return string(v.variableSize, v.binary, v.size, v.characterSet);
-    } else if (v is _Enumeration) {
+    } else if (v is SqlTypeEnumeration) {
       return enumeration(v.variants, v.allowMultipleValues, v.characterSet);
-    } else if (v is _Integer) {
+    } else if (v is SqlTypeInteger) {
       return integer(v.bytes, v.unsigned, v.zerofill);
-    } else if (v is _Decimal) {
+    } else if (v is SqlTypeDecimal) {
       return decimal(
           v.digitsTotal, v.digitsDecimal, v.unsigned, v.zerofill, v.type);
-    } else if (v is _Json) {
+    } else if (v is SqlTypeJson) {
       return json();
     }
     throw Exception();
@@ -128,51 +177,51 @@ abstract class SqlType {
     _T Function()? json,
   }) {
     final v = this;
-    if (v is _Date) {
+    if (v is SqlTypeDate) {
       return date != null ? date(v.type, v.fractionalSeconds) : orElse.call();
-    } else if (v is _String) {
+    } else if (v is SqlTypeString) {
       return string != null
           ? string(v.variableSize, v.binary, v.size, v.characterSet)
           : orElse.call();
-    } else if (v is _Enumeration) {
+    } else if (v is SqlTypeEnumeration) {
       return enumeration != null
           ? enumeration(v.variants, v.allowMultipleValues, v.characterSet)
           : orElse.call();
-    } else if (v is _Integer) {
+    } else if (v is SqlTypeInteger) {
       return integer != null
           ? integer(v.bytes, v.unsigned, v.zerofill)
           : orElse.call();
-    } else if (v is _Decimal) {
+    } else if (v is SqlTypeDecimal) {
       return decimal != null
           ? decimal(
               v.digitsTotal, v.digitsDecimal, v.unsigned, v.zerofill, v.type)
           : orElse.call();
-    } else if (v is _Json) {
+    } else if (v is SqlTypeJson) {
       return json != null ? json() : orElse.call();
     }
     throw Exception();
   }
 
   _T map<_T>({
-    required _T Function(_Date value) date,
-    required _T Function(_String value) string,
-    required _T Function(_Enumeration value) enumeration,
-    required _T Function(_Integer value) integer,
-    required _T Function(_Decimal value) decimal,
-    required _T Function(_Json value) json,
+    required _T Function(SqlTypeDate value) date,
+    required _T Function(SqlTypeString value) string,
+    required _T Function(SqlTypeEnumeration value) enumeration,
+    required _T Function(SqlTypeInteger value) integer,
+    required _T Function(SqlTypeDecimal value) decimal,
+    required _T Function(SqlTypeJson value) json,
   }) {
     final v = this;
-    if (v is _Date) {
+    if (v is SqlTypeDate) {
       return date(v);
-    } else if (v is _String) {
+    } else if (v is SqlTypeString) {
       return string(v);
-    } else if (v is _Enumeration) {
+    } else if (v is SqlTypeEnumeration) {
       return enumeration(v);
-    } else if (v is _Integer) {
+    } else if (v is SqlTypeInteger) {
       return integer(v);
-    } else if (v is _Decimal) {
+    } else if (v is SqlTypeDecimal) {
       return decimal(v);
-    } else if (v is _Json) {
+    } else if (v is SqlTypeJson) {
       return json(v);
     }
     throw Exception();
@@ -180,53 +229,53 @@ abstract class SqlType {
 
   _T maybeMap<_T>({
     required _T Function() orElse,
-    _T Function(_Date value)? date,
-    _T Function(_String value)? string,
-    _T Function(_Enumeration value)? enumeration,
-    _T Function(_Integer value)? integer,
-    _T Function(_Decimal value)? decimal,
-    _T Function(_Json value)? json,
+    _T Function(SqlTypeDate value)? date,
+    _T Function(SqlTypeString value)? string,
+    _T Function(SqlTypeEnumeration value)? enumeration,
+    _T Function(SqlTypeInteger value)? integer,
+    _T Function(SqlTypeDecimal value)? decimal,
+    _T Function(SqlTypeJson value)? json,
   }) {
     final v = this;
-    if (v is _Date) {
+    if (v is SqlTypeDate) {
       return date != null ? date(v) : orElse.call();
-    } else if (v is _String) {
+    } else if (v is SqlTypeString) {
       return string != null ? string(v) : orElse.call();
-    } else if (v is _Enumeration) {
+    } else if (v is SqlTypeEnumeration) {
       return enumeration != null ? enumeration(v) : orElse.call();
-    } else if (v is _Integer) {
+    } else if (v is SqlTypeInteger) {
       return integer != null ? integer(v) : orElse.call();
-    } else if (v is _Decimal) {
+    } else if (v is SqlTypeDecimal) {
       return decimal != null ? decimal(v) : orElse.call();
-    } else if (v is _Json) {
+    } else if (v is SqlTypeJson) {
       return json != null ? json(v) : orElse.call();
     }
     throw Exception();
   }
 
-  bool get isDate => this is _Date;
-  bool get isString => this is _String;
-  bool get isEnumeration => this is _Enumeration;
-  bool get isInteger => this is _Integer;
-  bool get isDecimal => this is _Decimal;
-  bool get isJson => this is _Json;
+  bool get isDate => this is SqlTypeDate;
+  bool get isString => this is SqlTypeString;
+  bool get isEnumeration => this is SqlTypeEnumeration;
+  bool get isInteger => this is SqlTypeInteger;
+  bool get isDecimal => this is SqlTypeDecimal;
+  bool get isJson => this is SqlTypeJson;
 
   TypeSqlType get typeEnum;
 
   static SqlType fromJson(Map<String, dynamic> map) {
     switch (map["runtimeType"] as String) {
       case "date":
-        return _Date.fromJson(map);
+        return SqlTypeDate.fromJson(map);
       case "string":
-        return _String.fromJson(map);
+        return SqlTypeString.fromJson(map);
       case "enumeration":
-        return _Enumeration.fromJson(map);
+        return SqlTypeEnumeration.fromJson(map);
       case "integer":
-        return _Integer.fromJson(map);
+        return SqlTypeInteger.fromJson(map);
       case "decimal":
-        return _Decimal.fromJson(map);
+        return SqlTypeDecimal.fromJson(map);
       case "json":
-        return _Json.fromJson(map);
+        return SqlTypeJson.fromJson(map);
       default:
         throw Exception(
             'Invalid discriminator for SqlType.fromJson ${map["runtimeType"]}. Input map: $map');
@@ -327,11 +376,11 @@ extension TypeSqlTypeExtension on TypeSqlType {
   }
 }
 
-class _Date extends SqlType {
+class SqlTypeDate extends SqlType {
   final SqlDateVariant type;
   final int? fractionalSeconds;
 
-  const _Date({
+  const SqlTypeDate({
     required this.type,
     required this.fractionalSeconds,
   }) : super._();
@@ -339,8 +388,8 @@ class _Date extends SqlType {
   @override
   TypeSqlType get typeEnum => TypeSqlType.date;
 
-  static _Date fromJson(Map<String, dynamic> map) {
-    return _Date(
+  static SqlTypeDate fromJson(Map<String, dynamic> map) {
+    return SqlTypeDate(
       type: parseEnum(
         map['type'] as String,
         SqlDateVariant.values,
@@ -358,15 +407,27 @@ class _Date extends SqlType {
       "fractionalSeconds": fractionalSeconds,
     };
   }
+
+  SqlTypeDate copyWith({
+    SqlDateVariant? type,
+    Option<int>? fractionalSeconds,
+  }) {
+    return SqlTypeDate(
+      type: type ?? this.type,
+      fractionalSeconds: fractionalSeconds != null
+          ? fractionalSeconds.valueOrNull
+          : this.fractionalSeconds,
+    );
+  }
 }
 
-class _String extends SqlType {
+class SqlTypeString extends SqlType {
   final bool variableSize;
   final bool binary;
   final int size;
   final String? characterSet;
 
-  const _String({
+  const SqlTypeString({
     required this.variableSize,
     required this.binary,
     required this.size,
@@ -376,8 +437,8 @@ class _String extends SqlType {
   @override
   TypeSqlType get typeEnum => TypeSqlType.string;
 
-  static _String fromJson(Map<String, dynamic> map) {
-    return _String(
+  static SqlTypeString fromJson(Map<String, dynamic> map) {
+    return SqlTypeString(
       variableSize: map['variableSize'] as bool,
       binary: map['binary'] as bool,
       size: map['size'] as int,
@@ -395,14 +456,29 @@ class _String extends SqlType {
       "characterSet": characterSet,
     };
   }
+
+  SqlTypeString copyWith({
+    bool? variableSize,
+    bool? binary,
+    int? size,
+    Option<String>? characterSet,
+  }) {
+    return SqlTypeString(
+      variableSize: variableSize ?? this.variableSize,
+      binary: binary ?? this.binary,
+      size: size ?? this.size,
+      characterSet:
+          characterSet != null ? characterSet.valueOrNull : this.characterSet,
+    );
+  }
 }
 
-class _Enumeration extends SqlType {
+class SqlTypeEnumeration extends SqlType {
   final List<String> variants;
   final bool allowMultipleValues;
   final String? characterSet;
 
-  const _Enumeration({
+  const SqlTypeEnumeration({
     required this.variants,
     required this.allowMultipleValues,
     required this.characterSet,
@@ -411,8 +487,8 @@ class _Enumeration extends SqlType {
   @override
   TypeSqlType get typeEnum => TypeSqlType.enumeration;
 
-  static _Enumeration fromJson(Map<String, dynamic> map) {
-    return _Enumeration(
+  static SqlTypeEnumeration fromJson(Map<String, dynamic> map) {
+    return SqlTypeEnumeration(
       variants: (map['variants'] as List).map((e) => e as String).toList(),
       allowMultipleValues: map['allowMultipleValues'] as bool,
       characterSet: map['characterSet'] as String,
@@ -428,14 +504,27 @@ class _Enumeration extends SqlType {
       "characterSet": characterSet,
     };
   }
+
+  SqlTypeEnumeration copyWith({
+    List<String>? variants,
+    bool? allowMultipleValues,
+    Option<String>? characterSet,
+  }) {
+    return SqlTypeEnumeration(
+      variants: variants ?? this.variants,
+      allowMultipleValues: allowMultipleValues ?? this.allowMultipleValues,
+      characterSet:
+          characterSet != null ? characterSet.valueOrNull : this.characterSet,
+    );
+  }
 }
 
-class _Integer extends SqlType {
+class SqlTypeInteger extends SqlType {
   final int bytes;
   final bool unsigned;
   final bool zerofill;
 
-  const _Integer({
+  const SqlTypeInteger({
     required this.bytes,
     required this.unsigned,
     required this.zerofill,
@@ -444,8 +533,8 @@ class _Integer extends SqlType {
   @override
   TypeSqlType get typeEnum => TypeSqlType.integer;
 
-  static _Integer fromJson(Map<String, dynamic> map) {
-    return _Integer(
+  static SqlTypeInteger fromJson(Map<String, dynamic> map) {
+    return SqlTypeInteger(
       bytes: map['bytes'] as int,
       unsigned: map['unsigned'] as bool,
       zerofill: map['zerofill'] as bool,
@@ -461,9 +550,21 @@ class _Integer extends SqlType {
       "zerofill": zerofill,
     };
   }
+
+  SqlTypeInteger copyWith({
+    int? bytes,
+    bool? unsigned,
+    bool? zerofill,
+  }) {
+    return SqlTypeInteger(
+      bytes: bytes ?? this.bytes,
+      unsigned: unsigned ?? this.unsigned,
+      zerofill: zerofill ?? this.zerofill,
+    );
+  }
 }
 
-class _Decimal extends SqlType {
+class SqlTypeDecimal extends SqlType {
   /// total number of digits (precision)
   final int digitsTotal;
 
@@ -473,7 +574,13 @@ class _Decimal extends SqlType {
   final bool zerofill;
   final SqlDecimalType type;
 
-  const _Decimal({
+  static const defaultDigitsTotalFixed = 10;
+  static const defaultDigitsTotalNotFixed = 65;
+  static const defaultDigitsDecimalFixed = 0;
+  static const defaultDigitsDecimalDouble = 15;
+  static const defaultDigitsDecimalFloat = 7;
+
+  const SqlTypeDecimal({
     required this.digitsTotal,
     required this.digitsDecimal,
     required this.unsigned,
@@ -484,8 +591,8 @@ class _Decimal extends SqlType {
   @override
   TypeSqlType get typeEnum => TypeSqlType.decimal;
 
-  static _Decimal fromJson(Map<String, dynamic> map) {
-    return _Decimal(
+  static SqlTypeDecimal fromJson(Map<String, dynamic> map) {
+    return SqlTypeDecimal(
       digitsTotal: map['digitsTotal'] as int,
       digitsDecimal: map['digitsDecimal'] as int,
       unsigned: map['unsigned'] as bool,
@@ -493,6 +600,18 @@ class _Decimal extends SqlType {
       type: parseEnum(map['type'] as String, SqlDecimalType.values,
           caseSensitive: false)!,
     );
+  }
+
+  bool hasDefaultNumDigits() {
+    return (type == SqlDecimalType.FIXED &&
+            digitsTotal == SqlTypeDecimal.defaultDigitsTotalFixed &&
+            digitsDecimal == SqlTypeDecimal.defaultDigitsDecimalFixed) ||
+        (type == SqlDecimalType.DOUBLE &&
+            digitsTotal == SqlTypeDecimal.defaultDigitsTotalNotFixed &&
+            digitsDecimal == SqlTypeDecimal.defaultDigitsDecimalDouble) ||
+        (type == SqlDecimalType.FLOAT &&
+            digitsTotal == SqlTypeDecimal.defaultDigitsTotalNotFixed &&
+            digitsDecimal == SqlTypeDecimal.defaultDigitsDecimalFloat);
   }
 
   @override
@@ -506,16 +625,48 @@ class _Decimal extends SqlType {
       "type": type.toEnumString(),
     };
   }
+
+  SqlTypeDecimal copyWithDefaults() {
+    return SqlTypeDecimal(
+      digitsTotal: type == SqlDecimalType.FIXED
+          ? defaultDigitsTotalFixed
+          : defaultDigitsTotalNotFixed,
+      digitsDecimal: type == SqlDecimalType.FIXED
+          ? defaultDigitsDecimalFixed
+          : type == SqlDecimalType.FLOAT
+              ? defaultDigitsDecimalFloat
+              : defaultDigitsDecimalDouble,
+      unsigned: unsigned,
+      zerofill: zerofill,
+      type: type,
+    );
+  }
+
+  SqlTypeDecimal copyWith({
+    int? digitsTotal,
+    int? digitsDecimal,
+    bool? unsigned,
+    bool? zerofill,
+    SqlDecimalType? type,
+  }) {
+    return SqlTypeDecimal(
+      digitsTotal: digitsTotal ?? this.digitsTotal,
+      digitsDecimal: digitsDecimal ?? this.digitsDecimal,
+      unsigned: unsigned ?? this.unsigned,
+      zerofill: zerofill ?? this.zerofill,
+      type: type ?? this.type,
+    );
+  }
 }
 
-class _Json extends SqlType {
-  const _Json() : super._();
+class SqlTypeJson extends SqlType {
+  const SqlTypeJson() : super._();
 
   @override
   TypeSqlType get typeEnum => TypeSqlType.json;
 
-  static _Json fromJson(Map<String, dynamic> map) {
-    return const _Json();
+  static SqlTypeJson fromJson(Map<String, dynamic> map) {
+    return const SqlTypeJson();
   }
 
   @override
