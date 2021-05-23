@@ -383,29 +383,40 @@ class ColumnsTable extends HookObserverWidget {
                       k.columns.first.columnName == e.name &&
                       k.unique);
                   return Checkbox(
-                    value: _index != -1,
-                    onChanged: (value) {
-                      final newTableKeys = [...selectedTable.tableKeys];
-                      if (_index != -1) {
-                        newTableKeys.removeAt(_index);
-                      } else {
-                        newTableKeys.add(SqlTableKey(
-                          primary: false,
-                          unique: true,
-                          indexType: null,
-                          columns: [
-                            SqlKeyItem(
-                              columnName: e.name,
-                              ascendent: true,
-                            )
-                          ],
-                        ));
-                      }
-                      final newTable = selectedTable.copyWith(
-                        tableKeys: newTableKeys,
-                      );
-                      store.replaceSelectedTable(newTable);
-                    },
+                    value: e.unique || _index != -1,
+                    onChanged: _index != -1 &&
+                            selectedTable.tableKeys[_index].primary
+                        ? null
+                        : (value) {
+                            if (e.unique) {
+                              final newTable = selectedTable.replaceColumn(
+                                e.copyWith(unique: false),
+                                colIndex,
+                              );
+                              store.replaceSelectedTable(newTable);
+                              return;
+                            }
+                            final newTableKeys = [...selectedTable.tableKeys];
+                            if (_index != -1) {
+                              newTableKeys.removeAt(_index);
+                            } else {
+                              newTableKeys.add(SqlTableKey(
+                                primary: false,
+                                unique: true,
+                                indexType: null,
+                                columns: [
+                                  SqlKeyItem(
+                                    columnName: e.name,
+                                    ascendent: true,
+                                  )
+                                ],
+                              ));
+                            }
+                            final newTable = selectedTable.copyWith(
+                              tableKeys: newTableKeys,
+                            );
+                            store.replaceSelectedTable(newTable);
+                          },
                   );
                 }),
               ),
@@ -427,14 +438,57 @@ class ColumnsTable extends HookObserverWidget {
                 }),
               ),
               DataCell(
-                SelectableText(
-                  pk != null &&
-                          pk.columns.any(
-                            (col) => col.columnName == e.name,
-                          )
-                      ? 'YES'
-                      : 'NO',
-                  maxLines: 1,
+                Checkbox(
+                  value: pk != null &&
+                      pk.columns.any(
+                        (col) => col.columnName == e.name,
+                      ),
+                  onChanged: (value) {
+                    final _index = selectedTable.tableKeys
+                        .indexWhere((col) => col.primary);
+                    final SqlTable newTable;
+                    if (_index != -1) {
+                      final key = selectedTable.tableKeys[_index];
+                      final _colIndex = key.columns
+                          .map((c) => c.columnName)
+                          .toList()
+                          .indexWhere((n) => n == e.name);
+                      newTable = selectedTable.replaceTableKey(
+                        key.copyWith(
+                          columns: _colIndex == -1
+                              ? [
+                                  ...key.columns,
+                                  SqlKeyItem(
+                                    ascendent: true,
+                                    columnName: e.name,
+                                  )
+                                ]
+                              : [
+                                  ...key.columns
+                                      .where((col) => col.columnName != e.name),
+                                ],
+                        ),
+                        _index,
+                      );
+                    } else if (value == true) {
+                      final tableKey = pk!.copyWith(columns: [
+                        ...pk.columns,
+                        SqlKeyItem(
+                          ascendent: true,
+                          columnName: e.name,
+                        ),
+                      ]);
+                      newTable = selectedTable.copyWith(
+                          tableKeys: [...selectedTable.tableKeys, tableKey]);
+                    } else {
+                      final tableKey = pk!.copyWith(columns: [
+                        ...pk.columns.where((c) => c.columnName != e.name),
+                      ]);
+                      newTable = selectedTable.copyWith(
+                          tableKeys: [...selectedTable.tableKeys, tableKey]);
+                    }
+                    store.replaceSelectedTable(newTable);
+                  },
                 ),
               ),
               DataCell(
