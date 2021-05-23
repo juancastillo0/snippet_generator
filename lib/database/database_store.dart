@@ -49,13 +49,15 @@ class DatabaseStore with PropsSerializable {
   final String name;
 
   DatabaseStore({required this.name}) {
-    print('DatabaseStore pppp' +
-        char(',')
-            .neg()
-            .plus()
-            .flatten()
-            .parse('`room_code_section` INT sn')
-            .toString());
+    autorun(
+      (r) {
+        if (parsedTableDefinition.value.isSuccess &&
+            rawTableDefinition.text != tablesSqlText.value) {
+          tables.value = parsedTableDefinition.value.value;
+        }
+      },
+      delay: 50,
+    );
   }
 
   late final rawTableDefinition = TextNotifier(
@@ -63,23 +65,23 @@ class DatabaseStore with PropsSerializable {
       errorsFn: _errors,
       text: _initialRawSqlTable,
     ),
+    name: 'rawTableDefinition',
   );
 
   late final Computed<Result<List<SqlTable>>> parsedTableDefinition = Computed(
     () => createTableListParser.parse(rawTableDefinition.text),
   );
 
-  final tables = AppNotifier<List<SqlTable>>([]);
+  final tables = AppNotifier<List<SqlTable>>([], name: 'tables');
 
-  List<SqlTable> get tablesOrEmpty => parsedTableDefinition.value.isSuccess
-      ? parsedTableDefinition.value.value
-      : const [];
+  late final Computed<String> tablesSqlText = Computed(
+    () => tables.value.map((e) => e.sqlTemplates.toSql()).join('\n'),
+  );
 
   final _selectedIndex = AppNotifier(0, name: 'selectedIndex');
   late final Computed<SqlTable?> selectedTable = Computed(
-    () => parsedTableDefinition.value.isSuccess &&
-            _selectedIndex.value < parsedTableDefinition.value.value.length
-        ? parsedTableDefinition.value.value[_selectedIndex.value]
+    () => _selectedIndex.value < tables.value.length
+        ? tables.value[_selectedIndex.value]
         : null,
   );
 
@@ -89,12 +91,14 @@ class DatabaseStore with PropsSerializable {
 
   final selectedTab = AppNotifier(TextView.import);
 
-  List<TextRange> _errors() => parsedTableDefinition.value.isSuccess
-      ? parsedTableDefinition.value.value
-          .expand((t) =>
-              t.errors.map((e) => TextRange(start: e.start, end: e.stop)))
-          .toList()
-      : [];
+  List<TextRange> _errors() {
+    return parsedTableDefinition.value.isSuccess
+        ? parsedTableDefinition.value.value
+            .expand((t) =>
+                t.errors.map((e) => TextRange(start: e.start, end: e.stop)))
+            .toList()
+        : [];
+  }
 
   void replace(Token token, String str) {
     String _after = rawTableDefinition.text.substring(token.stop);
@@ -108,6 +112,14 @@ class DatabaseStore with PropsSerializable {
   @override
   late final Iterable<SerializableProp> props = [
     rawTableDefinition,
-    _selectedIndex
+    _selectedIndex,
+    tables,
   ];
+
+  void replaceTable(SqlTable newTable, int index) {
+    final newTables = [...tables.value];
+    newTables[index] = newTable;
+    tables.value = newTables;
+    rawTableDefinition.controller.text = tablesSqlText.value;
+  }
 }
