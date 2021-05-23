@@ -286,7 +286,7 @@ final pColumn = WidgetParser.createWithParams("Column", _flexParams, (params) {
     verticalDirection: params["verticalDirection"] as VerticalDirection? ??
         VerticalDirection.down,
     children: (params["children"] as List?)
-            ?.map((w) => w.widget as Widget)
+            ?.map((w) => w.child as Widget)
             .toList() ??
         [],
   );
@@ -307,7 +307,8 @@ final pRow = WidgetParser.createWithParams("Row", _flexParams, (params) {
     verticalDirection: params["verticalDirection"] as VerticalDirection? ??
         VerticalDirection.down,
     children: (params["children"] as List?)
-            ?.map((w) => w.widget as Widget)
+            ?.map((w) => w.child)
+            .whereType<Widget>()
             .toList() ??
         [],
   );
@@ -334,7 +335,7 @@ final pFlex = WidgetParser.createWithParams("Flex", {
     verticalDirection: params["verticalDirection"] as VerticalDirection? ??
         VerticalDirection.down,
     children: (params["children"] as List?)
-            ?.map((w) => w.widget as Widget)
+            ?.map((w) => w.child as Widget)
             .toList() ??
         [],
   );
@@ -356,7 +357,7 @@ final pStack = WidgetParser.createWithParams("Stack", {
     fit: params["fit"] as StackFit? ?? StackFit.loose,
     textDirection: params["textDirection"] as TextDirection?,
     children: (params["children"] as List?)
-            ?.map((w) => w.widget as Widget)
+            ?.map((w) => w.child as Widget)
             .toList() ??
         [],
   );
