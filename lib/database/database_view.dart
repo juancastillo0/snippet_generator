@@ -5,15 +5,14 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:snippet_generator/database/database_store.dart';
 import 'package:snippet_generator/database/models/sql_values.dart';
-import 'package:snippet_generator/fields/base_fields.dart';
-import 'package:snippet_generator/fields/button_select_field.dart';
+import 'package:snippet_generator/database/sql_type_field.dart';
 import 'package:snippet_generator/globals/hook_observer.dart';
-import 'package:snippet_generator/parsers/sql/data_type_model.dart';
 import 'package:snippet_generator/parsers/sql/table_models.dart';
 import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/types/views/code_generated.dart';
 import 'package:snippet_generator/utils/formatters.dart';
 import 'package:snippet_generator/utils/tt.dart';
+import 'package:snippet_generator/widgets/custom_portal_entry.dart';
 import 'package:snippet_generator/widgets/horizontal_item_list.dart';
 
 double get _columnSpacing => 14;
@@ -108,7 +107,7 @@ class DatabaseTabView extends HookWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 6.0),
                         child: CodeGenerated(
                           sourceCode: store.selectedTable.value?.templates
-                                  .dartClass(store.tablesOrEmpty) ??
+                                  .dartClass(store.tables.value) ??
                               'Invalid SQL Code',
                         ),
                       ),
@@ -154,9 +153,9 @@ class DatabaseTabView extends HookWidget {
             children: [
               Observer(
                 builder: (context) {
-                  final parseResult = store.tablesOrEmpty;
+                  final tables = store.tables.value;
                   return HorizontalItemList<SqlTable>(
-                    items: parseResult,
+                    items: tables,
                     onSelected: (_, index) {
                       store.selectIndex(index);
                     },
@@ -279,48 +278,24 @@ class ColumnsTable extends HookObserverWidget {
     final DatabaseStore store = root.databaseStore;
     final selectedTable = store.selectedTable.value;
 
-    Widget typeWidget(SqlType type) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 100,
-            child: CustomDropdownField<TypeSqlType>(
-              selected: type.typeEnum,
-              asString: (v) => v.toString().split('.')[1],
-              onChange: (v) {},
-              options: TypeSqlType.values,
-              padding: const EdgeInsets.only(),
-            ),
-          ),
-          ...type.map(
-            date: (date) sync* {
-              yield SizedBox(
-                width: 100,
-                child: CustomDropdownField<SqlDateVariant>(
-                  selected: date.type,
-                  asString: (v) => v.toString().split('.')[1],
-                  onChange: (v) {},
-                  options: SqlDateVariant.values,
-                  padding: const EdgeInsets.only(),
-                ),
-              );
-              yield SizedBox(
-                width: 80,
-                child: IntInput(
-                  label: 'fractionalSeconds',
-                  onChanged: (fractionalSeconds) {},
-                  value: date.fractionalSeconds,
-                ),
-              );
-            },
-            string: (date) sync* {},
-            enumeration: (date) sync* {},
-            integer: (date) sync* {},
-            decimal: (date) sync* {},
-            json: (date) sync* {},
-          )
-        ],
+    Widget typeWidget(SqlColumn col) {
+      final type = col.type;
+      return CustomPortalEntry(
+        portal: SqlTypeField(
+          value: type,
+          onChange: (newValue) {
+            final newCol = col.copyWith(type: newValue);
+            final newTable = selectedTable!.replaceColumn(
+              newCol,
+              selectedTable.columns.indexOf(col),
+            );
+            store.replaceTable(
+              newTable,
+              store.tables.value.indexOf(selectedTable),
+            );
+          },
+        ),
+        child: Text(type.toSql()),
       );
     }
 
@@ -344,7 +319,7 @@ class ColumnsTable extends HookObserverWidget {
                   }
                 },
               )),
-              DataCell(typeWidget(e.type)),
+              DataCell(typeWidget(e)),
               DataCell(
                 Checkbox(
                   value: e.nullable,

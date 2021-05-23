@@ -54,20 +54,20 @@ class MyApp extends HookWidget {
 
     return RootStoreProvider(
       rootStore: rootStore,
-      child: Portal(
-        child: GlobalKeyboardListener.wrapper(
-          child: MaterialApp(
-            title: 'Snippet Generator',
-            debugShowCheckedModeBanner: false,
-            theme: lightTheme(),
-            darkTheme: darkTheme(),
-            themeMode: rootStore.themeModeNotifier.value,
-            scrollBehavior: const ScrollBehavior().copyWith(
-              scrollbars: false,
-              overscroll: false,
-            ),
-            navigatorObservers: [routeObserver],
-            home: const MyHomePage(),
+      child: GlobalKeyboardListener.wrapper(
+        child: MaterialApp(
+          title: 'Snippet Generator',
+          debugShowCheckedModeBanner: false,
+          theme: lightTheme(),
+          darkTheme: darkTheme(),
+          themeMode: rootStore.themeModeNotifier.value,
+          scrollBehavior: const ScrollBehavior().copyWith(
+            scrollbars: false,
+            overscroll: false,
+          ),
+          navigatorObservers: [routeObserver],
+          home: const Portal(
+            child: MyHomePage(),
           ),
         ),
       ),
