@@ -58,6 +58,10 @@ class DatabaseStore with PropsSerializable {
       },
       delay: 50,
     );
+
+    reaction((r) => tablesSqlText.value, (r) {
+      rawTableDefinition.controller.text = tablesSqlText.value;
+    });
   }
 
   late final rawTableDefinition = TextNotifier(
@@ -100,14 +104,14 @@ class DatabaseStore with PropsSerializable {
         : [];
   }
 
-  void replace(Token token, String str) {
-    String _after = rawTableDefinition.text.substring(token.stop);
-    if (str.isEmpty) {
-      _after = _after.replaceFirst(RegExp(r'^\s*,\s*'), '');
-    }
-    rawTableDefinition.controller.text =
-        rawTableDefinition.text.substring(0, token.start) + str + _after;
-  }
+  // void replace(Token token, String str) {
+  //   String _after = rawTableDefinition.text.substring(token.stop);
+  //   if (str.isEmpty) {
+  //     _after = _after.replaceFirst(RegExp(r'^\s*,\s*'), '');
+  //   }
+  //   rawTableDefinition.controller.text =
+  //       rawTableDefinition.text.substring(0, token.start) + str + _after;
+  // }
 
   @override
   late final Iterable<SerializableProp> props = [
@@ -116,10 +120,19 @@ class DatabaseStore with PropsSerializable {
     tables,
   ];
 
+  void replaceSelectedTable(SqlTable newTable) {
+    replaceTable(newTable, _selectedIndex.value);
+  }
+
   void replaceTable(SqlTable newTable, int index) {
     final newTables = [...tables.value];
     newTables[index] = newTable;
     tables.value = newTables;
-    rawTableDefinition.controller.text = tablesSqlText.value;
+  }
+
+  void addTable(SqlTable newTable) {
+    final newTables = [...tables.value, newTable];
+    tables.value = newTables;
+    selectIndex(tables.value.length - 1);
   }
 }
