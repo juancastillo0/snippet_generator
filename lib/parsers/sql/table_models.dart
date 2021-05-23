@@ -1,7 +1,9 @@
 // ignore_for_file: constant_identifier_names
 import 'package:petitparser/petitparser.dart';
+
 import 'package:snippet_generator/database/models/table_models_dart_templates.dart';
 import 'package:snippet_generator/database/models/table_models_sql_templates.dart';
+import 'package:snippet_generator/globals/option.dart';
 import 'package:snippet_generator/parsers/sql/data_type_model.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 
@@ -44,9 +46,33 @@ class SqlTable {
     this.token,
   });
 
+  SqlTable replaceColumn(SqlColumn col, int index) {
+    final _columns = [...columns];
+    _columns[index] = col;
+    return copyWith(columns: _columns);
+  }
+
   @override
   String toString() {
     return """SqlTable{name: $name, columns: $columns, primaryKey: $primaryKey, tableKeys: $tableKeys, foreignKeys: $foreignKeys}""";
+  }
+
+  SqlTable copyWith({
+    String? name,
+    List<SqlColumn>? columns,
+    List<SqlTableKey>? tableKeys,
+    List<SqlForeignKey>? foreignKeys,
+    List<Token<String>>? errors,
+    Option<Token>? token,
+  }) {
+    return SqlTable(
+      name: name ?? this.name,
+      columns: columns ?? this.columns,
+      tableKeys: tableKeys ?? this.tableKeys,
+      foreignKeys: foreignKeys ?? this.foreignKeys,
+      errors: errors ?? this.errors,
+      token: token != null ? token.valueOrNull : this.token,
+    );
   }
 }
 
@@ -115,6 +141,26 @@ class SqlTableKey {
       'columns': columns.map((x) => x.toJson()).toList(),
     };
   }
+
+  SqlTableKey copyWith({
+    Option<String>? constraintName,
+    Option<String>? indexName,
+    SqlIndexType? indexType,
+    bool? unique,
+    bool? primary,
+    List<SqlKeyItem>? columns,
+    Option<Token>? token,
+  }) {
+    return SqlTableKey(
+      constraintName: constraintName != null ? constraintName.valueOrNull : this.constraintName,
+      indexName: indexName != null ? indexName.valueOrNull : this.indexName,
+      indexType: indexType ?? this.indexType,
+      unique: unique ?? this.unique,
+      primary: primary ?? this.primary,
+      columns: columns ?? this.columns,
+      token: token != null ? token.valueOrNull : this.token,
+    );
+  }
 }
 
 class SqlForeignKey {
@@ -157,6 +203,20 @@ class SqlForeignKey {
   @override
   String toString() {
     return 'SqlForeignKey${toJson()}';
+  }
+
+  SqlForeignKey copyWith({
+    Option<String>? constraintName,
+    Option<String>? indexName,
+    List<String>? ownColumns,
+    SqlReference? reference,
+  }) {
+    return SqlForeignKey(
+      constraintName: constraintName != null ? constraintName.valueOrNull : this.constraintName,
+      indexName: indexName != null ? indexName.valueOrNull : this.indexName,
+      ownColumns: ownColumns ?? this.ownColumns,
+      reference: reference ?? this.reference,
+    );
   }
 }
 
@@ -296,6 +356,38 @@ class SqlColumn {
       'virtual': virtual,
       'alwaysGenerated': alwaysGenerated,
     };
+  }
+
+  SqlColumn copyWith({
+    String? name,
+    SqlType? type,
+    bool? autoIncrement,
+    bool? unique,
+    bool? primary,
+    Option<String>? defaultValue,
+    bool? nullable,
+    Option<String>? collation,
+    bool? visible,
+    Option<String>? generatedValue,
+    bool? virtual,
+    bool? alwaysGenerated,
+    Option<SqlColumnTokens>? tokens,
+  }) {
+    return SqlColumn(
+      name: name ?? this.name,
+      type: type ?? this.type,
+      autoIncrement: autoIncrement ?? this.autoIncrement,
+      unique: unique ?? this.unique,
+      primary: primary ?? this.primary,
+      defaultValue: defaultValue != null ? defaultValue.valueOrNull : this.defaultValue,
+      nullable: nullable ?? this.nullable,
+      collation: collation != null ? collation.valueOrNull : this.collation,
+      visible: visible ?? this.visible,
+      generatedValue: generatedValue != null ? generatedValue.valueOrNull : this.generatedValue,
+      virtual: virtual ?? this.virtual,
+      alwaysGenerated: alwaysGenerated ?? this.alwaysGenerated,
+      tokens: tokens != null ? tokens.valueOrNull : this.tokens,
+    );
   }
 }
 
