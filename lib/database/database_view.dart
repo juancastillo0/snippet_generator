@@ -6,10 +6,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:snippet_generator/database/database_store.dart';
 import 'package:snippet_generator/database/models/sql_values.dart';
 import 'package:snippet_generator/database/sql_type_field.dart';
+import 'package:snippet_generator/fields/button_select_field.dart';
 import 'package:snippet_generator/globals/hook_observer.dart';
+import 'package:snippet_generator/globals/option.dart';
 import 'package:snippet_generator/parsers/sql/table_models.dart';
 import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/types/views/code_generated.dart';
+import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/utils/formatters.dart';
 import 'package:snippet_generator/utils/tt.dart';
 import 'package:snippet_generator/widgets/custom_portal_entry.dart';
@@ -21,7 +24,7 @@ double get _headingRowHeight => 32;
 double get _horizontalMargin => 14;
 BoxDecoration get _decoration => const BoxDecoration(
       border: Border(
-        bottom: BorderSide(color: Colors.transparent, width: 10),
+        bottom: BorderSide(color: Colors.transparent, width: 14),
       ),
     );
 
@@ -177,14 +180,17 @@ class DatabaseTabView extends HookWidget {
               ),
               const _TableWrapper(
                 title: 'Columns',
+                valueToAdd: SqlColumn.defaultColumn,
                 child: ColumnsTable(),
               ),
               const _TableWrapper(
                 title: 'Foreign Keys',
+                valueToAdd: SqlForeignKey.defaultForeignKey,
                 child: ForeignKeysTable(),
               ),
               const _TableWrapper(
                 title: 'Indexes',
+                valueToAdd: SqlTableKey.defaultTableKey,
                 child: IndexesTable(),
               ),
             ],
@@ -200,13 +206,16 @@ class _TableWrapper extends HookWidget {
     Key? key,
     required this.title,
     required this.child,
+    required this.valueToAdd,
   }) : super(key: key);
 
   final String title;
   final Widget child;
+  final Object valueToAdd;
 
   @override
   Widget build(BuildContext context) {
+    final store = useRootStore(context).databaseStore;
     final _verticalScroll = useScrollController();
     final _horizontalScroll = useScrollController();
     final showTable = useState(true);
@@ -261,6 +270,34 @@ class _TableWrapper extends HookWidget {
               ),
             ),
           ),
+          Container(
+            padding: const EdgeInsets.only(right: 12, top: 4),
+            alignment: Alignment.centerRight,
+            child: OutlinedButton.icon(
+              onPressed: store.selectedTable.value == null
+                  ? null
+                  : () {
+                      final selectedTable = store.selectedTable.value!;
+                      final SqlTable newTable;
+                      final toAdd = valueToAdd;
+                      if (toAdd is SqlColumn) {
+                        newTable = selectedTable.copyWith(
+                            columns: [...selectedTable.columns, toAdd]);
+                      } else if (toAdd is SqlTableKey) {
+                        newTable = selectedTable.copyWith(
+                            tableKeys: [...selectedTable.tableKeys, toAdd]);
+                      } else if (toAdd is SqlForeignKey) {
+                        newTable = selectedTable.copyWith(
+                            foreignKeys: [...selectedTable.foreignKeys, toAdd]);
+                      } else {
+                        throw Error();
+                      }
+                      store.replaceSelectedTable(newTable);
+                    },
+              icon: const Icon(Icons.add),
+              label: const Text('Add'),
+            ),
+          )
         ],
       ),
     );
@@ -304,8 +341,8 @@ class ColumnsTable extends HookObserverWidget {
     if (selectedTable == null) {
       rows = const [];
     } else {
-      rows = selectedTable.columns.map(
-        (e) {
+      rows = selectedTable.columns.mapIndex(
+        (e, colIndex) {
           final pk = selectedTable.primaryKey;
           return DataRow(
             cells: [
@@ -315,7 +352,11 @@ class ColumnsTable extends HookObserverWidget {
                 inputFormatters: [Formatters.noWhitespaces],
                 onChanged: (value) {
                   if (value.isNotEmpty) {
-                    store.replace(e.tokens!.name!, '`$value`');
+                    final newTable = selectedTable.replaceColumn(
+                      e.copyWith(name: value),
+                      colIndex,
+                    );
+                    store.replaceSelectedTable(newTable);
                   }
                 },
               )),
@@ -324,10 +365,11 @@ class ColumnsTable extends HookObserverWidget {
                 Checkbox(
                   value: e.nullable,
                   onChanged: (value) {
-                    final token = e.tokens!.nullable!;
-                    final str = value == true ? 'NULL' : 'NOT NULL';
-
-                    store.replace(token, str);
+                    final newTable = selectedTable.replaceColumn(
+                      e.copyWith(nullable: !e.nullable),
+                      colIndex,
+                    );
+                    store.replaceSelectedTable(newTable);
                   },
                 ),
               ),
@@ -343,10 +385,26 @@ class ColumnsTable extends HookObserverWidget {
                   return Checkbox(
                     value: _index != -1,
                     onChanged: (value) {
-                      final str = value == true ? 'UNIQUE (`${e.name}`)' : '';
-                      final tableKey = selectedTable.tableKeys[_index];
-
-                      store.replace(tableKey.token!, str);
+                      final newTableKeys = [...selectedTable.tableKeys];
+                      if (_index != -1) {
+                        newTableKeys.removeAt(_index);
+                      } else {
+                        newTableKeys.add(SqlTableKey(
+                          primary: false,
+                          unique: true,
+                          indexType: null,
+                          columns: [
+                            SqlKeyItem(
+                              columnName: e.name,
+                              ascendent: true,
+                            )
+                          ],
+                        ));
+                      }
+                      final newTable = selectedTable.copyWith(
+                        tableKeys: newTableKeys,
+                      );
+                      store.replaceSelectedTable(newTable);
                     },
                   );
                 }),
@@ -370,13 +428,24 @@ class ColumnsTable extends HookObserverWidget {
               ),
               DataCell(
                 SelectableText(
-                    pk != null &&
-                            pk.columns.any(
-                              (col) => col.columnName == e.name,
-                            )
-                        ? 'YES'
-                        : 'NO',
-                    maxLines: 1),
+                  pk != null &&
+                          pk.columns.any(
+                            (col) => col.columnName == e.name,
+                          )
+                      ? 'YES'
+                      : 'NO',
+                  maxLines: 1,
+                ),
+              ),
+              DataCell(
+                SmallIconButton(
+                  onPressed: () {
+                    final newTable =
+                        selectedTable.replaceColumn(null, colIndex);
+                    store.replaceSelectedTable(newTable);
+                  },
+                  child: const Icon(Icons.delete),
+                ),
               ),
             ],
           );
@@ -392,11 +461,12 @@ class ColumnsTable extends HookObserverWidget {
       columns: const [
         DataColumn(label: Text('Name')),
         DataColumn(label: Text('Type')),
-        DataColumn(label: Text('Nullable')),
+        DataColumn(label: Text('Null')),
         DataColumn(label: Text('Default')),
         DataColumn(label: Text('Unique')),
         DataColumn(label: Text('Reference')),
-        DataColumn(label: Text('In Primary')),
+        DataColumn(label: Text('Primary')),
+        DataColumn(label: Text('Delete')),
       ],
       rows: rows,
     );
@@ -424,19 +494,43 @@ class ForeignKeysTable extends HookObserverWidget {
         DataColumn(label: Text('Index')),
         DataColumn(label: Text('Columns')),
         DataColumn(label: Text('Reference')),
-        DataColumn(label: Text('Match')),
+        // DataColumn(label: Text('Match')),
         DataColumn(label: Text('On Delete')),
         DataColumn(label: Text('On Update')),
+        DataColumn(label: Text('Delete')),
       ],
       rows: selectedTable == null
           ? []
           : selectedTable.foreignKeys
-              .map(
-                (e) => DataRow(
+              .mapIndex(
+                (e, keyIndex) => DataRow(
                   cells: [
-                    DataCell(
-                        SelectableText(e.constraintName ?? '', maxLines: 1)),
-                    DataCell(SelectableText(e.indexName ?? '', maxLines: 1)),
+                    DataCell(TextFormField(
+                      initialValue: e.constraintName,
+                      inputFormatters: [Formatters.noWhitespaces],
+                      onChanged: (value) {
+                        if (value.isNotEmpty) {
+                          final newTable = selectedTable.replaceForeignKey(
+                            e.copyWith(constraintName: Some(value)),
+                            keyIndex,
+                          );
+                          store.replaceSelectedTable(newTable);
+                        }
+                      },
+                    )),
+                    DataCell(TextFormField(
+                      initialValue: e.indexName,
+                      inputFormatters: [Formatters.noWhitespaces],
+                      onChanged: (value) {
+                        if (value.isNotEmpty) {
+                          final newTable = selectedTable.replaceForeignKey(
+                            e.copyWith(indexName: Some(value)),
+                            keyIndex,
+                          );
+                          store.replaceSelectedTable(newTable);
+                        }
+                      },
+                    )),
                     DataCell(
                         SelectableText(e.ownColumns.join(' , '), maxLines: 1)),
                     DataCell(
@@ -450,13 +544,67 @@ class ForeignKeysTable extends HookObserverWidget {
                               ')',
                           maxLines: 1),
                     ),
-                    DataCell(SelectableText(
-                        e.reference.matchType?.toJson() ?? '',
-                        maxLines: 1)),
-                    DataCell(SelectableText(e.reference.onDelete.toJson(),
-                        maxLines: 1)),
-                    DataCell(SelectableText(e.reference.onUpdate.toJson(),
-                        maxLines: 1)),
+                    // DataCell(CustomDropdownField<ReferenceMatchType?>(
+                    //   selected: e.reference.matchType,
+                    //   asString: (v) => v?.toJson() ?? '-',
+                    //   onChange: (v) {
+                    //     final newTable = selectedTable.replaceForeignKey(
+                    //       e.copyWith(
+                    //         reference: e.reference.copyWith(
+                    //           matchType: Some(v!),
+                    //         ),
+                    //       ),
+                    //       keyIndex,
+                    //     );
+                    //     store.replaceSelectedTable(newTable);
+                    //   },
+                    //   padding: const EdgeInsets.only(left: 4),
+                    //   options: ReferenceMatchType.values,
+                    // )),
+                    DataCell(CustomDropdownField<ReferenceOption>(
+                      selected: e.reference.onDelete,
+                      asString: (v) => v.toJson(),
+                      onChange: (v) {
+                        final newTable = selectedTable.replaceForeignKey(
+                          e.copyWith(
+                            reference: e.reference.copyWith(
+                              onDelete: v,
+                            ),
+                          ),
+                          keyIndex,
+                        );
+                        store.replaceSelectedTable(newTable);
+                      },
+                      padding: const EdgeInsets.only(left: 4),
+                      options: ReferenceOption.values,
+                    )),
+                    DataCell(CustomDropdownField<ReferenceOption>(
+                      selected: e.reference.onUpdate,
+                      asString: (v) => v.toJson(),
+                      onChange: (v) {
+                        final newTable = selectedTable.replaceForeignKey(
+                          e.copyWith(
+                            reference: e.reference.copyWith(
+                              onUpdate: v,
+                            ),
+                          ),
+                          keyIndex,
+                        );
+                        store.replaceSelectedTable(newTable);
+                      },
+                      padding: const EdgeInsets.only(left: 4),
+                      options: ReferenceOption.values,
+                    )),
+                    DataCell(
+                      SmallIconButton(
+                        onPressed: () {
+                          final newTable =
+                              selectedTable.replaceForeignKey(null, keyIndex);
+                          store.replaceSelectedTable(newTable);
+                        },
+                        child: const Icon(Icons.delete),
+                      ),
+                    ),
                   ],
                 ),
               )
@@ -487,29 +635,121 @@ class IndexesTable extends HookObserverWidget {
         DataColumn(label: Text('Columns')),
         DataColumn(label: Text('Type')),
         DataColumn(label: Text('Unique')),
+        DataColumn(label: Text('Delete')),
       ],
       rows: selectedTable == null
           ? []
           : selectedTable.tableKeys
-              .map(
-                (e) => DataRow(
+              .mapIndex(
+                (e, keyIndex) => DataRow(
                   cells: [
-                    DataCell(
-                        SelectableText(e.constraintName ?? '', maxLines: 1)),
-                    DataCell(SelectableText(e.indexName ?? '', maxLines: 1)),
+                    DataCell(TextFormField(
+                      initialValue: e.constraintName,
+                      inputFormatters: [Formatters.noWhitespaces],
+                      onChanged: (value) {
+                        if (value.isNotEmpty) {
+                          final newTable = selectedTable.replaceTableKey(
+                            e.copyWith(constraintName: Some(value)),
+                            keyIndex,
+                          );
+                          store.replaceSelectedTable(newTable);
+                        }
+                      },
+                    )),
+                    DataCell(e.primary
+                        ? SelectableText(e.indexName ?? '', maxLines: 1)
+                        : TextFormField(
+                            initialValue: e.indexName,
+                            inputFormatters: [Formatters.noWhitespaces],
+                            onChanged: (value) {
+                              if (value.isNotEmpty) {
+                                final newTable = selectedTable.replaceTableKey(
+                                  e.copyWith(indexName: Some(value)),
+                                  keyIndex,
+                                );
+                                store.replaceSelectedTable(newTable);
+                              }
+                            },
+                          )),
                     DataCell(SelectableText(
                         e.columns
                             .map((e) =>
                                 '${e.columnName}${e.ascendent ? "" : " DESC"}')
                             .join(' , '),
                         maxLines: 1)),
-                    DataCell(SelectableText(e.indexType.toJson(), maxLines: 1)),
+                    DataCell(CustomDropdownField<SqlIndexType>(
+                      selected: e.indexType,
+                      asString: (v) => v.toJson(),
+                      onChange: (v) {
+                        final newTable = selectedTable.replaceTableKey(
+                          e.copyWith(indexType: v),
+                          keyIndex,
+                        );
+                        store.replaceSelectedTable(newTable);
+                      },
+                      padding: const EdgeInsets.only(left: 4),
+                      options: e.primary
+                          ? const [SqlIndexType.HASH, SqlIndexType.BTREE]
+                          : SqlIndexType.values,
+                    )),
                     DataCell(
-                        SelectableText(e.unique ? 'YES' : 'NO', maxLines: 1)),
+                      Checkbox(
+                        value: e.indexType.canBeUnique && e.unique,
+                        onChanged: !e.indexType.canBeUnique || e.primary
+                            ? null
+                            : (v) {
+                                final newTable = selectedTable.replaceTableKey(
+                                  e.copyWith(unique: !e.unique),
+                                  keyIndex,
+                                );
+                                store.replaceSelectedTable(newTable);
+                              },
+                      ),
+                    ),
+                    DataCell(
+                      SmallIconButton(
+                        onPressed: () {
+                          final newTable =
+                              selectedTable.replaceTableKey(null, keyIndex);
+                          store.replaceSelectedTable(newTable);
+                        },
+                        child: const Icon(Icons.delete),
+                      ),
+                    ),
                   ],
                 ),
               )
               .toList(),
+    );
+  }
+}
+
+class SmallIconButton extends StatelessWidget {
+  final bool center;
+  final void Function()? onPressed;
+  final Widget child;
+
+  const SmallIconButton({
+    Key? key,
+    this.center = true,
+    required this.child,
+    required this.onPressed,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final _button = IconButton(
+      icon: child,
+      constraints: const BoxConstraints(),
+      alignment: Alignment.center,
+      padding: EdgeInsets.zero,
+      splashRadius: 22,
+      iconSize: 18,
+      onPressed: onPressed,
+    );
+
+    return Center(
+      child: _button,
     );
   }
 }
