@@ -16,7 +16,7 @@ final _symbol = ((char('`') & pattern('^`').star().flatten() & char('`'))
             .trim()
             .pick(1)
             .cast<String>() |
-        word().plus().flatten().trim())
+        (string('USING').trim().not() & word().plus().flatten().trim()).pick(1))
     .cast<String>();
 
 final createTableListParser = createTableParser.separatedBy<SqlTable>(
@@ -104,23 +104,21 @@ final _indexDefinition = (((_token('INDEX') | _token('KEY')) &
   final value = tokenValue.value;
   final list = value.first as List;
   final f = (list.first as String).toUpperCase();
-  final String? index;
+  final SqlIndexType? index;
   final String? name;
   final columns = value.last as List<SqlKeyItem>;
   if (f == 'FULLTEXT' || f == 'SPATIAL') {
-    index = f;
+    index = f == 'FULLTEXT' ? SqlIndexType.FULLTEXT : SqlIndexType.SPATIAL;
     name = list[2] as String?;
   } else {
-    index = list[2] as String?;
+    index = list[2] as SqlIndexType?;
     name = list[1] as String?;
   }
 
   return SqlTableKey(
     primary: false,
     unique: false,
-    indexType: index == null
-        ? null
-        : parseEnum(index, SqlIndexType.values, caseSensitive: false),
+    indexType: index,
     columns: columns,
     indexName: name,
     token: tokenValue,

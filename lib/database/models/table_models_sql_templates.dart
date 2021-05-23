@@ -31,15 +31,16 @@ ${table.columns.map(colToSql).join(',\n')}${_primaryKey()}${table.foreignKeys.ma
 
   String _foreignKey(SqlForeignKey key) {
     return ',\n${_constraintName(key.constraintName)}FOREIGN KEY ${_indexName(key.indexName)}'
-        '(${key.ownColumns.join(",")}) REFERENCES ${key.reference.referencedTable} ${_colsRef(key.reference.columns)}'
-        '${key.reference.matchType == null ? "" : " MATCH ${key.reference.matchType!.toJson}"}';
+            '(${key.ownColumns.join(",")}) REFERENCES ${key.reference.referencedTable} ${_colsRef(key.reference.columns)}'
+        // '${key.reference.matchType == null ? "" : " MATCH ${key.reference.matchType!.toJson}"}'
+        ;
   }
 
   String _constraintName(String? name) {
     if (name == null) {
       return '';
     }
-    return ' CONSTRAINT $name ';
+    return 'CONSTRAINT $name ';
   }
 
   String _indexName(String? name) {
@@ -59,7 +60,10 @@ ${table.columns.map(colToSql).join(',\n')}${_primaryKey()}${table.foreignKeys.ma
         return ',\n${key.indexType.toJson()} ${_indexName(key.indexName)}${_colsRef(key.columns)}';
       case SqlIndexType.HASH:
       case SqlIndexType.BTREE:
-        return ',\nINDEX ${_indexName(key.indexName)}${key.indexType.toJson()} ${_colsRef(key.columns)}';
+        if (key.unique) {
+          return ',\n${_constraintName(key.constraintName)}UNIQUE ${_indexName(key.indexName)}USING ${key.indexType.toJson()} ${_colsRef(key.columns)}';
+        }
+        return ',\nINDEX ${_indexName(key.indexName)}USING ${key.indexType.toJson()} ${_colsRef(key.columns)}';
     }
   }
 

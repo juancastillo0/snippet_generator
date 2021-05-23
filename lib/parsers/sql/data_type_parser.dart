@@ -23,7 +23,7 @@ final _numericTypeParser = ((((stringIgnoreCase('TINY') |
                     .optional() &
                 stringIgnoreCase('INT') &
                 parens(unsignedIntParser).optional()) |
-            (_token('DOUBLE') & _token('PRECISION').optional() |
+            ((_token('DOUBLE') & _token('PRECISION').optional()).pick(0) |
                     _token('REAL') |
                     _token('FLOAT') |
                     _token('DEC') |
