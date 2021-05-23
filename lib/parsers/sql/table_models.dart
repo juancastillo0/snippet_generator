@@ -46,10 +46,34 @@ class SqlTable {
     this.token,
   });
 
-  SqlTable replaceColumn(SqlColumn col, int index) {
+  SqlTable replaceColumn(SqlColumn? col, int index) {
     final _columns = [...columns];
-    _columns[index] = col;
+    if (col == null) {
+      _columns.removeAt(index);
+    } else {
+      _columns[index] = col;
+    }
     return copyWith(columns: _columns);
+  }
+
+  SqlTable replaceTableKey(SqlTableKey? key, int index) {
+    final _tableKeys = [...tableKeys];
+    if (key == null) {
+      _tableKeys.removeAt(index);
+    } else {
+      _tableKeys[index] = key;
+    }
+    return copyWith(tableKeys: _tableKeys);
+  }
+
+  SqlTable replaceForeignKey(SqlForeignKey? key, int index) {
+    final _foreignKeys = [...foreignKeys];
+    if (key == null) {
+      _foreignKeys.removeAt(index);
+    } else {
+      _foreignKeys[index] = key;
+    }
+    return copyWith(foreignKeys: _foreignKeys);
   }
 
   @override
@@ -85,6 +109,9 @@ enum SqlIndexType {
 
 extension SqlIndexTypeExt on SqlIndexType {
   String toJson() => toString().split('.')[1];
+
+  bool get canBeUnique =>
+      this == SqlIndexType.BTREE || this == SqlIndexType.HASH;
 }
 
 class SqlTableKey {
@@ -92,7 +119,8 @@ class SqlTableKey {
   final String? indexName;
 
   final SqlIndexType indexType;
-  final bool unique;
+  final bool _unique;
+  bool get unique => indexType.canBeUnique && _unique;
   final bool primary;
 
   final List<SqlKeyItem> columns;
@@ -102,13 +130,14 @@ class SqlTableKey {
     this.constraintName,
     String? indexName,
     required SqlIndexType? indexType,
-    required this.unique,
+    required bool unique,
     required this.primary,
     required this.columns,
     this.token,
   })  : assert(!primary || unique),
         assert(!primary || (indexName == null || indexName == 'PRIMARY')),
         assert(constraintName == null || unique || primary),
+        _unique = unique,
         indexType = indexType ?? SqlIndexType.BTREE,
         indexName = primary ? 'PRIMARY' : indexName;
 
@@ -125,6 +154,13 @@ class SqlTableKey {
       columns: columns,
     );
   }
+
+  static const defaultTableKey = SqlTableKey(
+    columns: [],
+    primary: false,
+    unique: false,
+    indexType: SqlIndexType.BTREE,
+  );
 
   @override
   String toString() {
@@ -152,10 +188,12 @@ class SqlTableKey {
     Option<Token>? token,
   }) {
     return SqlTableKey(
-      constraintName: constraintName != null ? constraintName.valueOrNull : this.constraintName,
+      constraintName: constraintName != null
+          ? constraintName.valueOrNull
+          : this.constraintName,
       indexName: indexName != null ? indexName.valueOrNull : this.indexName,
       indexType: indexType ?? this.indexType,
-      unique: unique ?? this.unique,
+      unique: unique ?? this._unique,
       primary: primary ?? this.primary,
       columns: columns ?? this.columns,
       token: token != null ? token.valueOrNull : this.token,
@@ -175,6 +213,11 @@ class SqlForeignKey {
     required this.ownColumns,
     required this.reference,
   });
+
+  static const defaultForeignKey = SqlForeignKey(
+    ownColumns: [],
+    reference: SqlReference.defaultReference,
+  );
 
   Map<String, dynamic> toJson() {
     return {
@@ -212,7 +255,9 @@ class SqlForeignKey {
     SqlReference? reference,
   }) {
     return SqlForeignKey(
-      constraintName: constraintName != null ? constraintName.valueOrNull : this.constraintName,
+      constraintName: constraintName != null
+          ? constraintName.valueOrNull
+          : this.constraintName,
       indexName: indexName != null ? indexName.valueOrNull : this.indexName,
       ownColumns: ownColumns ?? this.ownColumns,
       reference: reference ?? this.reference,
@@ -262,24 +307,33 @@ extension ReferenceMatchTypeExt on ReferenceMatchType {
 
 class SqlReference {
   final String referencedTable;
-  final ReferenceMatchType? matchType;
-  final ReferenceOption onDelete;
-  final ReferenceOption onUpdate;
   final List<SqlKeyItem> columns;
 
-  SqlReference({
+  /// https://dev.mysql.com/doc/refman/8.0/en/constraint-foreign-key.html
+  /// https://www.postgresql.org/docs/9.1/sql-createtable.html
+  final ReferenceMatchType matchType;
+  final ReferenceOption onDelete;
+  final ReferenceOption onUpdate;
+
+  const SqlReference({
     required this.referencedTable,
-    required this.matchType,
+    required this.columns,
     ReferenceOption? onDelete,
     ReferenceOption? onUpdate,
-    required this.columns,
+    ReferenceMatchType? matchType,
   })  : onDelete = onDelete ?? ReferenceOption.NO_ACTION,
-        onUpdate = onUpdate ?? ReferenceOption.NO_ACTION;
+        onUpdate = onUpdate ?? ReferenceOption.NO_ACTION,
+        matchType = matchType ?? ReferenceMatchType.SIMPLE;
+
+  static const defaultReference = SqlReference(
+    columns: [],
+    referencedTable: '',
+  );
 
   Map<String, dynamic> toJson() {
     return {
       'referencedTable': referencedTable,
-      'matchType': matchType?.toJson(),
+      'matchType': matchType.toJson(),
       'onDelete': onDelete.toJson(),
       'onUpdate': onUpdate.toJson(),
       'columns': columns.map((x) => x.toJson()).toList(),
@@ -289,6 +343,22 @@ class SqlReference {
   @override
   String toString() {
     return 'SqlReference${toJson()}';
+  }
+
+  SqlReference copyWith({
+    String? referencedTable,
+    ReferenceMatchType? matchType,
+    ReferenceOption? onDelete,
+    ReferenceOption? onUpdate,
+    List<SqlKeyItem>? columns,
+  }) {
+    return SqlReference(
+      referencedTable: referencedTable ?? this.referencedTable,
+      matchType: matchType ?? this.matchType,
+      onDelete: onDelete ?? this.onDelete,
+      onUpdate: onUpdate ?? this.onUpdate,
+      columns: columns ?? this.columns,
+    );
   }
 }
 
@@ -336,6 +406,15 @@ class SqlColumn {
   })  : assert(generatedValue == null || defaultValue == null),
         assert(generatedValue == null || alwaysGenerated == false);
 
+  static const defaultColumn = SqlColumn(
+    name: '',
+    type: SqlType.integer(
+      bytes: 4,
+      unsigned: false,
+      zerofill: false,
+    ),
+  );
+
   @override
   String toString() {
     return 'SqlColumn${toJson()}';
@@ -379,11 +458,14 @@ class SqlColumn {
       autoIncrement: autoIncrement ?? this.autoIncrement,
       unique: unique ?? this.unique,
       primary: primary ?? this.primary,
-      defaultValue: defaultValue != null ? defaultValue.valueOrNull : this.defaultValue,
+      defaultValue:
+          defaultValue != null ? defaultValue.valueOrNull : this.defaultValue,
       nullable: nullable ?? this.nullable,
       collation: collation != null ? collation.valueOrNull : this.collation,
       visible: visible ?? this.visible,
-      generatedValue: generatedValue != null ? generatedValue.valueOrNull : this.generatedValue,
+      generatedValue: generatedValue != null
+          ? generatedValue.valueOrNull
+          : this.generatedValue,
       virtual: virtual ?? this.virtual,
       alwaysGenerated: alwaysGenerated ?? this.alwaysGenerated,
       tokens: tokens != null ? tokens.valueOrNull : this.tokens,
