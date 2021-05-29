@@ -36,8 +36,8 @@ class SqlNullComp<T extends SqlValue<T>> extends SqlBoolValue {
   const SqlNullComp(this.value, {required this.negated});
 
   @override
-  String toSql() {
-    return '(${value.toSql()} IS ${negated ? "NOT " : ""}NULL)';
+  String toSql(SqlContext ctx) {
+    return '(${value.toSql(ctx)} IS ${negated ? "NOT " : ""}NULL)';
   }
 }
 
@@ -49,8 +49,8 @@ class SqlCompBinary<T extends SqlValue<T>> extends SqlBoolValue {
   const SqlCompBinary(this.left, this.op, this.right);
 
   @override
-  String toSql() {
-    return '(${left.toSql()} ${op.toSql()} ${right.toSql()})';
+  String toSql(SqlContext ctx) {
+    return '(${left.toSql(ctx)} ${op.toSql()} ${right.toSql(ctx)})';
   }
 }
 
@@ -61,7 +61,7 @@ class SqlIn<T extends SqlValue<T>> extends SqlBoolValue {
   const SqlIn(this.value, this.list);
 
   @override
-  String toSql() {
-    return '(${value.toSql()} IN (${list.map((e) => e.toSql()).join(",")}))';
+  String toSql(SqlContext ctx) {
+    return '(${value.toSql(ctx)} IN (${list.map((e) => e.toSql(ctx)).join(",")}))';
   }
 }

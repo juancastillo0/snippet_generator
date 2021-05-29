@@ -27,7 +27,7 @@ class SqlWhereRaw extends SqlBoolValue {
   const SqlWhereRaw(this.rawSql);
 
   @override
-  String toSql() => rawSql;
+  String toSql(SqlContext ctx) => rawSql;
 }
 
 enum BoolOperator {
@@ -60,10 +60,10 @@ class _SqBoolOp extends SqlBoolValue {
   // }
 
   @override
-  String toSql() {
+  String toSql(SqlContext ctx) {
     return '(' +
         operands
-            .map((e) => e.toSql())
+            .map((e) => e.toSql(ctx))
             .join(op == BoolOperator.or ? ' OR ' : ' AND ') +
         ')';
   }
@@ -80,7 +80,7 @@ class _SqlNegOp extends SqlBoolValue {
   // }
 
   @override
-  String toSql() {
-    return '(NOT ${inner.toSql()})';
+  String toSql(SqlContext ctx) {
+    return '(NOT ${inner.toSql(ctx)})';
   }
 }

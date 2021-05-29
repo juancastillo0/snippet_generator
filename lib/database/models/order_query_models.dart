@@ -1,14 +1,15 @@
 import 'package:snippet_generator/database/models/sql_values.dart';
 
-class SqlOrderItem {
+class SqlOrderItem implements SqlGenerator {
   final SqlValue value;
   final bool desc;
   final bool nullsFirst;
 
   const SqlOrderItem(this.value, {this.desc = false, this.nullsFirst = false});
 
-  String toSql() {
-    return '${nullsFirst && !desc ? "${value.toSql()} IS NOT NULL," : ""}${value.toSql()} ${desc ? "DESC" : "ASC"}';
+  @override
+  String toSql(SqlContext ctx) {
+    return '${nullsFirst && !desc ? "${value.toSql(ctx)} IS NOT NULL," : ""}${value.toSql(ctx)} ${desc ? "DESC" : "ASC"}';
   }
 }
 

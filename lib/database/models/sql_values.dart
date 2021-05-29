@@ -1,17 +1,40 @@
 import 'package:snippet_generator/database/models/bool_query_models.dart';
 import 'package:snippet_generator/database/models/collect_query_models.dart';
 import 'package:snippet_generator/database/models/comp_query_models.dart';
+import 'package:snippet_generator/database/models/connection_models.dart';
 
 export 'package:snippet_generator/database/models/bool_query_models.dart';
 export 'package:snippet_generator/database/models/collect_query_models.dart';
 export 'package:snippet_generator/database/models/comp_query_models.dart';
+export 'package:snippet_generator/database/models/connection_models.dart';
 export 'package:snippet_generator/database/models/order_query_models.dart';
 
-abstract class SqlValue<T extends SqlValue<T>> {
+class SqlContext {
+  final SqlDatabase database;
+  final List<String> variables = [];
+  final bool unsafe;
+
+  SqlContext({required this.database, this.unsafe = false});
+
+  String addString(String value) {
+    if (unsafe) {
+      return "'$value'";
+    }
+    variables.add("'$value'");
+    return database == SqlDatabase.mysql ? '?' : '\$${variables.length}';
+  }
+}
+
+abstract class SqlGenerator {
+  String toSql(SqlContext ctx);
+}
+
+abstract class SqlValue<T extends SqlValue<T>> implements SqlGenerator {
   const SqlValue();
 
   const factory SqlValue.raw(String raw) = SqlRawValue;
-  const factory SqlValue.rawFn(String Function() raw) = SqlRawFuncValue;
+  const factory SqlValue.rawFn(String Function(SqlContext ctx) raw) =
+      SqlRawFuncValue;
   const factory SqlValue.coalesce(List<SqlValue<T>> values) = SqlCoalesceValue;
   const factory SqlValue.caseWhen(
     List<MapEntry<SqlBoolValue, T>> conditions, {
@@ -38,8 +61,6 @@ abstract class SqlValue<T extends SqlValue<T>> {
   static const currentDate = SqlValue<SqlDateValue>.raw('CURRENT_DATE()');
   static const currentTime = SqlValue<SqlDateValue>.raw('CURRENT_TIME()');
 
-  String toSql();
-
   SqlBoolValue inList(List<SqlValue<T>> list) => SqlIn(this, list);
 
   SqlBoolValue equalTo(SqlValue<T> other) =>
@@ -65,18 +86,18 @@ class SqlRawValue<T extends SqlValue<T>> extends SqlValue<T> {
   const SqlRawValue(this.raw);
 
   @override
-  String toSql() {
+  String toSql(SqlContext ctx) {
     return raw;
   }
 }
 
 class SqlRawFuncValue<T extends SqlValue<T>> extends SqlValue<T> {
-  final String Function() rawFn;
+  final String Function(SqlContext ctx) rawFn;
   const SqlRawFuncValue(this.rawFn);
 
   @override
-  String toSql() {
-    return rawFn();
+  String toSql(SqlContext ctx) {
+    return rawFn(ctx);
   }
 }
 
@@ -84,7 +105,7 @@ class SqlNullValue<T extends SqlValue<T>> extends SqlValue<T> {
   const SqlNullValue();
 
   @override
-  String toSql() => 'NULL';
+  String toSql(SqlContext ctx) => 'NULL';
 }
 
 class SqlStringValue extends SqlValue<SqlStringValue> {
@@ -92,7 +113,9 @@ class SqlStringValue extends SqlValue<SqlStringValue> {
   const SqlStringValue(this.value);
 
   @override
-  String toSql() => "'$value'";
+  String toSql(SqlContext ctx) {
+    return ctx.addString(value);
+  }
 }
 
 extension SqlStringValueExt on SqlValue<SqlStringValue> {
@@ -107,7 +130,9 @@ class SqlBoolLikeValue extends SqlBoolValue {
   const SqlBoolLikeValue(this.value, this.pattern);
 
   @override
-  String toSql() => "(${value.toSql()} LIKE '$pattern')";
+  String toSql(SqlContext ctx) {
+    return "(${value.toSql(ctx)} LIKE ${ctx.addString(pattern)})";
+  }
 }
 
 abstract class SqlNumValue extends SqlValue<SqlNumValue> {
@@ -159,8 +184,8 @@ class SqlNumOpValue extends SqlNumValue {
   const SqlNumOpValue(this.left, this.operation, this.right);
 
   @override
-  String toSql() {
-    return '(${left.toSql()} ${operation.toSql()} ${right.toSql()})';
+  String toSql(SqlContext ctx) {
+    return '(${left.toSql(ctx)} ${operation.toSql()} ${right.toSql(ctx)})';
   }
 }
 
@@ -169,7 +194,7 @@ class SqlIntValue extends SqlNumValue {
   const SqlIntValue(this.value);
 
   @override
-  String toSql() => value.toString();
+  String toSql(SqlContext ctx) => value.toString();
 }
 
 class SqlDoubleValue extends SqlNumValue {
@@ -177,7 +202,7 @@ class SqlDoubleValue extends SqlNumValue {
   const SqlDoubleValue(this.value);
 
   @override
-  String toSql() => value.toString();
+  String toSql(SqlContext ctx) => value.toString();
 }
 
 class SqlJsonValue extends SqlValue<SqlJsonValue> {
@@ -185,12 +210,12 @@ class SqlJsonValue extends SqlValue<SqlJsonValue> {
   const SqlJsonValue(this.value);
 
   @override
-  String toSql() => "'$value'";
+  String toSql(SqlContext ctx) => ctx.addString(value);
 }
 
 extension SqlJsonValueExt on SqlValue<SqlJsonValue> {
   SqlValue<SqlJsonValue> extract(String path) {
-    return SqlValue.rawFn(() => '${toSql()}->>$path');
+    return SqlValue.rawFn((ctx) => '${toSql(ctx)}->>$path');
   }
 }
 
@@ -212,7 +237,7 @@ class SqlDateValue extends SqlValue<SqlDateValue> {
   const SqlDateValue.year(this.value) : variant = SqlDateType.year;
 
   @override
-  String toSql() {
+  String toSql(SqlContext ctx) {
     switch (variant) {
       case SqlDateType.dateTime:
         return "'${value.toString()}'";
@@ -231,7 +256,8 @@ class SqlBinaryValue extends SqlValue<SqlBinaryValue> {
   const SqlBinaryValue(this.value);
 
   @override
-  String toSql() {
+  String toSql(SqlContext ctx) {
+    // TODO:
     return value.toString();
   }
 }
