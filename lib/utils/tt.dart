@@ -2,25 +2,6 @@ import 'dart:convert';
 
 import 'package:snippet_generator/database/models/sql_values.dart';
 
-abstract class TransactionContext implements TableConnection {
-  Never rollback();
-}
-
-abstract class TableConnection {
-  Future<SqlQueryResult> query(
-    String sqlQuery, [
-    List<Object?>? values,
-  ]);
-
-  Future<Object?> transaction(
-    Future<void> Function(TransactionContext context) transactionFn,
-  );
-}
-
-abstract class SqlQueryResult implements Iterable<List<Object?>> {
-  int? get affectedRows;
-}
-
 class Message {
   final int numId;
   final String codeMessage;
@@ -68,15 +49,18 @@ VALUES ($numId,$codeMessage,$userCode,$roomCode,$roomCodeSection,$text,$senderNa
     return conn.query(sqlQuery);
   }
 
-  static String selectSql({
+  static SqlQuery selectSql({
     SqlValue<SqlBoolValue>? where,
     List<SqlOrderItem>? orderBy,
     SqlLimit? limit,
+    required SqlDatabase database,
+    bool unsafe = false,
     bool withRoom = false,
     bool withUser = false,
     bool withTypeMessage = false,
   }) {
-    return """
+    final ctx = SqlContext(database: database, unsafe: unsafe);
+    final query = """
 SELECT num_id,code_message,user_code,room_code,room_code_section,text,sender_name,type_message_code,read,created_at
 ${withRoom ? ",JSON_ARRAYAGG(JSON_OBJECT('codeRoom',room.code_room,'section',room.section,'createdAt',room.created_at)) refRoom" : ""}
 ${withUser ? ",JSON_ARRAYAGG(JSON_OBJECT('codeUser',user.code_user,'createdAt',user.created_at)) refUser" : ""}
@@ -85,12 +69,13 @@ FROM message
 ${withRoom ? "JOIN room ON message.room_code=room.code_room AND message.room_code_section=room.section" : ""}
 ${withUser ? "JOIN user ON message.user_code=user.code_user" : ""}
 ${withTypeMessage ? "JOIN type_message ON message.type_message_code=type_message.code_type" : ""}
-${where == null ? '' : 'WHERE ${where.toSql()}'}
+${where == null ? '' : 'WHERE ${where.toSql(ctx)}'}
 GROUP BY num_id,code_message
-${orderBy == null ? '' : 'ORDER BY ${orderBy.map((item) => item.toSql()).join(",")}'}
+${orderBy == null ? '' : 'ORDER BY ${orderBy.map((item) => item.toSql(ctx)).join(",")}'}
 ${limit == null ? '' : 'LIMIT ${limit.rowCount} ${limit.offset == null ? "" : "OFFSET ${limit.offset}"}'}
 ;
 """;
+    return SqlQuery(query, ctx.variables);
   }
 
   static Future<List<Message>> select(
@@ -106,12 +91,13 @@ ${limit == null ? '' : 'LIMIT ${limit.rowCount} ${limit.offset == null ? "" : "O
       where: where,
       limit: limit,
       orderBy: orderBy,
+      database: conn.database,
       withRoom: withRoom,
       withUser: withUser,
       withTypeMessage: withTypeMessage,
     );
 
-    final result = await conn.query(query);
+    final result = await conn.query(query.query, query.params);
     int _refIndex = 10;
 
     return result.map((r) {
@@ -283,22 +269,26 @@ VALUES ($codeUser,$createdAt);
     return conn.query(sqlQuery);
   }
 
-  static String selectSql({
+  static SqlQuery selectSql({
     SqlValue<SqlBoolValue>? where,
     List<SqlOrderItem>? orderBy,
     SqlLimit? limit,
+    required SqlDatabase database,
+    bool unsafe = false,
   }) {
-    return """
+    final ctx = SqlContext(database: database, unsafe: unsafe);
+    final query = """
 SELECT code_user,created_at
 
 FROM user
 
-${where == null ? '' : 'WHERE ${where.toSql()}'}
+${where == null ? '' : 'WHERE ${where.toSql(ctx)}'}
 GROUP BY null
-${orderBy == null ? '' : 'ORDER BY ${orderBy.map((item) => item.toSql()).join(",")}'}
+${orderBy == null ? '' : 'ORDER BY ${orderBy.map((item) => item.toSql(ctx)).join(",")}'}
 ${limit == null ? '' : 'LIMIT ${limit.rowCount} ${limit.offset == null ? "" : "OFFSET ${limit.offset}"}'}
 ;
 """;
+    return SqlQuery(query, ctx.variables);
   }
 
   static Future<List<User>> select(
@@ -311,9 +301,10 @@ ${limit == null ? '' : 'LIMIT ${limit.rowCount} ${limit.offset == null ? "" : "O
       where: where,
       limit: limit,
       orderBy: orderBy,
+      database: conn.database,
     );
 
-    final result = await conn.query(query);
+    final result = await conn.query(query.query, query.params);
     int _refIndex = 2;
 
     return result.map((r) {
@@ -407,22 +398,26 @@ VALUES ($codeRoom,$section,$createdAt);
     return conn.query(sqlQuery);
   }
 
-  static String selectSql({
+  static SqlQuery selectSql({
     SqlValue<SqlBoolValue>? where,
     List<SqlOrderItem>? orderBy,
     SqlLimit? limit,
+    required SqlDatabase database,
+    bool unsafe = false,
   }) {
-    return """
+    final ctx = SqlContext(database: database, unsafe: unsafe);
+    final query = """
 SELECT code_room,section,created_at
 
 FROM room
 
-${where == null ? '' : 'WHERE ${where.toSql()}'}
+${where == null ? '' : 'WHERE ${where.toSql(ctx)}'}
 GROUP BY null
-${orderBy == null ? '' : 'ORDER BY ${orderBy.map((item) => item.toSql()).join(",")}'}
+${orderBy == null ? '' : 'ORDER BY ${orderBy.map((item) => item.toSql(ctx)).join(",")}'}
 ${limit == null ? '' : 'LIMIT ${limit.rowCount} ${limit.offset == null ? "" : "OFFSET ${limit.offset}"}'}
 ;
 """;
+    return SqlQuery(query, ctx.variables);
   }
 
   static Future<List<Room>> select(
@@ -435,9 +430,10 @@ ${limit == null ? '' : 'LIMIT ${limit.rowCount} ${limit.offset == null ? "" : "O
       where: where,
       limit: limit,
       orderBy: orderBy,
+      database: conn.database,
     );
 
-    final result = await conn.query(query);
+    final result = await conn.query(query.query, query.params);
     int _refIndex = 3;
 
     return result.map((r) {
@@ -536,22 +532,26 @@ VALUES ($codeType,$createdAt);
     return conn.query(sqlQuery);
   }
 
-  static String selectSql({
+  static SqlQuery selectSql({
     SqlValue<SqlBoolValue>? where,
     List<SqlOrderItem>? orderBy,
     SqlLimit? limit,
+    required SqlDatabase database,
+    bool unsafe = false,
   }) {
-    return """
+    final ctx = SqlContext(database: database, unsafe: unsafe);
+    final query = """
 SELECT code_type,created_at
 
 FROM type_message
 
-${where == null ? '' : 'WHERE ${where.toSql()}'}
+${where == null ? '' : 'WHERE ${where.toSql(ctx)}'}
 GROUP BY null
-${orderBy == null ? '' : 'ORDER BY ${orderBy.map((item) => item.toSql()).join(",")}'}
+${orderBy == null ? '' : 'ORDER BY ${orderBy.map((item) => item.toSql(ctx)).join(",")}'}
 ${limit == null ? '' : 'LIMIT ${limit.rowCount} ${limit.offset == null ? "" : "OFFSET ${limit.offset}"}'}
 ;
 """;
+    return SqlQuery(query, ctx.variables);
   }
 
   static Future<List<TypeMessage>> select(
@@ -564,9 +564,10 @@ ${limit == null ? '' : 'LIMIT ${limit.rowCount} ${limit.offset == null ? "" : "O
       where: where,
       limit: limit,
       orderBy: orderBy,
+      database: conn.database,
     );
 
-    final result = await conn.query(query);
+    final result = await conn.query(query.query, query.params);
     int _refIndex = 2;
 
     return result.map((r) {
