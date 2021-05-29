@@ -19,20 +19,6 @@ import 'dart:convert';
 
 import 'package:snippet_generator/database/models/sql_values.dart';
 
-abstract class TransactionContext implements TableConnection {
-  Never rollback();
-}
-
-abstract class TableConnection {
-  Future<SqlQueryResult> query(String sqlQuery, [List<Object?>? values,]);
-
-  Future<Object?> transaction(Future<void> Function(TransactionContext context) transactionFn,);
-}
-
-abstract class SqlQueryResult implements Iterable<List<Object?>> {
-  int? get affectedRows;
-}
-
 ${allTables.map((e) => e.templates.singleClass(mapAllTables)).join('\n\n')}
 
 """;
@@ -70,25 +56,27 @@ VALUES (${table.columns.map((e) => '\$${e.name.snakeToCamel()}').join(',')});
     return conn.query(sqlQuery);
   }
 
-  static String selectSql(${_joinParams()}) {
-    return \"""
+  static SqlQuery selectSql(${_joinParams(withDatabase: true)}) {
+    final ctx = SqlContext(database: database, unsafe: unsafe);
+    final query = \"""
 SELECT ${table.columns.map((e) => e.name).join(',')}
 ${_joinSelects(mapAllTables)}
 FROM ${table.name}
 ${table.foreignKeys.map((e) => '\${with${e.reference.className} ? "JOIN ${e.reference.referencedTable} ON '
             '${e.colItems().map((c) => '${table.name}.${c.second}=${e.reference.referencedTable}.${c.last.columnName}').join(" AND ")}" : ""}').join('\n')}
-\${where == null ? '' : 'WHERE \${where.toSql()}'}
+\${where == null ? '' : 'WHERE \${where.toSql(ctx)}'}
 GROUP BY ${table.primaryKey?.columns.map((e) => e.columnName).join(',')}
-\${orderBy == null ? '' : 'ORDER BY \${orderBy.map((item) => item.toSql()).join(",")}'}
+\${orderBy == null ? '' : 'ORDER BY \${orderBy.map((item) => item.toSql(ctx)).join(",")}'}
 \${limit == null ? '' : 'LIMIT \${limit.rowCount} \${limit.offset == null ? "" : "OFFSET \${limit.offset}"}'}
 ;
 \""";
+    return SqlQuery(query, ctx.variables);
   }
 
   static Future<List<$className>> select(TableConnection conn,${_joinParams()}) async {
-    final query = $className.selectSql(where:where, limit:limit, orderBy:orderBy, ${table.foreignKeys.map((e) => "with${e.reference.className}: with${e.reference.className},").join()});
+    final query = $className.selectSql(where:where, limit:limit, orderBy:orderBy, database: conn.database,${table.foreignKeys.map((e) => "with${e.reference.className}: with${e.reference.className},").join()});
 
-    final result = await conn.query(query);
+    final result = await conn.query(query.query, query.params);
     int _refIndex = ${table.columns.length};
 
     return result.map((r) {
@@ -174,9 +162,10 @@ class ${className}Cols {
 
   String get className => table.name.snakeToCamel(firstUpperCase: true);
 
-  String _joinParams() {
-    const _baseQuery =
-        'SqlValue<SqlBoolValue>? where, List<SqlOrderItem>? orderBy, SqlLimit? limit,';
+  String _joinParams({bool withDatabase = false}) {
+    final _baseQuery =
+        'SqlValue<SqlBoolValue>? where, List<SqlOrderItem>? orderBy, SqlLimit? limit, '
+        '${withDatabase ? " required SqlDatabase database, bool unsafe = false," : ""}';
     if (table.foreignKeys.isEmpty) {
       return '{$_baseQuery}';
     }
