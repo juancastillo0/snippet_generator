@@ -143,12 +143,12 @@ class SqlTableKey {
 
   factory SqlTableKey.primary({
     String? constraintName,
-    SqlIndexType? index,
+    SqlIndexType? indexType,
     required List<SqlKeyItem> columns,
   }) {
     return SqlTableKey(
       constraintName: constraintName,
-      indexType: index,
+      indexType: indexType,
       primary: true,
       unique: true,
       columns: columns,
@@ -271,6 +271,18 @@ class Tuple3<F, S, L> {
   final L last;
 
   const Tuple3(this.first, this.second, this.last);
+
+  Tuple3<F, S, L> copyWith({
+    Option<F>? first,
+    Option<S>? second,
+    Option<L>? last,
+  }) {
+    return Tuple3<F, S, L>(
+      null is F ? (first != null ? first.valueOrNull as F : this.first) : (first?.valueOrNull ?? this.first),
+      null is S ? (second != null ? second.valueOrNull as S : this.second) : (second?.valueOrNull ?? this.second),
+      null is L ? (last != null ? last.valueOrNull as L : this.last) : (last?.valueOrNull ?? this.last),
+    );
+  }
 }
 
 class SqlKeyItem {

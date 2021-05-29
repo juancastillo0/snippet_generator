@@ -29,6 +29,11 @@ extension IndexedMap<T> on Iterable<T> {
     return this.map((v) => f(v, i++));
   }
 
+  Iterable<ItemIndex<T>> indexed<V>() {
+    int i = 0;
+    return this.map((v) => ItemIndex(i++, v));
+  }
+
   Iterable<O> zip<O, V>(Iterable<V> it, O Function(T, V) f) sync* {
     final iterator = it.iterator;
     for (final v in this) {
@@ -39,6 +44,13 @@ extension IndexedMap<T> on Iterable<T> {
       }
     }
   }
+}
+
+class ItemIndex<T> {
+  final int index;
+  final T item;
+
+  const ItemIndex(this.index, this.item);
 }
 
 T? parseEnum<T>(String rawString, List<T> enumValues,
