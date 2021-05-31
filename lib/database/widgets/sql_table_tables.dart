@@ -11,8 +11,10 @@ import 'package:snippet_generator/parsers/sql/table_models.dart';
 import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/utils/formatters.dart';
-import 'package:snippet_generator/widgets/custom_overlay.dart';
-import 'package:snippet_generator/widgets/custom_portal_entry.dart';
+import 'package:snippet_generator/widgets/globals.dart';
+import 'package:snippet_generator/widgets/portal/custom_overlay.dart';
+import 'package:snippet_generator/widgets/portal/global_stack.dart';
+import 'package:snippet_generator/widgets/portal/portal_utils.dart';
 import 'package:snippet_generator/widgets/small_icon_button.dart';
 
 double get _columnSpacing => 14;
@@ -24,6 +26,49 @@ BoxDecoration get _decoration => const BoxDecoration(
         bottom: BorderSide(color: Colors.transparent, width: 14),
       ),
     );
+
+const portalParams = PortalParams(
+  portalAnchor: Alignment.topCenter,
+  childAnchor: Alignment.bottomCenter,
+  screenMargin: 10,
+  portalWrapper: defaultPortalWrapper,
+);
+
+Widget defaultPortalWrapper(BuildContext context, Widget child) {
+  // final notifier = Inherited.of<PortalNotifier>(context);
+
+  return Stack(
+    clipBehavior: Clip.none,
+    children: [
+      Card(
+        elevation: 5,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(8.0)),
+        ),
+        margin: const EdgeInsets.all(4.0),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+          child: child,
+        ),
+      ),
+      // Positioned(
+      //   top: -2,
+      //   right: -2,
+      //   child: Container(
+      //     decoration: BoxDecoration(
+      //       color: Theme.of(context).scaffoldBackgroundColor,
+      //       shape: BoxShape.circle,
+      //     ),
+      //     padding: const EdgeInsets.all(4),
+      //     child: SmallIconButton(
+      //       onPressed: notifier.hide,
+      //       child: const Icon(Icons.close),
+      //     ),
+      //   ),
+      // ),
+    ],
+  );
+}
 
 class SqlTablesView extends StatelessWidget {
   const SqlTablesView({Key? key}) : super(key: key);
@@ -158,6 +203,77 @@ class _TableWrapper extends HookWidget {
   }
 }
 
+class MakeTableRow {
+  final List<Widget> columns;
+
+  const MakeTableRow({required this.columns});
+}
+
+class MakeTable extends StatelessWidget {
+  final List<String> columns;
+  final List<MakeTableRow> rows;
+
+  const MakeTable({
+    Key? key,
+    required this.columns,
+    required this.rows,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // if (plutoGrid) {
+    //   return PlutoGrid(
+    //     columns: [
+    //       ...columns.map(
+    //         (e) => PlutoColumn(
+    //           field: e,
+    //           title: e,
+    //           type: PlutoColumnType.text(),
+    //         ),
+    //       ),
+    //     ],
+    //     rows: [
+    //       ...rows.map(
+    //         (e) => PlutoRow(
+    //           cells: e.columns.asMap().map(
+    //                 (key, value) => MapEntry(
+    //                   columns[key],
+    //                   PlutoCell(value),
+    //                 ),
+    //               ),
+    //         ),
+    //       )
+    //     ],
+    //   );
+    // }
+    return DataTable(
+      columnSpacing: _columnSpacing,
+      dataRowHeight: _dataRowHeight,
+      headingRowHeight: _headingRowHeight,
+      horizontalMargin: _horizontalMargin,
+      decoration: _decoration,
+      columns: [
+        ...columns.map(
+          (e) => DataColumn(
+            label: Text(e),
+          ),
+        )
+      ],
+      rows: [
+        ...rows.map(
+          (e) => DataRow(
+            cells: [
+              ...e.columns.map(
+                (e) => DataCell(e),
+              ),
+            ],
+          ),
+        )
+      ],
+    );
+  }
+}
+
 class ColumnsTable extends HookObserverWidget {
   const ColumnsTable({
     Key? key,
@@ -171,8 +287,8 @@ class ColumnsTable extends HookObserverWidget {
 
     Widget typeWidget(SqlColumn col) {
       final type = col.type;
-      return CustomPortalEntry(
-        portal: SqlTypeField(
+      return CustomOverlayButton(
+        portalBuilder: (p) => SqlTypeField(
           value: type,
           onChange: (newValue) {
             final newCol = col.copyWith(type: newValue);
@@ -184,8 +300,11 @@ class ColumnsTable extends HookObserverWidget {
               newTable,
               store.tables.value.indexOf(selectedTable),
             );
+            p.hide();
           },
         ),
+        params: portalParams,
+        builder: StackPortal.make,
         child: Text(type.toSql()),
       );
     }
@@ -443,15 +562,34 @@ class ForeignKeysTable extends HookObserverWidget {
                     DataCell(
                         SelectableText(e.ownColumns.join(' , '), maxLines: 1)),
                     DataCell(
-                      SelectableText(
-                          e.reference.referencedTable +
-                              '(' +
-                              e.reference.columns
-                                  .map((e) =>
-                                      '${e.columnName}${e.ascendent ? "" : " DESC"}')
-                                  .join(' , ') +
-                              ')',
-                          maxLines: 1),
+                      CustomOverlayButton(
+                        builder: StackPortal.make,
+                        portalBuilder: (p) => SelectReferenceColumnsField(
+                          tables: store.tables.value
+                              .where((t) => t != selectedTable)
+                              .toList(),
+                          value: e.reference,
+                          onChange: (ref) {
+                            store.replaceSelectedTable(
+                              selectedTable.replaceForeignKey(
+                                e.copyWith(reference: ref),
+                                selectedTable.foreignKeys.indexOf(e),
+                              ),
+                            );
+                            p.hide();
+                          },
+                        ),
+                        params: portalParams,
+                        child: Text(
+                            e.reference.referencedTable +
+                                '(' +
+                                e.reference.columns
+                                    .map((e) =>
+                                        '${e.columnName}${e.ascendent ? "" : " DESC"}')
+                                    .join(' , ') +
+                                ')',
+                            maxLines: 1),
+                      ),
                     ),
                     // DataCell(CustomDropdownField<ReferenceMatchType?>(
                     //   selected: e.reference.matchType,
@@ -565,36 +703,39 @@ class IndexesTable extends HookObserverWidget {
                         }
                       },
                     )),
-                    DataCell(e.primary
-                        ? SelectableText(e.indexName ?? '', maxLines: 1)
-                        : TextFormField(
-                            initialValue: e.indexName,
-                            inputFormatters: [Formatters.noWhitespaces],
-                            onChanged: (value) {
-                              if (value.isNotEmpty) {
-                                final newTable = selectedTable.replaceTableKey(
-                                  e.copyWith(indexName: Some(value)),
-                                  keyIndex,
-                                );
-                                store.replaceSelectedTable(newTable);
-                              }
-                            },
-                          )),
+                    DataCell(
+                      e.primary
+                          ? SelectableText(e.indexName ?? '', maxLines: 1)
+                          : TextFormField(
+                              initialValue: e.indexName,
+                              inputFormatters: [Formatters.noWhitespaces],
+                              onChanged: (value) {
+                                if (value.isNotEmpty) {
+                                  final newTable =
+                                      selectedTable.replaceTableKey(
+                                    e.copyWith(indexName: Some(value)),
+                                    keyIndex,
+                                  );
+                                  store.replaceSelectedTable(newTable);
+                                }
+                              },
+                            ),
+                    ),
                     DataCell(CustomOverlayButton(
-                      portalBuilder: (p) => Card(
-                        child: SelectColumnsField(
-                          value: e.columns,
-                          selectedTable: selectedTable,
-                          onChange: (v) {
-                            final newTable = selectedTable.replaceTableKey(
-                              e.copyWith(columns: v),
-                              keyIndex,
-                            );
-                            store.replaceSelectedTable(newTable);
-                            p.hide();
-                          },
-                        ),
+                      builder: StackPortal.make,
+                      portalBuilder: (p) => SelectColumnsField(
+                        value: e.columns,
+                        selectedTable: selectedTable,
+                        onChange: (v) {
+                          final newTable = selectedTable.replaceTableKey(
+                            e.copyWith(columns: v),
+                            keyIndex,
+                          );
+                          store.replaceSelectedTable(newTable);
+                          p.hide();
+                        },
                       ),
+                      params: portalParams,
                       child: Text(
                         e.columns
                             .map((e) =>
@@ -639,14 +780,7 @@ class IndexesTable extends HookObserverWidget {
                               selectedTable.replaceTableKey(null, keyIndex);
                           store.replaceSelectedTable(newTable);
                         },
-                        child: CustomOverlayButton(
-                          portalBuilder: (p) => Container(
-                            height: 100,
-                            width: 150,
-                            color: Colors.red,
-                          ),
-                          child: const Icon(Icons.delete),
-                        ),
+                        child: const Icon(Icons.delete),
                       ),
                     ),
                   ],

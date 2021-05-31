@@ -25,16 +25,12 @@ class SqlTypeField extends HookWidget {
       _m[value.typeEnum] = value;
       return _m;
     });
+    final _numVariants = value is SqlTypeEnumeration
+        ? (value as SqlTypeEnumeration).variants.length
+        : 1;
     final _createdVariants = useMemoized(
-      () => Iterable.generate(value is SqlTypeEnumeration
-              ? (value as SqlTypeEnumeration).variants.length
-              : 1)
-          .toList(),
-      [
-        value is SqlTypeEnumeration
-            ? (value as SqlTypeEnumeration).variants.length
-            : 1
-      ],
+      () => Iterable.generate(_numVariants).toList(),
+      [_numVariants],
     );
     useListenable(typeMap);
 
@@ -308,9 +304,7 @@ class SqlTypeField extends HookWidget {
       }
     }
 
-    return Container(
-      color: Theme.of(context).colorScheme.surface,
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+    return SizedBox(
       width: 300,
       child: Column(
         mainAxisSize: MainAxisSize.min,
