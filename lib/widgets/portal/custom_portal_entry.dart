@@ -20,51 +20,19 @@ class CustomPortalEntry extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final showPortal = useState(false);
-    final isInside = useState(false);
-    const closeDuration = Duration(milliseconds: 130);
-    final animationController = useAnimationController(
-      duration: closeDuration,
-    );
+
     final verticalOffset = useState(0.0);
     final horizontalOffset = useState(0.0);
-    final curvedAnimation = useMemoized(
-      () => animationController.drive(CurveTween(curve: Curves.easeOut)),
-      [animationController],
+
+    const closeDuration = Duration(milliseconds: 130);
+
+    final hoverState = useHoverAnimation(
+      showPortal: showPortal,
+      closeDuration: closeDuration,
     );
+
     const cardHeight = 360.0;
     const cardWidth = 370.0;
-    useValueChanged<bool, void>(showPortal.value, (_previous, _result) {
-      if (showPortal.value) {
-        animationController.forward();
-      } else {
-        animationController.reverse();
-      }
-    });
-    useEffect(() {
-      Timer? timer;
-      if (isInside.value && !showPortal.value) {
-        timer = Timer(const Duration(milliseconds: 400), () {
-          showPortal.value = true;
-        });
-      } else if (!isInside.value && showPortal.value) {
-        timer = Timer(const Duration(milliseconds: 300), () {
-          showPortal.value = false;
-        });
-      }
-      return timer?.cancel;
-    }, [isInside.value, showPortal.value]);
-
-    Widget mouseRegion(Widget child) {
-      return MouseRegion(
-        onEnter: (_) {
-          isInside.value = true;
-        },
-        onExit: (_) {
-          isInside.value = false;
-        },
-        child: child,
-      );
-    }
 
     return PortalEntry(
       childAnchor: horizontalOffset.value != 0
@@ -82,19 +50,19 @@ class CustomPortalEntry extends HookWidget {
           left: horizontalOffset.value > 0 ? horizontalOffset.value * 2 : 0,
           right: horizontalOffset.value < 0 ? horizontalOffset.value * -2 : 0,
         ),
-        child: mouseRegion(
+        child: hoverState.mouseRegion(
           AnimatedBuilder(
-            animation: curvedAnimation,
+            animation: hoverState.curvedAnimation,
             builder: (context, snapshot) {
               return Opacity(
-                opacity: curvedAnimation.value,
+                opacity: hoverState.curvedAnimation.value,
                 child: portal,
               );
             },
           ),
         ),
       ),
-      child: mouseRegion(
+      child: hoverState.mouseRegion(
         TextButton(
           onPressed: () => showPortal.value = true,
           child: Builder(
@@ -144,3 +112,75 @@ class CustomPortalEntry extends HookWidget {
   }
 }
 
+class HoverAnimationState {
+  final Widget Function(Widget) mouseRegion;
+  final ValueNotifier<bool> isInside;
+  final AnimationController animationController;
+  final Animation<double> curvedAnimation;
+
+  const HoverAnimationState({
+    required this.mouseRegion,
+    required this.isInside,
+    required this.animationController,
+    required this.curvedAnimation,
+  });
+}
+
+HoverAnimationState useHoverAnimation({
+  required ValueNotifier<bool> showPortal,
+  Duration closeDuration = const Duration(milliseconds: 130),
+  Curve curve = Curves.easeOut,
+}) {
+  final isInside = useState(false);
+
+  final animationController = useAnimationController(
+    duration: closeDuration,
+  );
+  final curvedAnimation = useMemoized(
+    () => animationController.drive(CurveTween(curve: curve)),
+    [animationController, curve],
+  );
+  useValueChanged<bool, void>(showPortal.value, (_previous, _result) {
+    if (showPortal.value) {
+      animationController.forward();
+    } else {
+      animationController.reverse();
+    }
+  });
+
+  useEffect(() {
+    Timer? timer;
+    if (isInside.value && !showPortal.value) {
+      timer = Timer(const Duration(milliseconds: 400), () {
+        showPortal.value = true;
+      });
+    } else if (!isInside.value && showPortal.value) {
+      timer = Timer(const Duration(milliseconds: 300), () {
+        showPortal.value = false;
+      });
+    }
+    return timer?.cancel;
+  }, [isInside.value, showPortal.value]);
+
+  final mouseRegion = useMemoized(
+    () => (Widget child) {
+      return MouseRegion(
+        onEnter: (_) {
+          isInside.value = true;
+        },
+        onExit: (_) {
+          isInside.value = false;
+        },
+        child: child,
+      );
+    },
+    [isInside],
+  );
+
+  return HoverAnimationState(
+    animationController: animationController,
+    curvedAnimation: curvedAnimation,
+    isInside: isInside,
+    mouseRegion: mouseRegion,
+  );
+}

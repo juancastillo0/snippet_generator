@@ -13,6 +13,7 @@ import 'package:snippet_generator/parsers/type_parser.dart';
 import 'package:snippet_generator/utils/set_up_globals.dart';
 import 'package:snippet_generator/utils/theme.dart';
 import 'package:snippet_generator/widgets/app_bar.dart';
+import 'package:snippet_generator/widgets/portal/global_stack.dart';
 import 'package:snippet_generator/widgets/globals.dart';
 import 'package:snippet_generator/parsers/views/parsers_view.dart';
 import 'package:snippet_generator/themes/themes_tab_view.dart';
@@ -67,7 +68,7 @@ class MyApp extends HookWidget {
           ),
           navigatorObservers: [routeObserver],
           home: const Portal(
-            child: MyHomePage(),
+            child: GlobalStack(child: MyHomePage()),
           ),
         ),
       ),
