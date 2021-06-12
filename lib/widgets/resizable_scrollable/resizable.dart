@@ -15,6 +15,7 @@ class Resizable extends StatefulWidget {
   final ResizeVertical? vertical;
   final double? defaultHeight;
   final double? minHeight;
+  final int? flex;
 
   final Widget child;
   final Widget? handle;
@@ -28,6 +29,7 @@ class Resizable extends StatefulWidget {
     this.vertical,
     this.defaultHeight,
     this.minHeight,
+    this.flex,
   });
 
   @override
@@ -37,6 +39,8 @@ class Resizable extends StatefulWidget {
 class _ResizableState extends State<Resizable> {
   double? _width;
   double? _height;
+
+  final _childKey = GlobalKey();
 
   @override
   void initState() {
@@ -52,13 +56,13 @@ class _ResizableState extends State<Resizable> {
     return horizontal
         ? (DragUpdateDetails details) {
             setState(() {
-              _width = _width! +
+              _width = (_width ?? _childKey.currentContext?.size?.width)! +
                   (proportional ? details.delta.dx : -details.delta.dx);
             });
           }
         : (DragUpdateDetails details) {
             setState(() {
-              _height = _height! +
+              _height = (_height ?? _childKey.currentContext?.size?.height)! +
                   (proportional ? details.delta.dy : -details.delta.dy);
             });
           };
@@ -78,17 +82,27 @@ class _ResizableState extends State<Resizable> {
         ),
       );
 
-      return SizedBox(
-        height: _height,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (!isBottom) handle,
-            Expanded(child: widget.child),
-            if (isBottom) handle
-          ],
-        ),
+      final child = Column(
+        key: _childKey,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!isBottom) handle,
+          Expanded(child: widget.child),
+          if (isBottom) handle
+        ],
       );
+
+      if (_height == null && widget.flex != null) {
+        return Flexible(
+          flex: widget.flex!,
+          child: child,
+        );
+      } else {
+        return SizedBox(
+          height: _height,
+          child: child,
+        );
+      }
     } else {
       final isRight = widget.horizontal == ResizeHorizontal.right;
       final handle = GestureDetector(
@@ -101,17 +115,26 @@ class _ResizableState extends State<Resizable> {
         ),
       );
 
-      return SizedBox(
-        width: _width,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (!isRight) handle,
-            Expanded(child: widget.child),
-            if (isRight) handle
-          ],
-        ),
+      final child = Row(
+        key: _childKey,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!isRight) handle,
+          Expanded(child: widget.child),
+          if (isRight) handle
+        ],
       );
+      if (_width == null && widget.flex != null) {
+        return Flexible(
+          flex: widget.flex!,
+          child: child,
+        );
+      } else {
+        return SizedBox(
+          width: _width,
+          child: child,
+        );
+      }
     }
   }
 }
