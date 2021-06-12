@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/database/database_store.dart';
-import 'package:snippet_generator/database/widgets/sql_type_field.dart';
 import 'package:snippet_generator/database/widgets/select_columns.dart';
+import 'package:snippet_generator/database/widgets/sql_type_field.dart';
 import 'package:snippet_generator/fields/button_select_field.dart';
 import 'package:snippet_generator/globals/hook_observer.dart';
 import 'package:snippet_generator/globals/option.dart';
@@ -11,7 +11,7 @@ import 'package:snippet_generator/parsers/sql/table_models.dart';
 import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/utils/formatters.dart';
-import 'package:snippet_generator/widgets/globals.dart';
+import 'package:snippet_generator/widgets/make_table.dart';
 import 'package:snippet_generator/widgets/portal/custom_overlay.dart';
 import 'package:snippet_generator/widgets/portal/global_stack.dart';
 import 'package:snippet_generator/widgets/portal/portal_utils.dart';
@@ -27,48 +27,20 @@ BoxDecoration get _decoration => const BoxDecoration(
       ),
     );
 
-const portalParams = PortalParams(
+final _dataTableParams = DataTableParams(
+  columnSpacing: _columnSpacing,
+  dataRowHeight: _dataRowHeight,
+  headingRowHeight: _headingRowHeight,
+  horizontalMargin: _horizontalMargin,
+  decoration: _decoration,
+);
+
+const _portalParams = PortalParams(
   portalAnchor: Alignment.topCenter,
   childAnchor: Alignment.bottomCenter,
   screenMargin: 10,
   portalWrapper: defaultPortalWrapper,
 );
-
-Widget defaultPortalWrapper(BuildContext context, Widget child) {
-  // final notifier = Inherited.of<PortalNotifier>(context);
-
-  return Stack(
-    clipBehavior: Clip.none,
-    children: [
-      Card(
-        elevation: 5,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(8.0)),
-        ),
-        margin: const EdgeInsets.all(4.0),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-          child: child,
-        ),
-      ),
-      // Positioned(
-      //   top: -2,
-      //   right: -2,
-      //   child: Container(
-      //     decoration: BoxDecoration(
-      //       color: Theme.of(context).scaffoldBackgroundColor,
-      //       shape: BoxShape.circle,
-      //     ),
-      //     padding: const EdgeInsets.all(4),
-      //     child: SmallIconButton(
-      //       onPressed: notifier.hide,
-      //       child: const Icon(Icons.close),
-      //     ),
-      //   ),
-      // ),
-    ],
-  );
-}
 
 class SqlTablesView extends StatelessWidget {
   const SqlTablesView({Key? key}) : super(key: key);
@@ -82,6 +54,7 @@ class SqlTablesView extends StatelessWidget {
           _TableWrapper(
             title: 'Columns',
             valueToAdd: SqlColumn.defaultColumn,
+            withScroll: false,
             child: ColumnsTable(),
           ),
           _TableWrapper(
@@ -106,11 +79,13 @@ class _TableWrapper extends HookWidget {
     required this.title,
     required this.child,
     required this.valueToAdd,
+    this.withScroll = true,
   }) : super(key: key);
 
   final String title;
   final Widget child;
   final Object valueToAdd;
+  final bool withScroll;
 
   @override
   Widget build(BuildContext context) {
@@ -150,24 +125,25 @@ class _TableWrapper extends HookWidget {
       flex: 2,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
         children: [
           topWidget,
           Expanded(
-            child: Scrollbar(
-              controller: _verticalScroll,
-              child: SingleChildScrollView(
-                controller: _verticalScroll,
-                child: Scrollbar(
-                  controller: _horizontalScroll,
-                  child: SingleChildScrollView(
-                    controller: _horizontalScroll,
-                    scrollDirection: Axis.horizontal,
-                    child: child,
-                  ),
-                ),
-              ),
-            ),
+            child: withScroll
+                ? Scrollbar(
+                    controller: _verticalScroll,
+                    child: SingleChildScrollView(
+                      controller: _verticalScroll,
+                      child: Scrollbar(
+                        controller: _horizontalScroll,
+                        child: SingleChildScrollView(
+                          controller: _horizontalScroll,
+                          scrollDirection: Axis.horizontal,
+                          child: child,
+                        ),
+                      ),
+                    ),
+                  )
+                : child,
           ),
           Container(
             padding: const EdgeInsets.only(right: 12, top: 4),
@@ -203,77 +179,6 @@ class _TableWrapper extends HookWidget {
   }
 }
 
-class MakeTableRow {
-  final List<Widget> columns;
-
-  const MakeTableRow({required this.columns});
-}
-
-class MakeTable extends StatelessWidget {
-  final List<String> columns;
-  final List<MakeTableRow> rows;
-
-  const MakeTable({
-    Key? key,
-    required this.columns,
-    required this.rows,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    // if (plutoGrid) {
-    //   return PlutoGrid(
-    //     columns: [
-    //       ...columns.map(
-    //         (e) => PlutoColumn(
-    //           field: e,
-    //           title: e,
-    //           type: PlutoColumnType.text(),
-    //         ),
-    //       ),
-    //     ],
-    //     rows: [
-    //       ...rows.map(
-    //         (e) => PlutoRow(
-    //           cells: e.columns.asMap().map(
-    //                 (key, value) => MapEntry(
-    //                   columns[key],
-    //                   PlutoCell(value),
-    //                 ),
-    //               ),
-    //         ),
-    //       )
-    //     ],
-    //   );
-    // }
-    return DataTable(
-      columnSpacing: _columnSpacing,
-      dataRowHeight: _dataRowHeight,
-      headingRowHeight: _headingRowHeight,
-      horizontalMargin: _horizontalMargin,
-      decoration: _decoration,
-      columns: [
-        ...columns.map(
-          (e) => DataColumn(
-            label: Text(e),
-          ),
-        )
-      ],
-      rows: [
-        ...rows.map(
-          (e) => DataRow(
-            cells: [
-              ...e.columns.map(
-                (e) => DataCell(e),
-              ),
-            ],
-          ),
-        )
-      ],
-    );
-  }
-}
-
 class ColumnsTable extends HookObserverWidget {
   const ColumnsTable({
     Key? key,
@@ -303,13 +208,13 @@ class ColumnsTable extends HookObserverWidget {
             p.hide();
           },
         ),
-        params: portalParams,
+        params: _portalParams,
         builder: StackPortal.make,
         child: Text(type.toSql()),
       );
     }
 
-    final List<DataRow> rows;
+    final List<MakeTableRow> rows;
 
     if (selectedTable == null) {
       rows = const [];
@@ -317,10 +222,9 @@ class ColumnsTable extends HookObserverWidget {
       rows = selectedTable.columns.mapIndex(
         (e, colIndex) {
           final pk = selectedTable.primaryKey;
-          return DataRow(
-            cells: [
-              DataCell(TextFormField(
-                key: const Key("name"),
+          return MakeTableRow(
+            columns: [
+              TextFormField(
                 initialValue: e.name,
                 inputFormatters: [Formatters.noWhitespaces],
                 onChanged: (value) {
@@ -332,169 +236,160 @@ class ColumnsTable extends HookObserverWidget {
                     store.replaceSelectedTable(newTable);
                   }
                 },
-              )),
-              DataCell(typeWidget(e)),
-              DataCell(
-                Checkbox(
-                  value: e.nullable,
-                  onChanged: (value) {
-                    final newTable = selectedTable.replaceColumn(
-                      e.copyWith(nullable: !e.nullable),
-                      colIndex,
-                    );
-                    store.replaceSelectedTable(newTable);
-                  },
-                ),
               ),
-              DataCell(SelectableText(
-                  e.defaultValue ?? (e.nullable ? 'NULL' : ''),
-                  maxLines: 1)),
-              DataCell(
-                Builder(builder: (context) {
-                  final _index = selectedTable.tableKeys.indexWhere((k) =>
-                      k.columns.length == 1 &&
-                      k.columns.first.columnName == e.name &&
-                      k.unique);
-                  return Checkbox(
-                    value: e.unique || _index != -1,
-                    onChanged: _index != -1 &&
-                            selectedTable.tableKeys[_index].primary
-                        ? null
-                        : (value) {
-                            if (e.unique) {
-                              final newTable = selectedTable.replaceColumn(
-                                e.copyWith(unique: false),
-                                colIndex,
+              typeWidget(e),
+              Checkbox(
+                value: e.nullable,
+                onChanged: (value) {
+                  final newTable = selectedTable.replaceColumn(
+                    e.copyWith(nullable: !e.nullable),
+                    colIndex,
+                  );
+                  store.replaceSelectedTable(newTable);
+                },
+              ),
+              SelectableText(e.defaultValue ?? (e.nullable ? 'NULL' : ''),
+                  maxLines: 1),
+              Builder(builder: (context) {
+                final _index = selectedTable.tableKeys.indexWhere((k) =>
+                    k.columns.length == 1 &&
+                    k.columns.first.columnName == e.name &&
+                    k.unique);
+                return Checkbox(
+                  value: e.unique || _index != -1,
+                  onChanged:
+                      _index != -1 && selectedTable.tableKeys[_index].primary
+                          ? null
+                          : (value) {
+                              if (e.unique) {
+                                final newTable = selectedTable.replaceColumn(
+                                  e.copyWith(unique: false),
+                                  colIndex,
+                                );
+                                store.replaceSelectedTable(newTable);
+                                return;
+                              }
+                              final newTableKeys = [...selectedTable.tableKeys];
+                              if (_index != -1) {
+                                newTableKeys.removeAt(_index);
+                              } else {
+                                newTableKeys.add(SqlTableKey(
+                                  primary: false,
+                                  unique: true,
+                                  indexType: null,
+                                  columns: [
+                                    SqlKeyItem(
+                                      columnName: e.name,
+                                      ascendent: true,
+                                    )
+                                  ],
+                                ));
+                              }
+                              final newTable = selectedTable.copyWith(
+                                tableKeys: newTableKeys,
                               );
                               store.replaceSelectedTable(newTable);
-                              return;
-                            }
-                            final newTableKeys = [...selectedTable.tableKeys];
-                            if (_index != -1) {
-                              newTableKeys.removeAt(_index);
-                            } else {
-                              newTableKeys.add(SqlTableKey(
-                                primary: false,
-                                unique: true,
-                                indexType: null,
-                                columns: [
-                                  SqlKeyItem(
-                                    columnName: e.name,
-                                    ascendent: true,
-                                  )
-                                ],
-                              ));
-                            }
-                            final newTable = selectedTable.copyWith(
-                              tableKeys: newTableKeys,
-                            );
-                            store.replaceSelectedTable(newTable);
-                          },
-                  );
-                }),
-              ),
-              DataCell(
-                Builder(builder: (context) {
-                  final list = selectedTable.foreignKeys
-                      .expand((k) => k.colItems())
-                      .toList();
-                  final _index = list.indexWhere((k) => k.second == e.name);
-                  final found = _index == -1 ? null : list[_index];
-                  final reference = found?.first.reference;
-                  final keyItem = found?.last;
-                  return SelectableText(
-                      reference != null && keyItem != null
-                          ? '${reference.referencedTable}'
-                              '(${keyItem.columnName}${keyItem.ascendent ? "" : " DESC"})'
-                          : '',
-                      maxLines: 1);
-                }),
-              ),
-              DataCell(
-                Checkbox(
-                  value: pk != null &&
-                      pk.columns.any(
-                        (col) => col.columnName == e.name,
+                            },
+                );
+              }),
+              Builder(builder: (context) {
+                final list = selectedTable.foreignKeys
+                    .expand((k) => k.colItems())
+                    .toList();
+                final _index = list.indexWhere((k) => k.second == e.name);
+                final found = _index == -1 ? null : list[_index];
+                final reference = found?.first.reference;
+                final keyItem = found?.last;
+                return SelectableText(
+                    reference != null && keyItem != null
+                        ? '${reference.referencedTable}'
+                            '(${keyItem.columnName}${keyItem.ascendent ? "" : " DESC"})'
+                        : '',
+                    maxLines: 1);
+              }),
+              Checkbox(
+                value: pk != null &&
+                    pk.columns.any(
+                      (col) => col.columnName == e.name,
+                    ),
+                onChanged: (value) {
+                  final _index =
+                      selectedTable.tableKeys.indexWhere((col) => col.primary);
+                  final SqlTable newTable;
+                  if (_index != -1) {
+                    final key = selectedTable.tableKeys[_index];
+                    final _colIndex = key.columns
+                        .map((c) => c.columnName)
+                        .toList()
+                        .indexWhere((n) => n == e.name);
+                    newTable = selectedTable.replaceTableKey(
+                      key.copyWith(
+                        columns: _colIndex == -1
+                            ? [
+                                ...key.columns,
+                                SqlKeyItem(
+                                  ascendent: true,
+                                  columnName: e.name,
+                                )
+                              ]
+                            : [
+                                ...key.columns
+                                    .where((col) => col.columnName != e.name),
+                              ],
                       ),
-                  onChanged: (value) {
-                    final _index = selectedTable.tableKeys
-                        .indexWhere((col) => col.primary);
-                    final SqlTable newTable;
-                    if (_index != -1) {
-                      final key = selectedTable.tableKeys[_index];
-                      final _colIndex = key.columns
-                          .map((c) => c.columnName)
-                          .toList()
-                          .indexWhere((n) => n == e.name);
-                      newTable = selectedTable.replaceTableKey(
-                        key.copyWith(
-                          columns: _colIndex == -1
-                              ? [
-                                  ...key.columns,
-                                  SqlKeyItem(
-                                    ascendent: true,
-                                    columnName: e.name,
-                                  )
-                                ]
-                              : [
-                                  ...key.columns
-                                      .where((col) => col.columnName != e.name),
-                                ],
-                        ),
-                        _index,
-                      );
-                    } else if (value == true) {
-                      final _pk = pk ?? SqlTableKey.primary(columns: []);
-                      final tableKey = _pk.copyWith(columns: [
-                        ..._pk.columns,
-                        SqlKeyItem(
-                          ascendent: true,
-                          columnName: e.name,
-                        ),
-                      ]);
-                      newTable = selectedTable.copyWith(
-                          tableKeys: [...selectedTable.tableKeys, tableKey]);
-                    } else {
-                      final tableKey = pk!.copyWith(columns: [
-                        ...pk.columns.where((c) => c.columnName != e.name),
-                      ]);
-                      newTable = selectedTable.copyWith(
-                          tableKeys: [...selectedTable.tableKeys, tableKey]);
-                    }
-                    store.replaceSelectedTable(newTable);
-                  },
-                ),
+                      _index,
+                    );
+                  } else if (value == true) {
+                    final _pk = pk ?? SqlTableKey.primary(columns: []);
+                    final tableKey = _pk.copyWith(columns: [
+                      ..._pk.columns,
+                      SqlKeyItem(
+                        ascendent: true,
+                        columnName: e.name,
+                      ),
+                    ]);
+                    newTable = selectedTable.copyWith(
+                        tableKeys: [...selectedTable.tableKeys, tableKey]);
+                  } else {
+                    final tableKey = pk!.copyWith(columns: [
+                      ...pk.columns.where((c) => c.columnName != e.name),
+                    ]);
+                    newTable = selectedTable.copyWith(
+                        tableKeys: [...selectedTable.tableKeys, tableKey]);
+                  }
+                  store.replaceSelectedTable(newTable);
+                },
               ),
-              DataCell(
-                SmallIconButton(
-                  onPressed: () {
-                    final newTable =
-                        selectedTable.replaceColumn(null, colIndex);
-                    store.replaceSelectedTable(newTable);
-                  },
-                  child: const Icon(Icons.delete),
-                ),
+              SmallIconButton(
+                onPressed: () {
+                  final newTable = selectedTable.replaceColumn(null, colIndex);
+                  store.replaceSelectedTable(newTable);
+                },
+                child: const Icon(Icons.delete),
               ),
             ],
           );
         },
       ).toList();
     }
-    return DataTable(
-      columnSpacing: _columnSpacing,
-      dataRowHeight: _dataRowHeight,
-      headingRowHeight: _headingRowHeight,
-      horizontalMargin: _horizontalMargin,
-      decoration: _decoration,
+    return MakeTable(
+      minColumnWidth: 50,
+      params: _dataTableParams,
+      simple: true,
+      sticky: true,
       columns: const [
-        DataColumn(label: Text('Name')),
-        DataColumn(label: Text('Type')),
-        DataColumn(label: Text('Null')),
-        DataColumn(label: Text('Default')),
-        DataColumn(label: Text('Unique')),
-        DataColumn(label: Text('Reference')),
-        DataColumn(label: Text('Primary')),
-        DataColumn(label: Text('Delete')),
+        MakeTableCol(name: 'Name', maxWidth: 200),
+        MakeTableCol(name: 'Type'),
+        MakeTableCol(name: 'Null'),
+        MakeTableCol(
+          name: 'Default',
+        ),
+        MakeTableCol(name: 'Unique'),
+        MakeTableCol(
+          name: 'Reference',
+        ),
+        MakeTableCol(name: 'Primary'),
+        MakeTableCol(name: 'Delete'),
       ],
       rows: rows,
     );
@@ -579,7 +474,7 @@ class ForeignKeysTable extends HookObserverWidget {
                             p.hide();
                           },
                         ),
-                        params: portalParams,
+                        params: _portalParams,
                         child: Text(
                             e.reference.referencedTable +
                                 '(' +
@@ -735,7 +630,7 @@ class IndexesTable extends HookObserverWidget {
                           p.hide();
                         },
                       ),
-                      params: portalParams,
+                      params: _portalParams,
                       child: Text(
                         e.columns
                             .map((e) =>
