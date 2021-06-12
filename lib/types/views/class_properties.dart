@@ -137,7 +137,7 @@ class ClassPropertiesTable extends HookWidget {
                       label: "Reorder",
                     )
                   else
-                    const SizedBox(width: 100),
+                    const SizedBox(width: 110),
                   ElevatedButton.icon(
                     onPressed: data.addProperty,
                     style: elevatedStyle(context),
@@ -145,7 +145,7 @@ class ClassPropertiesTable extends HookWidget {
                     label: const Text("Add Field"),
                   ),
                   SizedBox(
-                    width: 100,
+                    width: 110,
                     child: ElevatedButton(
                       onPressed: () {
                         showDialog(

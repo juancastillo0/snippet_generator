@@ -11,6 +11,7 @@ import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/types/views/code_generated.dart';
 import 'package:snippet_generator/utils/tt.dart';
 import 'package:snippet_generator/widgets/horizontal_item_list.dart';
+import 'package:snippet_generator/widgets/resizable_scrollable/resizable.dart';
 
 class DatabaseTabView extends HookWidget {
   const DatabaseTabView({Key? key}) : super(key: key);
@@ -136,7 +137,8 @@ class DatabaseTabView extends HookWidget {
             );
           }),
         ),
-        Expanded(
+        Resizable(
+          horizontal: ResizeHorizontal.left,
           flex: 5,
           child: Column(
             children: [

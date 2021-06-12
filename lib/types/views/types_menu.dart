@@ -32,8 +32,9 @@ class TypesMenu extends HookWidget {
                   ),
                   IconButton(
                     onPressed: rootStore.selectDirectory,
-                    splashRadius: 28,
+                    splashRadius: 24,
                     icon: const Icon(Icons.folder),
+                    tooltip: "Select workspace directory",
                   ),
                 ],
               ),
@@ -64,17 +65,20 @@ class TypesMenu extends HookWidget {
                         : context.theme.cardColor,
                     // no border radius
                     shape: const RoundedRectangleBorder(),
+                    padding: EdgeInsets.zero,
                   ),
                   onPressed: () {
                     rootStore.selectType(type);
                   },
                   child: Padding(
-                    padding: const EdgeInsets.all(6.0),
+                    padding: const EdgeInsets.only(left: 6.0, top: 6.0, bottom: 6.0, right: 2),
                     child: Row(
                       children: [
                         Expanded(child: _TypeDescription(type: type)),
                         IconButton(
+                          splashRadius: 20,
                           iconSize: 20,
+                          constraints: const BoxConstraints(),
                           onPressed: () {
                             rootStore.removeType(type);
                           },
