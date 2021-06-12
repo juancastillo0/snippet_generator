@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-
 import 'package:snippet_generator/globals/option.dart';
 import 'package:snippet_generator/utils/extensions.dart';
+import 'package:snippet_generator/widgets/globals.dart';
 
 class PortalNotifier {
   final ValueNotifier<bool> showNotifier;
@@ -196,4 +196,85 @@ Widget makePositioned({
       return widget;
     },
   );
+}
+
+Map<Type, Action<Intent>> _defaultPortalActions(BuildContext context) {
+  return {
+    DismissIntent: CallbackAction(
+      onInvoke: (intent) {
+        final notifier = Inherited.of<PortalNotifier>(context);
+        notifier.hide();
+        return null;
+      },
+    )
+  };
+}
+
+Widget Function(BuildContext, Widget) makeDefaultPortalWrapper({
+  EdgeInsetsGeometry? padding,
+}) {
+  Widget wrapper(BuildContext context, Widget child) {
+    return DefualtPortalWrapper(
+      padding: padding,
+      child: child,
+    );
+  }
+
+  return wrapper;
+}
+
+Widget defaultPortalWrapper(BuildContext context, Widget child) {
+  return DefualtPortalWrapper(child: child);
+}
+
+class DefualtPortalWrapper extends StatelessWidget {
+  const DefualtPortalWrapper({
+    Key? key,
+    this.padding,
+    required this.child,
+  }) : super(key: key);
+  final EdgeInsetsGeometry? padding;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    // final notifier = Inherited.of<PortalNotifier>(context);
+
+    return FocusableActionDetector(
+      autofocus: true,
+      actions: _defaultPortalActions(context),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Card(
+            elevation: 5,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(8.0)),
+            ),
+            margin: const EdgeInsets.all(4.0),
+            child: Padding(
+              padding: padding ??
+                  const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              child: child,
+            ),
+          ),
+          // Positioned(
+          //   top: -2,
+          //   right: -2,
+          //   child: Container(
+          //     decoration: BoxDecoration(
+          //       color: Theme.of(context).scaffoldBackgroundColor,
+          //       shape: BoxShape.circle,
+          //     ),
+          //     padding: const EdgeInsets.all(4),
+          //     child: SmallIconButton(
+          //       onPressed: notifier.hide,
+          //       child: const Icon(Icons.close),
+          //     ),
+          //   ),
+          // ),
+        ],
+      ),
+    );
+  }
 }

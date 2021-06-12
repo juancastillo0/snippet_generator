@@ -61,13 +61,14 @@ class StackPortal extends HookWidget {
   Widget build(BuildContext context) {
     final _ref = useMemoized(() => _Ref());
     final stack = GlobalStack.of(context);
-
+    
     useEffect(() {
       if (show) {
         _ref.id = stack.addWidget(portal);
-      } else if (_ref.id != null) {
-        stack.removeWidget(_ref.id!);
-        _ref.id = null;
+        return () {
+          stack.removeWidget(_ref.id!);
+          _ref.id = null;
+        };
       }
     }, [show]);
 
