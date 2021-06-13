@@ -7,8 +7,8 @@ import 'package:snippet_generator/fields/flutter_border_fields.dart';
 import 'package:snippet_generator/fields/flutter_fields.dart';
 import 'package:snippet_generator/fields/text_theme_fields.dart';
 import 'package:snippet_generator/globals/props_serializable.dart';
-import 'package:snippet_generator/widgets/resizable_scrollable/scrollable.dart';
 import 'package:snippet_generator/themes/text_themes.dart';
+import 'package:snippet_generator/widgets/resizable_scrollable/scrollable.dart';
 
 typedef FieldFunc<T> = Widget Function(PropClass<T>);
 

@@ -1,21 +1,22 @@
 import 'dart:async';
 import 'dart:convert';
+
+import 'package:dart_style/dart_style.dart';
 import 'package:file_system_access/file_system_access.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/database/database_store.dart';
-import 'package:snippet_generator/notifiers/collection_notifier/map_notifier.dart';
-import 'package:snippet_generator/types/type_item.dart';
-import 'package:snippet_generator/types/type_models.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
+import 'package:snippet_generator/notifiers/collection_notifier/map_notifier.dart';
 import 'package:snippet_generator/parsers/views/components_widget_store.dart';
 import 'package:snippet_generator/themes/theme_store.dart';
+import 'package:snippet_generator/types/type_item.dart';
+import 'package:snippet_generator/types/type_models.dart';
 import 'package:snippet_generator/utils/download_json.dart';
 import 'package:snippet_generator/utils/persistence.dart';
 import 'package:snippet_generator/widgets/globals.dart';
-import 'package:dart_style/dart_style.dart';
 import 'package:y_crdt/y_crdt.dart';
 
 enum AppTabs { types, ui, theme, database }
@@ -62,7 +63,16 @@ class RootStore {
   final directoryHandle = AppNotifier<FileSystemDirectoryHandle?>(null);
 
   Future<void> selectDirectory() async {
+    final isSupported = FileSystem.instance.isSupported;
+    if (!isSupported) {
+      _messageEventsController
+          .add(MessageEvent.errorFileSystemAccessNotSupported);
+      return;
+    }
     final directory = await FileSystem.instance.showDirectoryPicker();
+    if (directory == null) {
+      return;
+    }
     final permission = await directory.requestPermission(
         mode: FileSystemPermissionMode.readwrite);
     if (permission == PermissionStateEnum.granted) {
@@ -97,7 +107,10 @@ class RootStore {
         if (previous != null && previous.sourceCodeHashCode == _hashCode) {
           return;
         }
-        final file = await directory.getFileHandle(entry.key, create: true);
+        final fileResult =
+            await directory.getFileHandle(entry.key, create: true);
+
+        final file = fileResult.unwrap();
         final writable = await file.createWritable();
 
         await writable.write(FileSystemWriteChunkType.string(sourceCode));
@@ -391,6 +404,7 @@ enum MessageEvent {
   typesSaved,
   sourceCodeCopied,
   errorImportingTypes,
+  errorFileSystemAccessNotSupported,
 }
 
 extension MessageEventExtension on MessageEvent {

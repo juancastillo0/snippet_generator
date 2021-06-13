@@ -127,10 +127,19 @@ class RootStoreMessager extends HookWidget {
         String content, {
         SnackbarType type = SnackbarType.info,
       }) {
-        messager.showSnackBar(
+        late final ScaffoldFeatureController controller;
+        controller = messager.showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
             width: 350,
+            duration: const Duration(seconds: 7),
+            action: SnackBarAction(
+              label: "Close",
+              textColor: Colors.white,
+              onPressed: () {
+                controller.close();
+              },
+            ),
             backgroundColor:
                 type == SnackbarType.error ? theme.colorScheme.error : null,
             content: Text(
@@ -155,6 +164,12 @@ class RootStoreMessager extends HookWidget {
             return _showSnackbar("Types saved");
           case MessageEvent.errorImportingTypes:
             return _showSnackbar("Invalid json file", type: SnackbarType.error);
+          case MessageEvent.errorFileSystemAccessNotSupported:
+            return _showSnackbar(
+              "File system access not available. This functionality is supported "
+              "in Google Chrome, Microsoft Edge, Opera and Samsung Internet browsers",
+              type: SnackbarType.error,
+            );
         }
       });
       return subs.cancel;

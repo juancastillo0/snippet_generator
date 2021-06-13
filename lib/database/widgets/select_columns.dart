@@ -127,14 +127,14 @@ class SelectColumnsField extends HookWidget {
       child: Column(
         children: [
           Row(
-            children: [
-              const Expanded(child: Text("Column")),
-              const Text('Include'),
-              const SizedBox(
+            children: const [
+              Expanded(child: Text("Column")),
+              Text('Include'),
+              SizedBox(
                 width: 32,
                 child: Center(child: Text('Asc')),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
             ],
           ),
           SizedBox(
