@@ -244,7 +244,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "75441a4282c3513f4fc90313a9d3027142502ea1"
+      resolved-ref: "18bef15f27aff09f337a85f85ea4d74ae1d310ab"
       url: "https://github.com/juancastillo0/file_system_access_web"
     source: git
     version: "0.0.1"
@@ -263,9 +263,11 @@ packages:
   flutter_colorpicker:
     dependency: "direct main"
     description:
-      name: flutter_colorpicker
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: abe3f53957eb55374663d038b60b8ba62f6dab72
+      url: "https://github.com/mchome/flutter_colorpicker"
+    source: git
     version: "0.4.0"
   flutter_hooks:
     dependency: "direct main"
