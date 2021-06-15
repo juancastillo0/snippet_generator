@@ -6,6 +6,7 @@ import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/types/views/code_generated.dart';
 import 'package:snippet_generator/types/views/type_config.dart';
 import 'package:snippet_generator/types/views/types_menu.dart';
+import 'package:snippet_generator/widgets/resizable_scrollable/resizable.dart';
 
 class TypesTabView extends HookWidget {
   const TypesTabView({Key? key}) : super(key: key);
@@ -15,8 +16,9 @@ class TypesTabView extends HookWidget {
     final rootStore = useRootStore(context);
     return Row(
       children: [
-        SizedBox(
-          width: 200,
+        Resizable(
+          defaultWidth: 200,
+          horizontal: ResizeHorizontal.right,
           child: Column(
             children: [
               const Expanded(
@@ -30,6 +32,7 @@ class TypesTabView extends HookWidget {
           ),
         ),
         const Expanded(
+          flex: 1,
           child: Align(
             alignment: Alignment.topCenter,
             child: SizedBox(
@@ -38,8 +41,9 @@ class TypesTabView extends HookWidget {
             ),
           ),
         ),
-        const SizedBox(
-          width: 450,
+        const Resizable(
+          defaultWidth: 450,
+          horizontal: ResizeHorizontal.left,
           child: Padding(
             padding: EdgeInsets.all(8.0),
             child: TypeCodeGenerated(),
