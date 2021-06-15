@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/types/type_models.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:snippet_generator/widgets/resizable_scrollable/scrollable.dart';
-import 'package:snippet_generator/types/templates/templates.dart';
 import 'package:snippet_generator/utils/theme.dart';
+import 'package:snippet_generator/widgets/resizable_scrollable/scrollable.dart';
 import 'package:snippet_generator/widgets/row_fields.dart';
 
 class CodeGenerated extends HookWidget {
   final String sourceCode;
+  final bool showNullSafe;
 
   const CodeGenerated({
     Key? key,
     required this.sourceCode,
+    this.showNullSafe = true,
   }) : super(key: key);
 
   @override
@@ -26,21 +27,25 @@ class CodeGenerated extends HookWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            ElevatedButton.icon(
-              onPressed: () {
-                rootStore.copySourceCode(sourceCode);
-              },
-              style: elevatedStyle(context),
-              icon: const Icon(Icons.copy),
-              label: const Text("Copy Source Code"),
+            Padding(
+              padding: const EdgeInsets.only(left: 4, top: 2, bottom: 2),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  rootStore.copySourceCode(sourceCode);
+                },
+                style: elevatedStyle(context),
+                icon: const Icon(Icons.copy),
+                label: const Text("Copy Source Code"),
+              ),
             ),
-            RowBoolField(
-              label: "Null Safe",
-              notifier: rootStore.isCodeGenNullSafeNotifier,
-            ),
+            if (showNullSafe)
+              RowBoolField(
+                label: "Null Safe",
+                notifier: rootStore.isCodeGenNullSafeNotifier,
+              ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 6),
         Expanded(
           child: Card(
             child: Padding(
