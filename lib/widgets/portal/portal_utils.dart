@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/globals/option.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/widgets/globals.dart';
@@ -227,7 +228,7 @@ Widget defaultPortalWrapper(BuildContext context, Widget child) {
   return DefualtPortalWrapper(child: child);
 }
 
-class DefualtPortalWrapper extends StatelessWidget {
+class DefualtPortalWrapper extends HookWidget {
   const DefualtPortalWrapper({
     Key? key,
     this.padding,
@@ -239,9 +240,21 @@ class DefualtPortalWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // final notifier = Inherited.of<PortalNotifier>(context);
+    final focusNode = useFocusNode();
+
+    final _prevFocus = Focus.maybeOf(context);
+    useEffect(() {
+      focusNode.requestFocus();
+      return () {
+        if (_prevFocus != null && _prevFocus.canRequestFocus) {
+          _prevFocus.requestFocus();
+        }
+      };
+    });
 
     return FocusableActionDetector(
       autofocus: true,
+      focusNode: focusNode,
       actions: _defaultPortalActions(context),
       child: Stack(
         clipBehavior: Clip.none,
