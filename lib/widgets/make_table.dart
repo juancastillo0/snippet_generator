@@ -112,12 +112,14 @@ class SimpleTable extends HookWidget {
     required this.minColumnWidth,
     required this.maxColumnWidth,
     required this.rows,
+    this.rowHeight = 28,
     this.expandToMaxWidth = true,
   }) : super(key: key);
 
   final List<MakeTableCol> columns;
   final double? minColumnWidth;
   final double? maxColumnWidth;
+  final double rowHeight;
   final List<MakeTableRow> rows;
   final bool expandToMaxWidth;
 
@@ -181,11 +183,21 @@ class SimpleTable extends HookWidget {
         ),
         children: [
           ...rows.mapIndex(
-            (e, index) => TableRow(
-              children: index == 0
+            (e, index) {
+              final cols = index == 0
                   ? e.columns.indexed().map(wrapFirstCell).toList()
-                  : e.columns,
-            ),
+                  : e.columns;
+              return TableRow(
+                children: cols
+                    .map(
+                      (e) => SizedBox(
+                        height: rowHeight,
+                        child: e,
+                      ),
+                    )
+                    .toList(),
+              );
+            },
           ),
         ],
       );
