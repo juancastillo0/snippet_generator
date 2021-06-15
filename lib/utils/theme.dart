@@ -25,6 +25,10 @@ ThemeData lightTheme() {
     visualDensity: VisualDensity.adaptivePlatformDensity,
     scaffoldBackgroundColor: const Color(0xfff5f8fa),
     textTheme: GoogleFonts.nunitoSansTextTheme(_baseTheme.textTheme),
+    colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.teal).copyWith(
+      error: Colors.red[100],
+      onError: Colors.black, 
+    ),
     inputDecorationTheme: const InputDecorationTheme(
       isDense: true,
       filled: true,
@@ -44,6 +48,8 @@ ThemeData lightTheme() {
         primary: Colors.black,
         disabledMouseCursor: SystemMouseCursors.basic,
         enabledMouseCursor: SystemMouseCursors.click,
+        // minimumSize: const Size(0, 34),
+        // padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
       ),
     ),
   );
@@ -58,6 +64,7 @@ ThemeData darkTheme() {
     accentColor: accentColor,
     colorScheme: const ColorScheme.dark().copyWith(
       primary: Colors.white,
+      error: Colors.red[100],
     ),
     brightness: Brightness.dark,
     visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -82,6 +89,8 @@ ThemeData darkTheme() {
         // primary: Colors.black,
         disabledMouseCursor: SystemMouseCursors.basic,
         enabledMouseCursor: SystemMouseCursors.click,
+        // minimumSize: const Size(0, 34),
+        // padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
       ),
     ),
   );
