@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
+import 'package:mysql1/mysql1.dart';
 import 'package:petitparser/petitparser.dart';
+import 'package:snippet_generator/globals/async_state_notifer.dart';
 import 'package:snippet_generator/globals/flutter/highlighted_text_controller.dart';
 import 'package:snippet_generator/globals/props_serializable.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
@@ -49,20 +51,20 @@ class DatabaseStore with PropsSerializable {
   final String name;
 
   DatabaseStore({required this.name}) {
-    autorun(
-      (r) {
-        if (parsedTableDefinition.value.isSuccess &&
-            rawTableDefinition.text != tablesSqlText.value) {
-          tables.value = parsedTableDefinition.value.value;
-        }
-      },
-      delay: 50,
-    );
+    // autorun(
+    //   (r) {
+    //     importTableFromCode();
+    //   },
+    //   delay: 50,
+    // );
+    importTableFromCode();
 
     reaction((r) => tablesSqlText.value, (r) {
       rawTableDefinition.controller.text = tablesSqlText.value;
     });
   }
+
+  final connectionStore = ConnectionStore();
 
   late final rawTableDefinition = TextNotifier(
     controller: HighlightedTextController(
@@ -88,6 +90,13 @@ class DatabaseStore with PropsSerializable {
         ? tables.value[_selectedIndex.value]
         : null,
   );
+
+  void importTableFromCode() {
+    if (parsedTableDefinition.value.isSuccess &&
+        rawTableDefinition.text != tablesSqlText.value) {
+      tables.value = parsedTableDefinition.value.value;
+    }
+  }
 
   void selectIndex(int index) {
     _selectedIndex.value = index;
@@ -134,5 +143,54 @@ class DatabaseStore with PropsSerializable {
     final newTables = [...tables.value, newTable];
     tables.value = newTables;
     selectIndex(tables.value.length - 1);
+  }
+}
+
+class ConnectionStore {
+  final host = TextNotifier(name: "host");
+  final port = TextNotifier(name: "port");
+  final user = TextNotifier(name: "user");
+  final password = TextNotifier(name: "password");
+  final db = TextNotifier(name: "db");
+
+  ConnectionSettings? connectionSettings;
+  MySqlConnection? conn;
+
+  AsyncStateNotifier<ConnectionSettings, MySqlConnection, String>
+      connectionState = AsyncStateNotifier();
+
+  Future<void> connect() async {
+    if (connectionState.value.isLoading) {
+      return;
+    } else if (connectionState.value.isSuccess) {
+      await connectionState.value.maybeMap(
+        success: (state) {
+          return state.value.close();
+        },
+        orElse: () => throw Error(),
+      );
+    }
+
+    try {
+      final settings = ConnectionSettings(
+        host: host.value,
+        port: port.value.isEmpty ? 3306 : int.parse(port.value),
+        user: user.value,
+        password: password.value,
+        db: db.value,
+      );
+      connectionState.loading(settings);
+
+      final _conn = await MySqlConnection.connect(settings);
+      connectionState.success(_conn, request: settings);
+    } catch (e) {
+      final invalidPort = e is FormatException;
+      connectionState.error(
+        invalidPort ? "Invalid port" : e.toString(),
+      );
+      if (invalidPort) {
+        port.focusNode.requestFocus();
+      }
+    }
   }
 }
