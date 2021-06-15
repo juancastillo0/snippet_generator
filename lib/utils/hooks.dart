@@ -32,3 +32,22 @@ void useStreamEffect<T>(
     keys,
   );
 }
+
+T useSelectListenable<T>(
+  Listenable listenable,
+  T Function() select, [
+  List<Object?> keys = const [],
+]) {
+  final state = useState<T>(select());
+  useEffect(() {
+    void _callback() {
+      state.value = select();
+    }
+
+    listenable.addListener(_callback);
+    return () {
+      listenable.removeListener(_callback);
+    };
+  }, [listenable, ...keys]);
+  return state.value;
+}
