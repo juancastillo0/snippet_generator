@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:snippet_generator/database/database_store.dart';
 import 'package:snippet_generator/database/widgets/select_columns.dart';
 import 'package:snippet_generator/database/widgets/sql_type_field.dart';
@@ -15,6 +16,7 @@ import 'package:snippet_generator/widgets/make_table.dart';
 import 'package:snippet_generator/widgets/portal/custom_overlay.dart';
 import 'package:snippet_generator/widgets/portal/global_stack.dart';
 import 'package:snippet_generator/widgets/portal/portal_utils.dart';
+import 'package:snippet_generator/widgets/resizable_scrollable/resizable.dart';
 import 'package:snippet_generator/widgets/small_icon_button.dart';
 
 double get _columnSpacing => 14;
@@ -51,21 +53,32 @@ class SqlTablesView extends StatelessWidget {
       flex: 6,
       child: Column(
         children: const [
-          _TableWrapper(
-            title: 'Columns',
-            valueToAdd: SqlColumn.defaultColumn,
-            withScroll: false,
-            child: ColumnsTable(),
+          Resizable(
+            flex: 4,
+            vertical: ResizeVertical.bottom,
+            child: _TableWrapper(
+              title: 'Columns',
+              valueToAdd: SqlColumn.defaultColumn,
+              withScroll: false,
+              child: ColumnsTable(),
+            ),
           ),
-          _TableWrapper(
-            title: 'Foreign Keys',
-            valueToAdd: SqlForeignKey.defaultForeignKey,
-            child: ForeignKeysTable(),
+          Flexible(
+            flex: 3,
+            child: _TableWrapper(
+              title: 'Foreign Keys',
+              valueToAdd: SqlForeignKey.defaultForeignKey,
+              child: ForeignKeysTable(),
+            ),
           ),
-          _TableWrapper(
-            title: 'Indexes',
-            valueToAdd: SqlTableKey.defaultTableKey,
-            child: IndexesTable(),
+          Resizable(
+            flex: 2,
+            vertical: ResizeVertical.top,
+            child: _TableWrapper(
+              title: 'Indexes',
+              valueToAdd: SqlTableKey.defaultTableKey,
+              child: IndexesTable(),
+            ),
           ),
         ],
       ),
@@ -94,61 +107,57 @@ class _TableWrapper extends HookWidget {
     final _horizontalScroll = useScrollController();
     final showTable = useState(true);
 
-    final topWidget = Padding(
-      padding: const EdgeInsets.only(top: 7),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              title,
-              style: Theme.of(context).textTheme.headline6,
-            ),
+    final topWidget = Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.headline6,
           ),
-          IconButton(
-            splashRadius: 24,
-            onPressed: () {
-              showTable.value = !showTable.value;
-            },
-            icon: Icon(
-              showTable.value
-                  ? Icons.keyboard_arrow_up
-                  : Icons.keyboard_arrow_down,
-            ),
-          )
-        ],
-      ),
+        ),
+        IconButton(
+          splashRadius: 24,
+          onPressed: () {
+            showTable.value = !showTable.value;
+          },
+          icon: Icon(
+            showTable.value
+                ? Icons.keyboard_arrow_up
+                : Icons.keyboard_arrow_down,
+          ),
+        )
+      ],
     );
     if (!showTable.value) {
       return topWidget;
     }
-    return Flexible(
-      flex: 2,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          topWidget,
-          Expanded(
-            child: withScroll
-                ? Scrollbar(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        topWidget,
+        Expanded(
+          child: withScroll
+              ? Scrollbar(
+                  controller: _verticalScroll,
+                  child: SingleChildScrollView(
                     controller: _verticalScroll,
-                    child: SingleChildScrollView(
-                      controller: _verticalScroll,
-                      child: Scrollbar(
+                    child: Scrollbar(
+                      controller: _horizontalScroll,
+                      child: SingleChildScrollView(
                         controller: _horizontalScroll,
-                        child: SingleChildScrollView(
-                          controller: _horizontalScroll,
-                          scrollDirection: Axis.horizontal,
-                          child: child,
-                        ),
+                        scrollDirection: Axis.horizontal,
+                        child: child,
                       ),
                     ),
-                  )
-                : child,
-          ),
-          Container(
-            padding: const EdgeInsets.only(right: 12, top: 4),
-            alignment: Alignment.centerRight,
-            child: OutlinedButton.icon(
+                  ),
+                )
+              : child,
+        ),
+        Container(
+          padding: const EdgeInsets.only(right: 8, top: 4, bottom: 6),
+          alignment: Alignment.centerRight,
+          child: Observer(
+            builder: (context) => OutlinedButton.icon(
               onPressed: store.selectedTable.value == null
                   ? null
                   : () {
@@ -172,9 +181,9 @@ class _TableWrapper extends HookWidget {
               icon: const Icon(Icons.add),
               label: const Text('Add'),
             ),
-          )
-        ],
-      ),
+          ),
+        )
+      ],
     );
   }
 }
@@ -387,6 +396,7 @@ class ColumnsTable extends HookObserverWidget {
         MakeTableCol(name: 'Unique'),
         MakeTableCol(
           name: 'Reference',
+          minWidth: 70,
         ),
         MakeTableCol(name: 'Primary'),
         MakeTableCol(name: 'Delete'),
