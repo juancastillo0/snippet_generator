@@ -56,35 +56,57 @@ class TokenList extends HookWidget {
   Widget build(BuildContext context) {
     final store = useProvider(parserStoreProvider);
     useListenable(store.tokenKeys);
+    const bottomHeight = 50.0;
 
-    return Column(
-      children: [
-        ...store.tokenKeys.expand(
-          (tokenKey) sync* {
-            yield Container(
-              height: 1,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
-            );
-            yield Observer(
-              key: Key(tokenKey),
-              builder: (context) {
-                final token = store.tokens[tokenKey]!;
-                return TokenRow(token: token);
-              },
-            );
-          },
-        ).skip(1),
-        const SizedBox(height: 10),
-        Align(
-          alignment: Alignment.topLeft,
-          child: OutlinedButton(
-            onPressed: () {
-              store.add();
-            },
-            child: const Text("ADD"),
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, box) {
+        return Column(
+          children: [
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: box.maxHeight - bottomHeight,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    ...store.tokenKeys.expand(
+                      (tokenKey) sync* {
+                        yield Container(
+                          height: 1,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.1),
+                        );
+                        yield Observer(
+                          key: Key(tokenKey),
+                          builder: (context) {
+                            final token = store.tokens[tokenKey]!;
+                            return TokenRow(token: token);
+                          },
+                        );
+                      },
+                    ).skip(1),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              height: bottomHeight,
+              padding: const EdgeInsets.only(top: 10),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: OutlinedButton(
+                  onPressed: () {
+                    store.add();
+                  },
+                  child: const Text("ADD"),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
