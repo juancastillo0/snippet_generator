@@ -42,13 +42,13 @@ class GenerateParserStore {
     final Set<PredifinedParser> predifined = {};
 
     void _processToken(ParserToken token) {
-      token.value.when(
-        and: (list) => list.forEach(_processToken),
-        or: (list) => list.forEach(_processToken),
+      token.value.map(
+        and: (list) => list.values.forEach(_processToken),
+        or: (list) => list.values.forEach(_processToken),
         string: (_) {},
         ref: (_) {},
         predifined: (value) {
-          predifined.add(value);
+          predifined.add(value.value);
         },
       );
     }
@@ -74,7 +74,8 @@ class ParserTokenNotifier {
   final GenerateParserStore store;
   ParserTokenNotifier(this.store);
 
-  final notifier = AppNotifier(const ParserToken.def());
+  final notifier = AppNotifier(
+      const ParserToken.def(value: TokenValue.and([ParserToken.def()])));
 
   ParserToken get value => notifier.value;
 
@@ -86,7 +87,15 @@ class ParserTokenNotifier {
     final _inner = token.value.when(
       and: (list) => '(' + list.map((e) => _expr(e)).join(' & ') + ')',
       or: (list) => '(' + list.map((e) => _expr(e)).join(' | ') + ')',
-      string: (string) => 'string("$string")',
+      string: (string, isPattern, caseSensitive) {
+        if (caseSensitive) {
+          return isPattern ? 'pattern("$string")' : 'string("$string")';
+        } else {
+          return isPattern
+              ? 'patternIgnoreCase("$string")'
+              : 'stringIgnoreCase("$string")';
+        }
+      },
       ref: (ref) => (store.tokens[ref]?.value.name ?? '') + '()',
       predifined: (pred) => pred.toDart(),
     );

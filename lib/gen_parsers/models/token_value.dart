@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:snippet_generator/gen_parsers/models/predifined_parsers.dart';
 import 'package:snippet_generator/gen_parsers/models/tokens.dart';
 import 'package:snippet_generator/utils/extensions.dart';
@@ -12,8 +14,10 @@ abstract class TokenValue {
     List<ParserToken> values,
   ) = TokenValueOr;
   const factory TokenValue.string(
-    String value,
-  ) = TokenValueString;
+    String value, {
+    required bool isPattern,
+    required bool caseSensitive,
+  }) = TokenValueString;
   const factory TokenValue.ref(
     String value,
   ) = TokenValueRef;
@@ -24,7 +28,8 @@ abstract class TokenValue {
   _T when<_T>({
     required _T Function(List<ParserToken> values) and,
     required _T Function(List<ParserToken> values) or,
-    required _T Function(String value) string,
+    required _T Function(String value, bool isPattern, bool caseSensitive)
+        string,
     required _T Function(String value) ref,
     required _T Function(PredifinedParser value) predifined,
   }) {
@@ -34,7 +39,7 @@ abstract class TokenValue {
     } else if (v is TokenValueOr) {
       return or(v.values);
     } else if (v is TokenValueString) {
-      return string(v.value);
+      return string(v.value, v.isPattern, v.caseSensitive);
     } else if (v is TokenValueRef) {
       return ref(v.value);
     } else if (v is TokenValuePredifined) {
@@ -47,7 +52,7 @@ abstract class TokenValue {
     required _T Function() orElse,
     _T Function(List<ParserToken> values)? and,
     _T Function(List<ParserToken> values)? or,
-    _T Function(String value)? string,
+    _T Function(String value, bool isPattern, bool caseSensitive)? string,
     _T Function(String value)? ref,
     _T Function(PredifinedParser value)? predifined,
   }) {
@@ -57,7 +62,9 @@ abstract class TokenValue {
     } else if (v is TokenValueOr) {
       return or != null ? or(v.values) : orElse.call();
     } else if (v is TokenValueString) {
-      return string != null ? string(v.value) : orElse.call();
+      return string != null
+          ? string(v.value, v.isPattern, v.caseSensitive)
+          : orElse.call();
     } else if (v is TokenValueRef) {
       return ref != null ? ref(v.value) : orElse.call();
     } else if (v is TokenValuePredifined) {
@@ -145,6 +152,25 @@ class TokenValueAnd extends TokenValue {
     this.values,
   ) : super._();
 
+  TokenValueAnd copyWith({
+    List<ParserToken>? values,
+  }) {
+    return TokenValueAnd(
+      values ?? this.values,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is TokenValueAnd) {
+      return this.values == other.values;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => values.hashCode;
+
   static TokenValueAnd fromJson(Map<String, dynamic> map) {
     return TokenValueAnd(
       (map['values'] as List)
@@ -169,6 +195,25 @@ class TokenValueOr extends TokenValue {
     this.values,
   ) : super._();
 
+  TokenValueOr copyWith({
+    List<ParserToken>? values,
+  }) {
+    return TokenValueOr(
+      values ?? this.values,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is TokenValueOr) {
+      return this.values == other.values;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => values.hashCode;
+
   static TokenValueOr fromJson(Map<String, dynamic> map) {
     return TokenValueOr(
       (map['values'] as List)
@@ -188,14 +233,45 @@ class TokenValueOr extends TokenValue {
 
 class TokenValueString extends TokenValue {
   final String value;
+  final bool isPattern;
+  final bool caseSensitive;
 
   const TokenValueString(
-    this.value,
-  ) : super._();
+    this.value, {
+    required this.isPattern,
+    required this.caseSensitive,
+  }) : super._();
+
+  TokenValueString copyWith({
+    String? value,
+    bool? isPattern,
+    bool? caseSensitive,
+  }) {
+    return TokenValueString(
+      value ?? this.value,
+      isPattern: isPattern ?? this.isPattern,
+      caseSensitive: caseSensitive ?? this.caseSensitive,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is TokenValueString) {
+      return this.value == other.value &&
+          this.isPattern == other.isPattern &&
+          this.caseSensitive == other.caseSensitive;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => hashValues(value, isPattern, caseSensitive);
 
   static TokenValueString fromJson(Map<String, dynamic> map) {
     return TokenValueString(
       map['value'] as String,
+      isPattern: map['isPattern'] as bool,
+      caseSensitive: map['caseSensitive'] as bool,
     );
   }
 
@@ -204,6 +280,8 @@ class TokenValueString extends TokenValue {
     return {
       "runtimeType": "string",
       "value": value,
+      "isPattern": isPattern,
+      "caseSensitive": caseSensitive,
     };
   }
 }
@@ -214,6 +292,25 @@ class TokenValueRef extends TokenValue {
   const TokenValueRef(
     this.value,
   ) : super._();
+
+  TokenValueRef copyWith({
+    String? value,
+  }) {
+    return TokenValueRef(
+      value ?? this.value,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is TokenValueRef) {
+      return this.value == other.value;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
 
   static TokenValueRef fromJson(Map<String, dynamic> map) {
     return TokenValueRef(
@@ -236,6 +333,25 @@ class TokenValuePredifined extends TokenValue {
   const TokenValuePredifined(
     this.value,
   ) : super._();
+
+  TokenValuePredifined copyWith({
+    PredifinedParser? value,
+  }) {
+    return TokenValuePredifined(
+      value ?? this.value,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is TokenValuePredifined) {
+      return this.value == other.value;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
 
   static TokenValuePredifined fromJson(Map<String, dynamic> map) {
     return TokenValuePredifined(

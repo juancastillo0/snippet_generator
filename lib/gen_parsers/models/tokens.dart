@@ -103,7 +103,7 @@ class ParserToken {
 
   const ParserToken.def({
     this.name = '',
-    this.value = const TokenValue.string(''),
+    this.value = const TokenValue.string('', isPattern: false, caseSensitive: true),
     this.repeat = const RepeatRange.times(1),
     this.trim = true,
     this.negated = false,

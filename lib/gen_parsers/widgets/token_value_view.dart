@@ -43,134 +43,178 @@ class TokenValueView extends HookWidget {
       onChanged(token.copyWith(value: value));
     }
 
-    final inner = tokenValue.maybeWhen(
-      and: (list) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ...list.mapIndex(
-            (e, i) => TokenValueView(
-              token: e,
-              inCollection: true,
-              onDelete: () {
-                final _list = [...list];
-                _list.removeAt(i);
-                if (_list.length == 1) {
-                  onChanged(_list.first);
-                } else {
+    final inner = FocusTraversalGroup(
+      child: tokenValue.maybeWhen(
+        and: (list) => Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ...list.mapIndex(
+              (e, i) => TokenValueView(
+                token: e,
+                inCollection: true,
+                onDelete: () {
+                  final _list = [...list];
+                  _list.removeAt(i);
+                  if (_list.length == 1) {
+                    onChanged(_list.first);
+                  } else {
+                    onChangedValue(TokenValue.and(_list));
+                  }
+                },
+                onChanged: (v) {
+                  final _list = [...list];
+                  final _v = v.value;
+                  if (_v is TokenValueAnd) {
+                    _list[i] = _v.values.first;
+                    _list.insertAll(i + 1, _v.values.skip(1));
+                  } else {
+                    _list[i] = v;
+                  }
                   onChangedValue(TokenValue.and(_list));
-                }
-              },
-              onChanged: (v) {
-                final _list = [...list];
-                _list[i] = v;
-                onChangedValue(TokenValue.and(_list));
-              },
-            ),
-          ),
-        ],
-      ),
-      or: (list) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ...list.mapIndex(
-            (e, i) => TokenValueView(
-              token: e,
-              inCollection: true,
-              onDelete: () {
-                final _list = [...list];
-                _list.removeAt(i);
-                if (_list.length == 1) {
-                  onChanged(_list.first);
-                } else {
-                  onChangedValue(TokenValue.or(_list));
-                }
-              },
-              onChanged: (v) {
-                final _list = [...list];
-                _list[i] = v;
-                onChangedValue(TokenValue.or(_list));
-              },
-            ),
-          ),
-        ],
-      ),
-      orElse: () {
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextButton(
-                    onPressed: tokenValue.isRef
-                        ? null
-                        : () {
-                            onChangedValue(const TokenValue.ref(''));
-                          },
-                    child: const Text("Ref"),
-                  ),
-                  TextButton(
-                    onPressed: tokenValue.isString
-                        ? null
-                        : () {
-                            onChangedValue(const TokenValue.string(''));
-                          },
-                    child: const Text("Str"),
-                  ),
-                  CustomOverlayButton(
-                    builder: StackPortal.make,
-                    params: _portalParams,
-                    portalBuilder: (notif) {
-                      return Column(
-                        children: [
-                          ...PredifinedParser.values.map(
-                            (v) => TextButton(
-                              onPressed: () {
-                                onChangedValue(TokenValue.predifined(v));
-                                notif.hide();
-                              },
-                              child: Text(v.toJson()),
-                            ),
-                          )
-                        ],
-                      );
-                    },
-                    child: const Text("Pred"),
-                  ),
-                ],
+                },
               ),
-              SizedBox(
-                width: 140,
-                height: 35,
-                child: Row(
+            ),
+          ],
+        ),
+        or: (list) => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ...list.mapIndex(
+              (e, i) => TokenValueView(
+                token: e,
+                inCollection: true,
+                onDelete: () {
+                  final _list = [...list];
+                  _list.removeAt(i);
+                  if (_list.length == 1) {
+                    onChanged(_list.first);
+                  } else {
+                    onChangedValue(TokenValue.or(_list));
+                  }
+                },
+                onChanged: (v) {
+                  final _list = [...list];
+                  final _v = v.value;
+                  if (_v is TokenValueOr) {
+                    _list[i] = _v.values.first;
+                    _list.insertAll(i + 1, _v.values.skip(1));
+                  } else {
+                    _list[i] = v;
+                  }
+                  onChangedValue(TokenValue.or(_list));
+                },
+              ),
+            ),
+          ],
+        ),
+        orElse: () {
+          final typeStr = tokenValue.maybeMap(
+            string: (_) => "string",
+            ref: (_) => "reference",
+            predifined: (p) => p.value.toJson(),
+            orElse: () => throw Error(),
+          );
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+            width: 240,
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: tokenValue.maybeWhen(
-                        ref: (ref) => CustomDropdownField<ParserTokenNotifier>(
-                          asString: (t) => t.value.name,
-                          onChange: (t) =>
-                              onChangedValue(TokenValue.ref(t.key)),
-                          options: store.tokens.values,
-                          selected:
-                              store.tokens[(tokenValue as TokenValueRef).value],
+                    if (!tokenValue.isString)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: SizedBox(
+                          width: 125,
+                          child: TextField(
+                            onChanged: (value) {
+                              onChanged(token.copyWith(name: value));
+                            },
+                          ),
                         ),
-                        string: (_) => TextField(
-                          // decoration: const InputDecoration(labelText: "String"),
-                          onChanged: (value) {
-                            onChangedValue(TokenValue.string(value));
-                          },
-                        ),
-                        predifined: (predifined) =>
-                            Center(child: Text(predifined.toJson())),
-                        orElse: () => throw Error(),
                       ),
+                    tokenValue.maybeMap(
+                      string: (tokenValue) => Row(
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text("Pattern"),
+                              Checkbox(
+                                value: tokenValue.isPattern,
+                                onChanged: (_) {
+                                  onChangedValue(
+                                    tokenValue.copyWith(
+                                      isPattern: !tokenValue.isPattern,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text("Cased"),
+                              Checkbox(
+                                value: tokenValue.caseSensitive,
+                                onChanged: (_) {
+                                  onChangedValue(
+                                    tokenValue.copyWith(
+                                      caseSensitive: !tokenValue.caseSensitive,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      predifined: (predifined) => const SizedBox(),
+                      orElse: () => const SizedBox(),
+                    ),
+                    Row(
+                      children: [
+                        Tooltip(
+                          message: "OR",
+                          child: InkWell(
+                            onTap: () {
+                              onChanged(token.copyWith(
+                                value: TokenValue.or(
+                                  [token, const ParserToken.def()],
+                                ),
+                              ));
+                            },
+                            child: const Icon(
+                              Icons.arrow_drop_down_sharp,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                        Tooltip(
+                          message: "AND",
+                          child: InkWell(
+                            onTap: () {
+                              onChanged(token.copyWith(
+                                value: TokenValue.and(
+                                  [token, const ParserToken.def()],
+                                ),
+                              ));
+                            },
+                            child: const Icon(
+                              Icons.arrow_right,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     if (onDelete != null)
                       Padding(
@@ -184,42 +228,129 @@ class TokenValueView extends HookWidget {
                       )
                   ],
                 ),
-              ),
-              Row(
-                children: [
-                  const Text("Trim"),
-                  Checkbox(
-                    value: token.trim,
-                    onChanged: (_) {
-                      onChanged(token.copyWith(trim: !token.trim));
-                    },
+                SizedBox(
+                  height: 35,
+                  child: Row(
+                    children: [
+                      CustomOverlayButton(
+                        builder: StackPortal.make,
+                        params: _portalParams,
+                        portalBuilder: (notif) {
+                          return Column(
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  if (!tokenValue.isString) {
+                                    onChangedValue(const TokenValue.string(
+                                      '',
+                                      caseSensitive: true,
+                                      isPattern: false,
+                                    ));
+                                  }
+                                  notif.hide();
+                                },
+                                child: const Text("string"),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  if (!tokenValue.isRef) {
+                                    onChangedValue(const TokenValue.ref(''));
+                                  }
+                                  notif.hide();
+                                },
+                                child: const Text("reference"),
+                              ),
+                              ...PredifinedParser.values.map(
+                                (v) => TextButton(
+                                  onPressed: () {
+                                    onChangedValue(TokenValue.predifined(v));
+                                    notif.hide();
+                                  },
+                                  child: Text(v.toJson()),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                        child: SizedBox(
+                          width: 110,
+                          child: Center(child: Text("Type: $typeStr")),
+                        ),
+                      ),
+                      Expanded(
+                        child: tokenValue.maybeMap(
+                          ref: (ref) =>
+                              CustomDropdownField<ParserTokenNotifier>(
+                            asString: (t) => t.value.name,
+                            onChange: (t) =>
+                                onChangedValue(TokenValue.ref(t.key)),
+                            options: store.tokens.values,
+                            selected: store
+                                .tokens[(tokenValue as TokenValueRef).value],
+                          ),
+                          string: (v) => TextField(
+                            onChanged: (value) {
+                              onChangedValue(TokenValue.string(
+                                value,
+                                isPattern: v.isPattern,
+                                caseSensitive: v.caseSensitive,
+                              ));
+                            },
+                          ),
+                          predifined: (predifined) => const SizedBox(),
+                          orElse: () => throw Error(),
+                        ),
+                      ),
+                    ],
                   ),
-                  const Text("Neg"),
-                  Checkbox(
-                    value: token.negated,
-                    onChanged: (_) {
-                      onChanged(token.copyWith(negated: !token.negated));
-                    },
-                  ),
-                  CustomOverlayButton(
-                    builder: StackPortal.make,
-                    params: _portalParams,
-                    portalBuilder: (notif) {
-                      return RepeatForm(
-                        onChanged: onChanged,
-                        token: token,
-                      );
-                    },
-                    child: Text(
-                      "Repeat: ${token.repeat.userString()}",
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text("Trim"),
+                        Checkbox(
+                          value: token.trim,
+                          onChanged: (_) {
+                            onChanged(token.copyWith(trim: !token.trim));
+                          },
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text("Neg"),
+                        Checkbox(
+                          value: token.negated,
+                          onChanged: (_) {
+                            onChanged(token.copyWith(negated: !token.negated));
+                          },
+                        ),
+                      ],
+                    ),
+                    CustomOverlayButton(
+                      builder: StackPortal.make,
+                      params: _portalParams,
+                      portalBuilder: (notif) {
+                        return RepeatForm(
+                          onChanged: onChanged,
+                          token: token,
+                        );
+                      },
+                      child: Text(
+                        "Repeat: ${token.repeat.userString()}",
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
 
     if (inCollection && !tokenValue.isOr) {
@@ -234,9 +365,7 @@ class TokenValueView extends HookWidget {
               if (!inCollection || !tokenValue.isOr)
                 TextButton(
                   onPressed: () {
-                    const toAdd = ParserToken.def(
-                      value: TokenValue.string(''),
-                    );
+                    const toAdd = ParserToken.def();
                     onChangedValue(
                       tokenValue.maybeWhen(
                         and: (list) => TokenValue.and([
@@ -254,9 +383,7 @@ class TokenValueView extends HookWidget {
                 ),
               TextButton(
                 onPressed: () {
-                  const toAdd = ParserToken.def(
-                    value: TokenValue.string(''),
-                  );
+                  const toAdd = ParserToken.def();
                   onChangedValue(
                     tokenValue.maybeWhen(
                       or: (list) => TokenValue.or([
