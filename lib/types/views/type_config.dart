@@ -241,7 +241,7 @@ final Map<String, Widget Function(TypeConfig)> _expansionPanelBuilders = {
           ),
           RowBoolField(
             label: "To Json",
-            notifier: serializableConfig.generateToJson
+            notifier: serializableConfig.generateToJson,
           ),
           RowBoolField(
             label: "From Json",
@@ -269,8 +269,7 @@ final Map<String, Widget Function(TypeConfig)> _expansionPanelBuilders = {
     final sumTypeConfig = typeConfig.sumTypeConfig;
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+      child: Wrap(
         children: [
           RowBoolField(
             label: "Enum",
@@ -283,6 +282,16 @@ final Map<String, Widget Function(TypeConfig)> _expansionPanelBuilders = {
           RowBoolField(
             label: "Generic Mappers",
             notifier: sumTypeConfig.genericMappers,
+          ),
+          RowTextField(
+            rowLayout: false,
+            controller: sumTypeConfig.prefix.controller,
+            label: "Prefix",
+          ),
+          RowTextField(
+            rowLayout: false,
+            controller: sumTypeConfig.suffix.controller,
+            label: "Suffix",
           ),
         ],
       ),

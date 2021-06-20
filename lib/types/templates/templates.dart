@@ -1,3 +1,4 @@
+import 'package:mobx/mobx.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/notifiers/computed_notifier.dart';
 import 'package:snippet_generator/parsers/signature_parser.dart';
@@ -5,8 +6,8 @@ import 'package:snippet_generator/types/advanced/advanced_config.dart';
 import 'package:snippet_generator/types/advanced/serializable_config.dart';
 import 'package:snippet_generator/types/advanced/sum_type_config.dart';
 import 'package:snippet_generator/types/root_store.dart';
-import 'package:snippet_generator/types/type_models.dart';
 import 'package:snippet_generator/types/templates/serde_templates.dart';
+import 'package:snippet_generator/types/type_models.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 
 extension _ClassConfigTemplateExtension on ClassConfig {
@@ -23,7 +24,9 @@ class TemplateClassConfig {
   List<PropertyField> get propertiesSorted => innerClass.propertiesSorted;
   String get name => innerClass.name;
 
-  String get className => typeConfig.isSumType ? name : typeConfig.name;
+  String get className => typeConfig.isSumType
+      ? '${typeConfig.sumTypeConfig.prefix.value}$name${typeConfig.sumTypeConfig.suffix.value}'
+      : typeConfig.name;
   String get _classConstructor {
     return className;
   }
@@ -40,7 +43,7 @@ class TemplateClassConfig {
       "$className${typeConfig.templates.genericIds}";
 
   String get signature => typeConfig.isSumType
-      ? '$name${typeConfig.templates.generics} extends ${typeConfig.name}${typeConfig.templates.genericIds}'
+      ? '$className${typeConfig.templates.generics} extends ${typeConfig.name}${typeConfig.templates.genericIds}'
       : typeConfig.signature;
 
   String templateClass() {
@@ -209,7 +212,7 @@ Map<String, dynamic> toJson() {
 class TemplateTypeConfig {
   final TypeConfig innerType;
 
-  const TemplateTypeConfig(this.innerType);
+  TemplateTypeConfig(this.innerType);
 
   AdvancedTypeConfig get advancedConfig => innerType.advancedConfig;
   RootStore get rootStore => innerType.rootStore;
@@ -249,11 +252,19 @@ class TemplateTypeConfig {
   }
 
   String _funcParams(ClassConfig c) {
-    return c.propertiesSorted.map((p) => '${p.type} ${p.name}').join(', ');
+    final _repeatedProps = repeatedProps.value;
+    return c.propertiesSorted
+        .where((p) => _repeatedProps[p.name]?.sameType == null)
+        .map((p) => '${p.type} ${p.name}')
+        .join(', ');
   }
 
   String _funcParamsCall(ClassConfig c) {
-    return c.propertiesSorted.map((p) => 'v.${p.name}').join(', ');
+    final _repeatedProps = repeatedProps.value;
+    return c.propertiesSorted
+        .where((p) => _repeatedProps[p.name]?.sameType == null)
+        .map((p) => 'v.${p.name}')
+        .join(', ');
   }
 
   String get _const {
@@ -319,7 +330,7 @@ abstract class ${innerType.signature} {
   """;
   }
 
-  Map<String, CummProp> repeatedProps() {
+  late final repeatedProps = Computed<Map<String, CummProp>>(() {
     final repeated = <String, List<PropertyField>>{};
     for (final p in classes.expand((c) => c.properties)) {
       final l = repeated.putIfAbsent(p.name, () => []);
@@ -329,10 +340,10 @@ abstract class ${innerType.signature} {
     return repeated.map(
       (key, value) => MapEntry(key, CummProp.fromProps(value)),
     );
-  }
+  });
 
   String _repeatedPropsTemplate() {
-    final props = repeatedProps();
+    final props = repeatedProps.value;
     if (props.isEmpty) {
       return "";
     }
@@ -381,7 +392,7 @@ abstract class ${innerType.signature} {
     return """
     ${classes.map(
               (c) =>
-                  "bool get is${c.name.replaceFirst("_", "").firstToUpperCase()} => this is ${c.name};",
+                  "bool get is${c.name.replaceFirst("_", "").firstToUpperCase()} => this is ${c.templates.className};",
             ).join("\n")}
     """;
   }
