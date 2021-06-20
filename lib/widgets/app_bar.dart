@@ -42,6 +42,7 @@ const appTabsTitles = {
   AppTabs.types: "Types",
   AppTabs.theme: "Themes",
   AppTabs.database: "Data",
+  AppTabs.parsers: "Parsers",
 };
 
 class TabButton extends HookWidget {
@@ -95,6 +96,7 @@ class HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
     final rootStore = RootStore.of(context);
 
     return LayoutBuilder(builder: (context, box) {
+      final showTitle = box.maxWidth > 1000;
       final showButtons = box.maxWidth > 1200;
       final topButtonStyle = _actionButtonPadded(context);
       final buttonStyle = showButtons
@@ -150,15 +152,16 @@ class HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (box.maxWidth > 1000)
+              if (showTitle)
                 const Center(
                   child: Text('Flutter Snippet Generator'),
                 ),
-              if (box.maxWidth > 1000) const SizedBox(width: 30),
+              if (showTitle) const SizedBox(width: 30),
               const TabButton(tab: AppTabs.types),
               const TabButton(tab: AppTabs.ui),
               const TabButton(tab: AppTabs.theme),
               const TabButton(tab: AppTabs.database),
+              const TabButton(tab: AppTabs.parsers),
             ],
           ),
         ),

@@ -19,7 +19,7 @@ import 'package:snippet_generator/utils/persistence.dart';
 import 'package:snippet_generator/widgets/globals.dart';
 import 'package:y_crdt/y_crdt.dart';
 
-enum AppTabs { types, ui, theme, database }
+enum AppTabs { types, ui, theme, database, parsers }
 
 class RootStore {
   // final key = uuid.v4();

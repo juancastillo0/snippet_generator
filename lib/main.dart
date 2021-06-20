@@ -3,21 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_portal/flutter_portal.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:snippet_generator/database/database_view.dart';
+import 'package:snippet_generator/gen_parsers/gen_parsers_view.dart';
 import 'package:snippet_generator/globals/models.dart';
 import 'package:snippet_generator/notifiers/rebuilder.dart';
-import 'package:snippet_generator/types/root_store.dart';
-import 'package:snippet_generator/parsers/widget_parsers/widget_parser.dart';
-import 'package:snippet_generator/utils/persistence.dart';
 import 'package:snippet_generator/parsers/type_parser.dart';
+import 'package:snippet_generator/parsers/views/parsers_view.dart';
+import 'package:snippet_generator/parsers/widget_parsers/widget_parser.dart';
+import 'package:snippet_generator/themes/themes_tab_view.dart';
+import 'package:snippet_generator/types/root_store.dart';
+import 'package:snippet_generator/types/views/types_tab_view.dart';
+import 'package:snippet_generator/utils/persistence.dart';
 import 'package:snippet_generator/utils/set_up_globals.dart';
 import 'package:snippet_generator/utils/theme.dart';
 import 'package:snippet_generator/widgets/app_bar.dart';
-import 'package:snippet_generator/widgets/portal/global_stack.dart';
 import 'package:snippet_generator/widgets/globals.dart';
-import 'package:snippet_generator/parsers/views/parsers_view.dart';
-import 'package:snippet_generator/themes/themes_tab_view.dart';
-import 'package:snippet_generator/types/views/types_tab_view.dart';
+import 'package:snippet_generator/widgets/portal/global_stack.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
@@ -56,19 +58,21 @@ class MyApp extends HookWidget {
     return RootStoreProvider(
       rootStore: rootStore,
       child: GlobalKeyboardListener.wrapper(
-        child: MaterialApp(
-          title: 'Snippet Generator',
-          debugShowCheckedModeBanner: false,
-          theme: lightTheme(),
-          darkTheme: darkTheme(),
-          themeMode: rootStore.themeModeNotifier.value,
-          scrollBehavior: const ScrollBehavior().copyWith(
-            scrollbars: false,
-            overscroll: false,
-          ),
-          navigatorObservers: [routeObserver],
-          home: const Portal(
-            child: GlobalStack(child: MyHomePage()),
+        child: ProviderScope(
+          child: MaterialApp(
+            title: 'Snippet Generator',
+            debugShowCheckedModeBanner: false,
+            theme: lightTheme(),
+            darkTheme: darkTheme(),
+            themeMode: rootStore.themeModeNotifier.value,
+            scrollBehavior: const ScrollBehavior().copyWith(
+              scrollbars: false,
+              overscroll: false,
+            ),
+            navigatorObservers: [routeObserver],
+            home: const Portal(
+              child: GlobalStack(child: MyHomePage()),
+            ),
           ),
         ),
       ),
@@ -95,6 +99,7 @@ class MyHomePage extends StatelessWidget {
                 ParsersView(),
                 ThemesTabView(),
                 DatabaseTabView(),
+                GenerateParserTabView(),
               ],
             );
           },
