@@ -158,48 +158,50 @@ class SimpleTable extends HookWidget {
         });
       }
 
-      final contentTable = Table(
-        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-        columnWidths: Map.fromEntries(
-          columns.mapIndex(
-            (e, index) {
-              final innerWidth = innerColumnWidths.value[index];
-              final _w = e.columnWidth(
-                const IntrinsicColumnWidth(),
-                defaultMinWidth: minColumnWidth,
-                defaultMaxWidth: maxColumnWidth,
-              );
-              return MapEntry(
-                index,
-                toAdd != 0
-                    ? MaxColumnWidth(
-                        FixedColumnWidth(innerWidth! + toAdd),
-                        _w,
+      final contentTable = FocusTraversalGroup(
+        child: Table(
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          columnWidths: Map.fromEntries(
+            columns.mapIndex(
+              (e, index) {
+                final innerWidth = innerColumnWidths.value[index];
+                final _w = e.columnWidth(
+                  const IntrinsicColumnWidth(),
+                  defaultMinWidth: minColumnWidth,
+                  defaultMaxWidth: maxColumnWidth,
+                );
+                return MapEntry(
+                  index,
+                  toAdd != 0
+                      ? MaxColumnWidth(
+                          FixedColumnWidth(innerWidth! + toAdd),
+                          _w,
+                        )
+                      : _w,
+                );
+              },
+            ),
+          ),
+          children: [
+            ...rows.mapIndex(
+              (e, index) {
+                final cols = index == 0
+                    ? e.columns.indexed().map(wrapFirstCell).toList()
+                    : e.columns;
+                return TableRow(
+                  children: cols
+                      .map(
+                        (e) => SizedBox(
+                          height: rowHeight,
+                          child: e,
+                        ),
                       )
-                    : _w,
-              );
-            },
-          ),
+                      .toList(),
+                );
+              },
+            ),
+          ],
         ),
-        children: [
-          ...rows.mapIndex(
-            (e, index) {
-              final cols = index == 0
-                  ? e.columns.indexed().map(wrapFirstCell).toList()
-                  : e.columns;
-              return TableRow(
-                children: cols
-                    .map(
-                      (e) => SizedBox(
-                        height: rowHeight,
-                        child: e,
-                      ),
-                    )
-                    .toList(),
-              );
-            },
-          ),
-        ],
       );
 
       final headerTable = Table(

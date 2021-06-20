@@ -250,43 +250,45 @@ class DefualtPortalWrapper extends HookWidget {
           _prevFocus.requestFocus();
         }
       };
-    });
+    }, [focusNode]);
 
-    return FocusableActionDetector(
-      autofocus: true,
-      focusNode: focusNode,
-      actions: _defaultPortalActions(context),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Card(
-            elevation: 5,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(8.0)),
+    return FocusTraversalGroup(
+      child: FocusableActionDetector(
+        autofocus: true,
+        focusNode: focusNode,
+        actions: _defaultPortalActions(context),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Card(
+              elevation: 5,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(8.0)),
+              ),
+              margin: const EdgeInsets.all(4.0),
+              child: Padding(
+                padding: padding ??
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                child: child,
+              ),
             ),
-            margin: const EdgeInsets.all(4.0),
-            child: Padding(
-              padding: padding ??
-                  const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-              child: child,
-            ),
-          ),
-          // Positioned(
-          //   top: -2,
-          //   right: -2,
-          //   child: Container(
-          //     decoration: BoxDecoration(
-          //       color: Theme.of(context).scaffoldBackgroundColor,
-          //       shape: BoxShape.circle,
-          //     ),
-          //     padding: const EdgeInsets.all(4),
-          //     child: SmallIconButton(
-          //       onPressed: notifier.hide,
-          //       child: const Icon(Icons.close),
-          //     ),
-          //   ),
-          // ),
-        ],
+            // Positioned(
+            //   top: -2,
+            //   right: -2,
+            //   child: Container(
+            //     decoration: BoxDecoration(
+            //       color: Theme.of(context).scaffoldBackgroundColor,
+            //       shape: BoxShape.circle,
+            //     ),
+            //     padding: const EdgeInsets.all(4),
+            //     child: SmallIconButton(
+            //       onPressed: notifier.hide,
+            //       child: const Icon(Icons.close),
+            //     ),
+            //   ),
+            // ),
+          ],
+        ),
       ),
     );
   }
