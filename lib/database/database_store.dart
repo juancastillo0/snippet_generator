@@ -98,6 +98,15 @@ class DatabaseStore with PropsSerializable {
     }
   }
 
+  Future<void> importCodeFromConnection() async {
+    if (connectionStore.connectionState.value.isSuccess) {
+      final String tables = await connectionStore.queryTables();
+      print('tables $tables');
+    } else {
+      connectionStore.host.focusNode.requestFocus();
+    }
+  }
+
   void selectIndex(int index) {
     _selectedIndex.value = index;
   }
@@ -192,5 +201,19 @@ class ConnectionStore {
         port.focusNode.requestFocus();
       }
     }
+  }
+
+  Future<String> queryTables() async {
+    return connectionState.value.maybeMap(
+      success: (state) async {
+        final tableNamesStr = await state.value.query("show tables;");
+        return tableNamesStr.first.first.toString();
+        tableNamesStr;
+
+        final tableNames =
+            await state.value.queryMulti("show create table ?;", []);
+      },
+      orElse: () => '',
+    );
   }
 }

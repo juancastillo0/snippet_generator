@@ -62,16 +62,43 @@ class DatabaseTabView extends HookWidget {
                         padding: const EdgeInsets.all(10.0),
                         child: Column(
                           children: [
-                            Container(
-                              alignment: Alignment.centerRight,
+                            Padding(
                               padding: const EdgeInsets.only(bottom: 6),
-                              child: OutlinedButton.icon(
-                                onPressed: () => store.importTableFromCode(),
-                                icon: Transform.rotate(
-                                  angle: -math.pi / 2,
-                                  child: const Icon(Icons.download_rounded),
-                                ),
-                                label: const Text("Import Tables from Code"),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: OutlinedButton.icon(
+                                        onPressed: () =>
+                                            store.importCodeFromConnection(),
+                                        icon:
+                                            const Icon(Icons.download_rounded),
+                                        label: const Text(
+                                          "Import Code from Database",
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Align(
+                                      alignment: Alignment.centerRight,
+                                      child: OutlinedButton.icon(
+                                        onPressed: () =>
+                                            store.importTableFromCode(),
+                                        icon: Transform.rotate(
+                                          angle: math.pi / 2,
+                                          child: const Icon(Icons.upload),
+                                        ),
+                                        label: const Text(
+                                          "Import Tables from Code",
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             Expanded(
