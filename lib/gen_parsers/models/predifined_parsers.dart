@@ -1,5 +1,8 @@
 
 
+import 'package:petitparser/petitparser.dart';
+import 'package:snippet_generator/parsers/parsers.dart';
+
 enum PredifinedParser {
   integer,
   double,
@@ -26,6 +29,23 @@ extension PredifinedParserToJson on PredifinedParser {
         return "integerParser";
       case PredifinedParser.double:
         return "doubleParser";
+    }
+  }
+
+  Parser parser() {
+    switch (this) {
+      case PredifinedParser.any:
+        return any();
+      case PredifinedParser.letter:
+        return letter();
+      case PredifinedParser.digit:
+        return digit();
+      case PredifinedParser.whitespace:
+        return whitespace();
+      case PredifinedParser.integer:
+        return intParser;
+      case PredifinedParser.double:
+        return doubleParser;
     }
   }
 

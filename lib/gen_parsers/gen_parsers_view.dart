@@ -2,12 +2,15 @@ import 'package:flutter/material.dart' hide Action;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:snippet_generator/fields/button_select_field.dart';
 import 'package:snippet_generator/gen_parsers/models/stores.dart';
 import 'package:snippet_generator/gen_parsers/models/tokens.dart';
 import 'package:snippet_generator/gen_parsers/widgets/token_value_view.dart';
 import 'package:snippet_generator/types/views/code_generated.dart';
+import 'package:snippet_generator/widgets/code_text_field.dart';
 import 'package:snippet_generator/widgets/globals.dart';
 import 'package:snippet_generator/widgets/portal/portal_utils.dart';
+import 'package:snippet_generator/widgets/resizable_scrollable/resizable.dart';
 
 class GenerateParserTabView extends HookWidget {
   const GenerateParserTabView({Key? key}) : super(key: key);
@@ -33,10 +36,63 @@ class GenerateParserTabView extends HookWidget {
               const Expanded(
                 child: TokenList(),
               ),
-              SizedBox(
-                height: 300,
-                child: CodeGenerated(
-                  sourceCode: store.generateCode(),
+              Resizable(
+                defaultHeight: 300,
+                vertical: ResizeVertical.top,
+                child: Row(
+                  children: [
+                    Resizable(
+                      flex: 1,
+                      horizontal: ResizeHorizontal.right,
+                      child: CodeGenerated(
+                        sourceCode: store.generateCode(),
+                      ),
+                    ),
+                    Expanded(
+                      child: Observer(
+                        builder: (context) {
+                          return Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Test Parser',
+                                    style:
+                                        Theme.of(context).textTheme.headline6,
+                                  ),
+                                  SizedBox(
+                                    width: 200,
+                                    child: CustomDropdownField<
+                                        ParserTokenNotifier>(
+                                      asString: (t) => t.value.name,
+                                      onChange: (t) => store
+                                          .selectedTestTokenKey.value = t.key,
+                                      options: store.tokens.values,
+                                      selected: store.selectedTestToken.value,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Resizable(
+                                flex: 4,
+                                vertical: ResizeVertical.bottom,
+                                child: CodeTextField(
+                                  controller: store.parserTestText.controller,
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  store.parserTestResult.value.toString(),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               )
             ],

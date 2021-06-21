@@ -209,7 +209,8 @@ Parser<List<T>> tupleParser<T>(
             return previousValue;
           })! &
           char(")").trim())
-      .pick(1).cast<List<T>>();
+      .pick(1)
+      .cast<List<T>>();
 
   if (optionalName != null) {
     return (string(optionalName).trim().optional() & parser).pick(1).cast();
@@ -220,17 +221,14 @@ Parser<List<T>> tupleParser<T>(
 final boolParser =
     (string('true') | string('false')).map((value) => value == 'true');
 
-final unsignedIntParser =
-    (char('0').or(digit().plus())).flatten().map((value) => int.parse(value));
-final intParser = (char('-').optional() & char('0').or(digit().plus()))
-    .flatten()
-    .map((value) => int.parse(value));
-final unsignedDoubleParser =
-    (char('0').or(digit().plus()) & char('.').seq(digit().plus()).optional())
-        .flatten()
-        .map((value) => double.parse(value));
-final doubleParser = (char('-').optional() &
-        char('0').or(digit().plus()) &
-        char('.').seq(digit().plus()).optional())
+final _num = char('0').or(pattern('1-9') & digit().star());
+final unsignedIntParser = _num.flatten().map((value) => int.parse(value));
+final intParser =
+    (char('-').optional() & _num).flatten().map((value) => int.parse(value));
+final unsignedDoubleParser = (_num & char('.').seq(_num).optional())
     .flatten()
     .map((value) => double.parse(value));
+final doubleParser =
+    (char('-').optional() & _num & char('.').seq(_num).optional())
+        .flatten()
+        .map((value) => double.parse(value));

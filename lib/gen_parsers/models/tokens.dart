@@ -1,3 +1,4 @@
+import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/gen_parsers/models/token_value.dart';
 
 // any
@@ -61,6 +62,16 @@ class RepeatRange {
     }
   }
 
+  Parser apply(Parser parser) {
+    if (max == null) {
+      return parser.repeat(min);
+    } else if (max == 1) {
+      return min == 0 ? parser.optional() : parser;
+    } else {
+      return parser.repeat(min, max);
+    }
+  }
+
   String toDart() {
     if (max == null) {
       return '.repeat($min)';
@@ -103,7 +114,8 @@ class ParserToken {
 
   const ParserToken.def({
     this.name = '',
-    this.value = const TokenValue.string('', isPattern: false, caseSensitive: true),
+    this.value =
+        const TokenValue.string('', isPattern: false, caseSensitive: true),
     this.repeat = const RepeatRange.times(1),
     this.trim = true,
     this.negated = false,

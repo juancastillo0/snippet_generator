@@ -84,7 +84,7 @@ dev_dependencies:
   build_runner: ^2.0.0
   flutter_test:
     sdk: flutter
-  lint: 
+  lint: ^1.5.3
   test:
 
 dependency_overrides:
