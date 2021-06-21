@@ -62,6 +62,18 @@ class GenerateParserTabView extends HookWidget {
                                     style:
                                         Theme.of(context).textTheme.headline6,
                                   ),
+                                  Builder(
+                                    builder: (context) {
+                                      final value = testPod.subscribe(context);
+
+                                      return TextButton(
+                                        onPressed: () {
+                                          value.value = value.value + 1;
+                                        },
+                                        child: Text(value.value.toString()),
+                                      );
+                                    },
+                                  ),
                                   SizedBox(
                                     width: 200,
                                     child: CustomDropdownField<

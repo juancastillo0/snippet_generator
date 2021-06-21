@@ -5,12 +5,15 @@ import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/gen_parsers/models/predifined_parsers.dart';
 import 'package:snippet_generator/gen_parsers/models/token_value.dart';
 import 'package:snippet_generator/gen_parsers/models/tokens.dart';
+import 'package:snippet_generator/globals/pod_notifier.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/notifiers/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/notifiers/collection_notifier/map_notifier.dart';
 import 'package:uuid/uuid.dart';
 
 const uuid = Uuid();
+
+final testPod = Pod.notifier(1);
 
 final parserStoreProvider = Provider<GenerateParserStore>(
   (ref) => GenerateParserStore(ref.read),
@@ -98,7 +101,10 @@ class ParserTokenNotifier {
   ParserTokenNotifier(this.store);
 
   final notifier = AppNotifier(
-      const ParserToken.def(value: TokenValue.and([ParserToken.def()])));
+    const ParserToken.def(
+      value: TokenValue.and([ParserToken.def()]),
+    ),
+  );
 
   ParserToken get value => notifier.value;
 

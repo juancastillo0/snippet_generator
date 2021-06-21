@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:snippet_generator/database/database_view.dart';
 import 'package:snippet_generator/gen_parsers/gen_parsers_view.dart';
 import 'package:snippet_generator/globals/models.dart';
+import 'package:snippet_generator/globals/pod_notifier.dart';
 import 'package:snippet_generator/notifiers/rebuilder.dart';
 import 'package:snippet_generator/parsers/type_parser.dart';
 import 'package:snippet_generator/parsers/views/parsers_view.dart';
@@ -58,20 +59,22 @@ class MyApp extends HookWidget {
     return RootStoreProvider(
       rootStore: rootStore,
       child: GlobalKeyboardListener.wrapper(
-        child: ProviderScope(
-          child: MaterialApp(
-            title: 'Snippet Generator',
-            debugShowCheckedModeBanner: false,
-            theme: lightTheme(),
-            darkTheme: darkTheme(),
-            themeMode: rootStore.themeModeNotifier.value,
-            scrollBehavior: const ScrollBehavior().copyWith(
-              scrollbars: false,
-              overscroll: false,
-            ),
-            navigatorObservers: [routeObserver],
-            home: const Portal(
-              child: GlobalStack(child: MyHomePage()),
+        child: RootNotifier(
+          child: ProviderScope(
+            child: MaterialApp(
+              title: 'Snippet Generator',
+              debugShowCheckedModeBanner: false,
+              theme: lightTheme(),
+              darkTheme: darkTheme(),
+              themeMode: rootStore.themeModeNotifier.value,
+              scrollBehavior: const ScrollBehavior().copyWith(
+                scrollbars: false,
+                overscroll: false,
+              ),
+              navigatorObservers: [routeObserver],
+              home: const Portal(
+                child: GlobalStack(child: MyHomePage()),
+              ),
             ),
           ),
         ),
