@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/database/database_store.dart';
+import 'package:snippet_generator/gen_parsers/models/stores.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/notifiers/collection_notifier/map_notifier.dart';
 import 'package:snippet_generator/parsers/views/components_widget_store.dart';
@@ -49,6 +50,8 @@ class RootStore {
   final themeModeNotifier = AppNotifier(ThemeMode.light, name: "themeMode");
 
   final componentWidgetsStore = ComponentWidgetsStore();
+
+  final parserStore = GenerateParserStore();
 
   final themesStore = ThemesStore(name: "themesStore");
 
@@ -325,6 +328,8 @@ class RootStore {
       classBox.deleteAll(_toDeleteClass),
       propertyBox.deleteAll(_toDeleteProps),
     ]);
+
+    await parserStore.persistence.loadHive();
   }
 
   Future<void> saveHive() async {
@@ -340,6 +345,8 @@ class RootStore {
     await propertyBox.clear();
     await propertyBox.addAll(
         types.values.expand((e) => e.classes).expand((e) => e.properties));
+
+    await parserStore.persistence.saveHive();
 
     if (directoryHandle.value != null) {
       await _saveTypeFiles(directoryHandle.value!);

@@ -3,12 +3,15 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobx/mobx.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/gen_parsers/models/predifined_parsers.dart';
+import 'package:snippet_generator/gen_parsers/models/store_value.dart';
 import 'package:snippet_generator/gen_parsers/models/token_value.dart';
 import 'package:snippet_generator/gen_parsers/models/tokens.dart';
 import 'package:snippet_generator/globals/pod_notifier.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/notifiers/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/notifiers/collection_notifier/map_notifier.dart';
+import 'package:snippet_generator/types/root_store.dart';
+import 'package:snippet_generator/utils/persistence.dart';
 import 'package:uuid/uuid.dart';
 
 const uuid = Uuid();
@@ -16,16 +19,15 @@ const uuid = Uuid();
 final testPod = Pod.notifier(1);
 
 final parserStoreProvider = Provider<GenerateParserStore>(
-  (ref) => GenerateParserStore(ref.read),
+  (ref) => GenerateParserStore(),
 );
 
-class GenerateParserStore {
-  final Reader read;
+GenerateParserStore useParserStore() {
+  return useRootStore().parserStore;
+}
 
-  GenerateParserStore(this.read) {
-    add();
-    selectedTestTokenKey.value = tokenKeys.first;
-  }
+class GenerateParserStore {
+  late final persistence = GenerateParserStorePersistence(this);
 
   final tokenKeys = ListNotifier<String>([]);
   final tokens = MapNotifier<String, ParserTokenNotifier>();
@@ -37,8 +39,29 @@ class GenerateParserStore {
 
   final parserTestText = TextNotifier();
 
+  GenerateParserStoreValue makeValue() {
+    final _tokens = tokens.values.map((t) => MapEntry(t.key, t.value)).toList();
+    return GenerateParserStoreValue(_tokens);
+  }
+
+  void addValue(GenerateParserStoreValue value) {
+    runInAction(() {
+      final incoming = Map.fromEntries(value.tokens.map((e) {
+        final value = ParserTokenNotifier(this, e.key);
+        value.notifier.value = e.value;
+        return MapEntry(e.key, value);
+      }));
+      final additionalKeys = incoming.keys.where(
+        (key) => !tokens.containsKey(key),
+      );
+
+      tokenKeys.addAll(additionalKeys);
+      tokens.addAll(incoming);
+    });
+  }
+
   void add() => runInAction(() {
-        final token = ParserTokenNotifier(this);
+        final token = ParserTokenNotifier(this, uuid.v4());
         tokens[token.key] = token;
         tokenKeys.add(token.key);
       });
@@ -95,10 +118,35 @@ ${tokens.values.map((e) {
   );
 }
 
-class ParserTokenNotifier {
-  final key = uuid.v4();
+class GenerateParserStorePersistence {
   final GenerateParserStore store;
-  ParserTokenNotifier(this.store);
+  const GenerateParserStorePersistence(this.store);
+
+  Future<void> saveHive() async {
+    final parserBox = getBox<GenerateParserStoreValue>();
+    await parserBox.clear();
+
+    final value = store.makeValue();
+    await parserBox.add(value);
+  }
+
+  Future<void> loadHive() async {
+    final parserBox = getBox<GenerateParserStoreValue>();
+    final values = parserBox.values;
+    if (values.isNotEmpty) {
+      store.addValue(values.first);
+    }
+    if (store.tokenKeys.isEmpty) {
+      store.add();
+    }
+    store.selectedTestTokenKey.value = store.tokenKeys.first;
+  }
+}
+
+class ParserTokenNotifier {
+  final String key;
+  final GenerateParserStore store;
+  ParserTokenNotifier(this.store, this.key);
 
   final notifier = AppNotifier(
     const ParserToken.def(

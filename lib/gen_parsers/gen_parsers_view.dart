@@ -17,7 +17,7 @@ class GenerateParserTabView extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = useProvider(parserStoreProvider);
+    final store = useParserStore();
 
     return Observer(
       builder: (context) {
@@ -122,7 +122,7 @@ class TokenList extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = useProvider(parserStoreProvider);
+    final store = useParserStore();
     useListenable(store.tokenKeys);
     const bottomHeight = 50.0;
 
@@ -189,7 +189,7 @@ class TokenRow extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = useProvider(parserStoreProvider);
+    final store = useParserStore();
 
     return FocusTraversalGroup(
       child: Row(
