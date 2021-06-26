@@ -64,7 +64,7 @@ class RepeatRange {
 
   Parser apply(Parser parser) {
     if (max == null) {
-      return parser.repeat(min);
+      return parser.repeat(min, unbounded);
     } else if (max == 1) {
       return min == 0 ? parser.optional() : parser;
     } else {
@@ -74,7 +74,11 @@ class RepeatRange {
 
   String toDart() {
     if (max == null) {
-      return '.repeat($min)';
+      return min == 0
+          ? '.star()'
+          : min == 1
+              ? '.plus()'
+              : '.repeat($min, unbounded)';
     } else if (max == 1) {
       return min == 0 ? '.optional()' : '';
     } else {

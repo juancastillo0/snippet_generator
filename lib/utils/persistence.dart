@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:snippet_generator/gen_parsers/models/store_value.dart';
 import 'package:snippet_generator/globals/serializer.dart';
 import 'package:snippet_generator/types/type_models.dart';
 
@@ -10,6 +11,11 @@ final _boxesMap = {
   ClassConfig: _BoxConfig<ClassConfig>(1, "class", ClassConfig.serializer),
   PropertyField:
       _BoxConfig<PropertyField>(2, "property", PropertyField.serializer),
+  GenerateParserStoreValue: _BoxConfig<GenerateParserStoreValue>(
+    3,
+    'parsers',
+    GenerateParserStoreValue.serializer,
+  ),
 };
 
 Box<T> getBox<T>() {
