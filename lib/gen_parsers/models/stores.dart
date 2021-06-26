@@ -89,6 +89,7 @@ class GenerateParserStore {
         predifined: (value) {
           predifined.add(value.value);
         },
+        separated: (_) {},
       );
     }
 
@@ -150,7 +151,7 @@ class ParserTokenNotifier {
 
   final notifier = AppNotifier(
     const ParserToken.def(
-      value: TokenValue.and([ParserToken.def()]),
+      value: TokenValue.and([ParserToken.def()], flatten: false),
     ),
   );
 
@@ -166,7 +167,13 @@ class ParserTokenNotifier {
 
   Parser _parser(ParserToken token) {
     Parser result = token.value.when(
-      and: (list) => SequenceParser(list.map((e) => _parser(e))),
+      and: (list, flatten) {
+        Parser p = SequenceParser(list.map((e) => _parser(e)));
+        if (flatten) {
+          p = p.flatten();
+        }
+        return p;
+      },
       or: (list) => ChoiceParser(list.map((e) => _parser(e))),
       string: (s, isPattern, caseSensitive) {
         if (caseSensitive) {
@@ -177,15 +184,21 @@ class ParserTokenNotifier {
       },
       ref: (ref) => store.tokens[ref]?.parser.value.unwrap() ?? any(),
       predifined: (pred) => pred.parser(),
+      separated: (item, separator, includeSeparators, separatorAtEnd) =>
+          _parser(item).separatedBy(
+        _parser(separator),
+        includeSeparators: includeSeparators,
+        optionalSeparatorAtEnd: separatorAtEnd,
+      ),
     );
-    result = token.repeat.apply(result);
+
     if (token.negated) {
       result = result.neg();
     }
     if (token.trim) {
       result = result.trim();
     }
-    return result;
+    return token.repeat.apply(result);
   }
 
   late final expression = Computed(() {
@@ -194,23 +207,29 @@ class ParserTokenNotifier {
 
   String _expr(ParserToken token) {
     final _inner = token.value.when(
-      and: (list) => '(' + list.map((e) => _expr(e)).join(' & ') + ')',
-      or: (list) => '(' + list.map((e) => _expr(e)).join(' | ') + ')',
-      string: (string, isPattern, caseSensitive) {
-        if (caseSensitive) {
-          return isPattern ? 'pattern("$string")' : 'string("$string")';
-        } else {
-          return isPattern
-              ? 'patternIgnoreCase("$string")'
-              : 'stringIgnoreCase("$string")';
-        }
-      },
-      ref: (ref) => (store.tokens[ref]?.value.name ?? '') + '()',
-      predifined: (pred) => pred.toDart(),
-    );
+        and: (list, flatten) =>
+            '(' +
+            list.map((e) => _expr(e)).join(' & ') +
+            ')${flatten ? ".flatten()" : ""}',
+        or: (list) => '(' + list.map((e) => _expr(e)).join(' | ') + ')',
+        string: (string, isPattern, caseSensitive) {
+          if (caseSensitive) {
+            return isPattern ? 'pattern("$string")' : 'string("$string")';
+          } else {
+            return isPattern
+                ? 'patternIgnoreCase("$string")'
+                : 'stringIgnoreCase("$string")';
+          }
+        },
+        ref: (ref) => (store.tokens[ref]?.value.name ?? '') + '()',
+        predifined: (pred) => pred.toDart(),
+        separated: (item, separator, includeSeparators, separatorAtEnd) =>
+            '${_expr(item)}.separatedBy(${_expr(separator)}, '
+            'includeSeparators: $includeSeparators, '
+            'optionalSeparatorAtEnd: $separatorAtEnd)');
 
-    return '$_inner${token.repeat.toDart()}'
-        '${token.negated ? ".neg()" : ""}${token.trim ? ".trim()" : ""}';
+    return '$_inner${token.negated ? ".neg()" : ""}'
+        '${token.trim ? ".trim()" : ""}${token.repeat.toDart()}';
   }
 
   void setName(String name) {

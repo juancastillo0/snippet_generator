@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:snippet_generator/fields/button_select_field.dart';
 import 'package:snippet_generator/gen_parsers/gen_parsers_view.dart';
 import 'package:snippet_generator/gen_parsers/models/predifined_parsers.dart';
@@ -56,7 +55,7 @@ class TokenValueView extends HookWidget {
     final _collectionButtonsRow = Row(
       children: [
         Tooltip(
-          message: "OR",
+          message: 'OR',
           child: InkWell(
             onTap: () {
               const toAdd = ParserToken.def();
@@ -80,20 +79,20 @@ class TokenValueView extends HookWidget {
           ),
         ),
         Tooltip(
-          message: "AND",
+          message: 'AND',
           child: InkWell(
             onTap: () {
               const toAdd = ParserToken.def();
               onChangedValue(
                 tokenValue.maybeWhen(
-                  and: (list) => TokenValue.and([
+                  and: (list, flatten) => TokenValue.and([
                     ...list,
                     toAdd,
-                  ]),
+                  ], flatten: true),
                   orElse: () => TokenValue.and([
                     token,
                     toAdd,
-                  ]),
+                  ], flatten: false),
                 ),
               );
             },
@@ -107,25 +106,29 @@ class TokenValueView extends HookWidget {
     );
 
     final inner = FocusTraversalGroup(
-      child: tokenValue.maybeWhen(
-        and: (list) => Row(
+      child: tokenValue.maybeMap(
+        and: (tokenValue) => Row(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ...list.mapIndex(
+            ...tokenValue.values.mapIndex(
               (e, i) => TokenValueView(
                 token: e,
                 inCollection: true,
                 onDelete: () {
-                  final _list = [...list];
+                  final _list = [...tokenValue.values];
                   _list.removeAt(i);
                   if (_list.length == 1) {
                     onChanged(_list.first);
                   } else {
-                    onChangedValue(TokenValue.and(_list));
+                    onChangedValue(TokenValue.and(
+                      _list,
+                      flatten: tokenValue.flatten,
+                    ));
                   }
                 },
                 onChanged: (v) {
-                  final _list = [...list];
+                  final _list = [...tokenValue.values];
                   final _v = v.value;
                   if (_v is TokenValueAnd) {
                     _list[i] = _v.values.first;
@@ -133,21 +136,25 @@ class TokenValueView extends HookWidget {
                   } else {
                     _list[i] = v;
                   }
-                  onChangedValue(TokenValue.and(_list));
+                  onChangedValue(TokenValue.and(
+                    _list,
+                    flatten: tokenValue.flatten,
+                  ));
                 },
               ),
             ),
           ],
         ),
-        or: (list) => Column(
+        or: (tokenValue) => Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ...list.mapIndex(
+            ...tokenValue.values.mapIndex(
               (e, i) => TokenValueView(
                 token: e,
                 inCollection: true,
                 onDelete: () {
-                  final _list = [...list];
+                  final _list = [...tokenValue.values];
                   _list.removeAt(i);
                   if (_list.length == 1) {
                     onChanged(_list.first);
@@ -156,7 +163,7 @@ class TokenValueView extends HookWidget {
                   }
                 },
                 onChanged: (v) {
-                  final _list = [...list];
+                  final _list = [...tokenValue.values];
                   final _v = v.value;
                   if (_v is TokenValueOr) {
                     _list[i] = _v.values.first;
@@ -170,10 +177,78 @@ class TokenValueView extends HookWidget {
             ),
           ],
         ),
+        separated: (tokenValue) => Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TokenValueView(
+              token: tokenValue.item,
+              inCollection: true,
+              onDelete: null,
+              onChanged: (v) {
+                onChangedValue(tokenValue.copyWith(item: v));
+              },
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Text(
+                    'Separator',
+                    style: Theme.of(context).textTheme.subtitle1,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Include'),
+                    Checkbox(
+                      value: tokenValue.includeSeparators,
+                      onChanged: (_) {
+                        onChangedValue(
+                          tokenValue.copyWith(
+                            includeSeparators: !tokenValue.includeSeparators,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('At End'),
+                    Checkbox(
+                      value: tokenValue.optionalSeparatorAtEnd,
+                      onChanged: (_) {
+                        onChangedValue(
+                          tokenValue.copyWith(
+                            optionalSeparatorAtEnd:
+                                !tokenValue.optionalSeparatorAtEnd,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                )
+              ],
+            ),
+            TokenValueView(
+              token: tokenValue.separator,
+              inCollection: true,
+              onDelete: null,
+              onChanged: (v) {
+                onChangedValue(tokenValue.copyWith(separator: v));
+              },
+            )
+          ],
+        ),
         orElse: () {
           final typeStr = tokenValue.maybeMap(
-            string: (_) => "string",
-            ref: (_) => "reference",
+            string: (_) => 'string',
+            ref: (_) => 'reference',
+            separated: (_) => 'separated',
             predifined: (p) => p.value.toJson(),
             orElse: () => throw Error(),
           );
@@ -210,7 +285,7 @@ class TokenValueView extends HookWidget {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text("Pattern"),
+                              const Text('Pattern'),
                               Checkbox(
                                 value: tokenValue.isPattern,
                                 onChanged: (_) {
@@ -226,7 +301,7 @@ class TokenValueView extends HookWidget {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text("Cased"),
+                              const Text('Cased'),
                               Checkbox(
                                 value: tokenValue.caseSensitive,
                                 onChanged: (_) {
@@ -269,7 +344,7 @@ class TokenValueView extends HookWidget {
                                   }
                                   notif.hide();
                                 },
-                                child: const Text("string"),
+                                child: const Text('string'),
                               ),
                               TextButton(
                                 onPressed: () {
@@ -278,7 +353,29 @@ class TokenValueView extends HookWidget {
                                   }
                                   notif.hide();
                                 },
-                                child: const Text("reference"),
+                                child: const Text('reference'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  if (!tokenValue.isRef) {
+                                    onChangedValue(
+                                      const TokenValue.separated(
+                                        item: ParserToken.def(),
+                                        includeSeparators: false,
+                                        optionalSeparatorAtEnd: true,
+                                        separator: ParserToken.def(
+                                          value: TokenValue.string(
+                                            ',',
+                                            isPattern: false,
+                                            caseSensitive: true,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  notif.hide();
+                                },
+                                child: const Text('separated'),
                               ),
                               ...PredifinedParser.values.map(
                                 (v) => TextButton(
@@ -294,7 +391,7 @@ class TokenValueView extends HookWidget {
                         },
                         child: SizedBox(
                           width: 110,
-                          child: Center(child: Text("Type: $typeStr")),
+                          child: Center(child: Text('Type: $typeStr')),
                         ),
                       ),
                       Expanded(
@@ -344,9 +441,9 @@ class TokenValueView extends HookWidget {
       borderRadius: const BorderRadius.all(Radius.circular(8)),
     );
 
-    if (!tokenValue.isAnd && !tokenValue.isOr) {
+    if (!tokenValue.isAnd && !tokenValue.isOr && !tokenValue.isSeparated) {
       return inner;
-    } else if (tokenValue.isOr) {
+    } else if (tokenValue.isOr || tokenValue.isSeparated) {
       return DecoratedBox(
         decoration: _collectionDecoration,
         child: Row(
@@ -356,9 +453,9 @@ class TokenValueView extends HookWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               // mainAxisSize: MainAxisSize.min,
               children: [
-                const Padding(
-                  padding: EdgeInsets.only(top: 7.0),
-                  child: Text('CHOICE'),
+                Padding(
+                  padding: const EdgeInsets.only(top: 7.0, left: 4, right: 4),
+                  child: Text(tokenValue.isSeparated ? 'SEPARATED' : 'CHOICE'),
                 ),
                 const SizedBox(height: 5),
                 Row(
@@ -380,6 +477,7 @@ class TokenValueView extends HookWidget {
       );
     } else {
       assert(tokenValue.isAnd);
+      final _tokenValue = tokenValue as TokenValueAnd;
       return DecoratedBox(
         decoration: _collectionDecoration,
         child: Column(
@@ -407,6 +505,20 @@ class TokenValueView extends HookWidget {
                   token: token,
                   onChanged: onChanged,
                   direction: Axis.horizontal,
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Flatten'),
+                    Checkbox(
+                      value: _tokenValue.flatten,
+                      onChanged: (_) {
+                        onChangedValue(
+                          _tokenValue.copyWith(flatten: !_tokenValue.flatten),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -441,7 +553,7 @@ class BaseTokenConfig extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text("Trim"),
+            const Text('Trim'),
             Checkbox(
               value: token.trim,
               onChanged: (_) {
@@ -453,7 +565,7 @@ class BaseTokenConfig extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text("Neg"),
+            const Text('Neg'),
             Checkbox(
               value: token.negated,
               onChanged: (_) {
@@ -472,7 +584,7 @@ class BaseTokenConfig extends StatelessWidget {
             );
           },
           child: Text(
-            "Repeat: ${token.repeat.userString()}",
+            'Repeat: ${token.repeat.userString()}',
           ),
         ),
       ],
