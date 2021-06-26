@@ -8,7 +8,7 @@ class GenerateParserStoreValue
   const GenerateParserStoreValue(this.tokens);
 
   static GenerateParserStoreValue fromJson(Map<String, dynamic>? json) {
-    final _tokens = json!["tokens"] as List?;
+    final _tokens = json!['tokens'] as List?;
     if (_tokens is List) {
       final tokens = _tokens.cast<Map<String, dynamic>>().map((e) {
         final key = e['key'] as String;

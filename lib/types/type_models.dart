@@ -3,20 +3,20 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart' hide Listenable;
 import 'package:petitparser/petitparser.dart';
-import 'package:snippet_generator/notifiers/collection_notifier/list_notifier.dart';
-import 'package:snippet_generator/types/advanced/advanced_config.dart';
-import 'package:snippet_generator/types/advanced/listenable_config.dart';
 import 'package:snippet_generator/globals/models.dart';
 import 'package:snippet_generator/globals/props_serializable.dart';
-import 'package:snippet_generator/types/root_store.dart';
-import 'package:snippet_generator/types/advanced/serializable_config.dart';
 import 'package:snippet_generator/globals/serializer.dart';
-import 'package:snippet_generator/types/advanced/sum_type_config.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
+import 'package:snippet_generator/notifiers/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/notifiers/computed_notifier.dart';
 import 'package:snippet_generator/parsers/class_fields_parser.dart';
 import 'package:snippet_generator/parsers/signature_parser.dart';
 import 'package:snippet_generator/parsers/type_parser.dart';
+import 'package:snippet_generator/types/advanced/advanced_config.dart';
+import 'package:snippet_generator/types/advanced/listenable_config.dart';
+import 'package:snippet_generator/types/advanced/serializable_config.dart';
+import 'package:snippet_generator/types/advanced/sum_type_config.dart';
+import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/types/templates/templates.dart';
 import 'package:uuid/uuid.dart';
 import 'package:y_crdt/y_crdt.dart';
@@ -73,7 +73,7 @@ class TypeConfig
 
   late final AppNotifier<bool> isListenableNotifier;
   bool get isListenable => isListenableNotifier.value;
-  final listenableConfig = ListenableConfig(name: "listenableConfig");
+  final listenableConfig = ListenableConfig(name: 'listenableConfig');
 
   late final AppNotifier<bool> isEnumNotifier;
   bool get isEnum => isEnumNotifier.value;
@@ -93,11 +93,11 @@ class TypeConfig
   final ListNotifier<ClassConfig> classes;
 
   Map<String, AppNotifier<bool>> get allSettings => {
-        "Data Value": isDataValueNotifier,
-        "Listenable": isListenableNotifier,
-        "Serializable": isSerializableNotifier,
-        "Sum Type": isSumTypeNotifier,
-        "Enum": isEnumNotifier,
+        'Data Value': isDataValueNotifier,
+        'Listenable': isListenableNotifier,
+        'Serializable': isSerializableNotifier,
+        'Sum Type': isSumTypeNotifier,
+        'Enum': isEnumNotifier,
       };
 
   RootStore get rootStore => Globals.get<RootStore>();
@@ -119,24 +119,24 @@ class TypeConfig
     SerializableConfig? serializableConfig,
   })  : key = key ?? uuid.v4(),
         classes = ListNotifier(classes ?? []),
-        sumTypeConfig = sumTypeConfig ?? SumTypeConfig(name: "sumTypeConfig"),
+        sumTypeConfig = sumTypeConfig ?? SumTypeConfig(name: 'sumTypeConfig'),
         serializableConfig = serializableConfig ??
-            SerializableConfig(name: "serializableConfig"),
+            SerializableConfig(name: 'serializableConfig'),
         advancedConfig =
-            advancedConfig ?? AdvancedTypeConfig(name: "advancedConfig") {
-    isEnumNotifier = AppNotifier(isEnum ?? false, parent: this, name: "isEnum");
+            advancedConfig ?? AdvancedTypeConfig(name: 'advancedConfig') {
+    isEnumNotifier = AppNotifier(isEnum ?? false, parent: this, name: 'isEnum');
     isDataValueNotifier =
-        AppNotifier(isDataValue ?? false, parent: this, name: "isDataValue");
+        AppNotifier(isDataValue ?? false, parent: this, name: 'isDataValue');
     isSumTypeNotifier =
-        AppNotifier(isSumType ?? false, parent: this, name: "isSumType");
+        AppNotifier(isSumType ?? false, parent: this, name: 'isSumType');
     isSerializableNotifier = AppNotifier(isSerializable ?? true,
-        parent: this, name: "isSerializable");
+        parent: this, name: 'isSerializable');
     isListenableNotifier =
-        AppNotifier(isListenable ?? false, parent: this, name: "isListenable");
+        AppNotifier(isListenable ?? false, parent: this, name: 'isListenable');
     defaultEnumKeyNotifier =
-        AppNotifier(defaultEnumKey, parent: this, name: "defaultEnumKey");
+        AppNotifier(defaultEnumKey, parent: this, name: 'defaultEnumKey');
     signatureNotifier =
-        TextNotifier(initialText: signature, parent: this, name: "signature");
+        TextNotifier(initialText: signature, parent: this, name: 'signature');
     signatureParserNotifier = ComputedNotifier(
       () => SignatureParser.parser.parse(signatureNotifier.text),
       [signatureNotifier.textNotifier],
@@ -193,31 +193,31 @@ class TypeConfig
 
   @override
   Map<String, dynamic> toJson() {
-    return super.toJson()..set("key", key);
+    return super.toJson()..set('key', key);
   }
 
   static TypeConfig fromJson(Map<String, dynamic>? json) {
     return TypeConfig(
-      key: json!["key"] as String?,
-      signature: json["signature"] as String?,
-      isEnum: json["isEnum"] as bool?,
-      isDataValue: json["isDataValue"] as bool?,
-      isSumType: json["isSumType"] as bool?,
-      isSerializable: json["isSerializable"] as bool?,
-      isListenable: json["isListenable"] as bool?,
-      defaultEnumKey: json["defaultEnumKey"] as String?,
-      sumTypeConfig: SumTypeConfig(name: "sumTypeConfig")
-        ..trySetFromJson(json["sumTypeConfig"]),
-      serializableConfig: SerializableConfig(name: "serializableConfig")
-        ..trySetFromJson(json["serializableConfig"]),
+      key: json!['key'] as String?,
+      signature: json['signature'] as String?,
+      isEnum: json['isEnum'] as bool?,
+      isDataValue: json['isDataValue'] as bool?,
+      isSumType: json['isSumType'] as bool?,
+      isSerializable: json['isSerializable'] as bool?,
+      isListenable: json['isListenable'] as bool?,
+      defaultEnumKey: json['defaultEnumKey'] as String?,
+      sumTypeConfig: SumTypeConfig(name: 'sumTypeConfig')
+        ..trySetFromJson(json['sumTypeConfig']),
+      serializableConfig: SerializableConfig(name: 'serializableConfig')
+        ..trySetFromJson(json['serializableConfig']),
     )
-      ..listenableConfig.trySetFromJson(json["listenableConfig"])
+      ..listenableConfig.trySetFromJson(json['listenableConfig'])
       ..advancedConfig.trySetFromJson(
-        json["advancedConfig"] as Map<String, dynamic>? ??
+        json['advancedConfig'] as Map<String, dynamic>? ??
             {
-              "customCode": json["customCode"] as String?,
-              "overrideConstructor": json["overrideConstructor"] as bool?,
-              "isConst": json["isConst"] as bool?,
+              'customCode': json['customCode'] as String?,
+              'overrideConstructor': json['overrideConstructor'] as bool?,
+              'isConst': json['isConst'] as bool?,
             },
       );
   }
@@ -357,21 +357,21 @@ class ClassConfig
   @override
   Map<String, dynamic> toJson() {
     return {
-      "typeKey": typeConfig.key,
-      "key": key,
-      "name": name,
+      'typeKey': typeConfig.key,
+      'key': key,
+      'name': name,
     };
   }
 
   static ClassConfig fromJson(Map<String, dynamic>? json) {
-    final typeKey = json!["typeKey"] as String?;
+    final typeKey = json!['typeKey'] as String?;
     if (typeKey == null) {
-      throw Exception("PropertyField fromJson parsing error. input: $json");
+      throw Exception('PropertyField fromJson parsing error. input: $json');
     }
     return ClassConfig(
       typeConfigKey: typeKey,
-      key: json["key"] as String?,
-      name: json["name"] as String?,
+      key: json['key'] as String?,
+      name: json['name'] as String?,
     );
   }
 
@@ -465,28 +465,28 @@ class PropertyField
   @override
   Map<String, dynamic> toJson() {
     return {
-      "classKey": classConfig!.key,
-      "key": key,
-      "name": name,
-      "type": type,
-      "isRequired": isRequired,
-      "isPositional": isPositional
+      'classKey': classConfig!.key,
+      'key': key,
+      'name': name,
+      'type': type,
+      'isRequired': isRequired,
+      'isPositional': isPositional
     };
   }
 
   static PropertyField fromJson(Map<String, dynamic>? json) {
-    final classKey = json!["classKey"] as String?;
+    final classKey = json!['classKey'] as String?;
     if (classKey == null) {
       return throw Exception(
-          "PropertyField fromJson parsing error. input: $json");
+          'PropertyField fromJson parsing error. input: $json');
     }
     return PropertyField(
       classConfigKey: classKey,
-      key: json["key"] as String?,
-      name: json["name"] as String?,
-      type: json["type"] as String?,
-      isRequired: json["isRequired"] as bool?,
-      isPositional: json["isPositional"] as bool?,
+      key: json['key'] as String?,
+      name: json['name'] as String?,
+      type: json['type'] as String?,
+      isRequired: json['isRequired'] as bool?,
+      isPositional: json['isPositional'] as bool?,
     );
   }
 

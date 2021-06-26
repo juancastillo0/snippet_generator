@@ -27,14 +27,14 @@ class TypesMenu extends HookWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Types",
+                    'Types',
                     style: context.textTheme.headline5,
                   ),
                   IconButton(
                     onPressed: rootStore.selectDirectory,
                     splashRadius: 24,
                     icon: const Icon(Icons.folder),
-                    tooltip: "Select workspace directory",
+                    tooltip: 'Select workspace directory',
                   ),
                 ],
               ),
@@ -71,7 +71,8 @@ class TypesMenu extends HookWidget {
                     rootStore.selectType(type);
                   },
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 6.0, top: 6.0, bottom: 6.0, right: 2),
+                    padding: const EdgeInsets.only(
+                        left: 6.0, top: 6.0, bottom: 6.0, right: 2),
                     child: Row(
                       children: [
                         Expanded(child: _TypeDescription(type: type)),
@@ -99,7 +100,7 @@ class TypesMenu extends HookWidget {
                   style:
                       menuStyle(context, padding: const EdgeInsets.all(18.0)),
                   icon: const Icon(Icons.add),
-                  label: const Text("Add Type"),
+                  label: const Text('Add Type'),
                 ),
               )
             ],
@@ -133,11 +134,11 @@ class _TypeDescription extends StatelessWidget {
             ),
             Row(
               children: [
-                TagInfo("Data", Colors.amber, enabled: type.isDataValue),
-                TagInfo("Listen", Colors.amber, enabled: type.isListenable),
-                TagInfo("Serde", Colors.amber, enabled: type.isSerializable),
-                TagInfo("Sum", Colors.amber, enabled: type.isSumType),
-                TagInfo("Enum", Colors.amber, enabled: type.isEnum),
+                TagInfo('Data', Colors.amber, enabled: type.isDataValue),
+                TagInfo('Listen', Colors.amber, enabled: type.isListenable),
+                TagInfo('Serde', Colors.amber, enabled: type.isSerializable),
+                TagInfo('Sum', Colors.amber, enabled: type.isSumType),
+                TagInfo('Enum', Colors.amber, enabled: type.isEnum),
               ]
                   .where((e) => e.enabled)
                   .map(

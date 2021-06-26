@@ -9,7 +9,7 @@ import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/parsers/sql/create_table_parser.dart';
 import 'package:snippet_generator/parsers/sql/table_models.dart';
 
-const _initialRawSqlTable = """
+const _initialRawSqlTable = '''
 CREATE TABLE `message` (
   `num_id` bigint NOT NULL AUTO_INCREMENT,
   `code_message` varchar(64) NOT NULL,
@@ -42,7 +42,7 @@ CREATE TABLE `type_message` (
 `code_type` varchar(64) NOT NULL,
 `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-""";
+''';
 
 enum TextView { import, dartCode, sqlCode, sqlBuilder }
 
@@ -156,11 +156,11 @@ class DatabaseStore with PropsSerializable {
 }
 
 class ConnectionStore {
-  final host = TextNotifier(name: "host");
-  final port = TextNotifier(name: "port");
-  final user = TextNotifier(name: "user");
-  final password = TextNotifier(name: "password");
-  final db = TextNotifier(name: "db");
+  final host = TextNotifier(name: 'host');
+  final port = TextNotifier(name: 'port');
+  final user = TextNotifier(name: 'user');
+  final password = TextNotifier(name: 'password');
+  final db = TextNotifier(name: 'db');
 
   ConnectionSettings? connectionSettings;
   MySqlConnection? conn;
@@ -195,7 +195,7 @@ class ConnectionStore {
     } catch (e) {
       final invalidPort = e is FormatException;
       connectionState.error(
-        invalidPort ? "Invalid port" : e.toString(),
+        invalidPort ? 'Invalid port' : e.toString(),
       );
       if (invalidPort) {
         port.focusNode.requestFocus();
@@ -206,12 +206,12 @@ class ConnectionStore {
   Future<String> queryTables() async {
     return connectionState.value.maybeMap(
       success: (state) async {
-        final tableNamesStr = await state.value.query("show tables;");
+        final tableNamesStr = await state.value.query('show tables;');
         return tableNamesStr.first.first.toString();
         tableNamesStr;
 
         final tableNames =
-            await state.value.queryMulti("show create table ?;", []);
+            await state.value.queryMulti('show create table ?;', []);
       },
       orElse: () => '',
     );

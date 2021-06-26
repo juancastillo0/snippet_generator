@@ -87,19 +87,19 @@ class ThemesTabView extends HookWidget {
                   children: [
                     RowTextField(
                       controller: themeCouple.name.controller,
-                      label: "Name",
+                      label: 'Name',
                     ),
                     RowBoolField(
                       notifier: themesStore.debugShowMaterialGrid,
-                      label: "Show Grid",
+                      label: 'Show Grid',
                     ),
                     RowBoolField(
                       notifier: themesStore.showSemanticsDebugger,
-                      label: "Show Semantics",
+                      label: 'Show Semantics',
                     ),
                     RowBoolField(
                       notifier: themesStore.isUsingDarkTheme,
-                      label: "Dark Theme",
+                      label: 'Dark Theme',
                     ),
                   ],
                 ),
@@ -176,7 +176,7 @@ class ThemesTabView extends HookWidget {
                           ],
                         ),
                       ),
-                      const _ListTitle(title: "Color Scheme"),
+                      const _ListTitle(title: 'Color Scheme'),
                       ...[
                         store.inputDecorationTheme,
                         store.textButtonTheme,
@@ -202,7 +202,7 @@ class ThemesTabView extends HookWidget {
         Expanded(
           child: Observer(
             builder: (context) => MaterialApp(
-              title: "Snippet Generator",
+              title: 'Snippet Generator',
               theme: store.themeData.value,
               debugShowMaterialGrid: themesStore.debugShowMaterialGrid.value,
               showSemanticsDebugger: themesStore.showSemanticsDebugger.value,
@@ -236,15 +236,15 @@ class ThemePreviewScaffold extends StatelessWidget {
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: "Home",
+            label: 'Home',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.list),
-            label: "List",
+            label: 'List',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: "Profile",
+            label: 'Profile',
           ),
         ],
       ),
@@ -256,10 +256,10 @@ class ThemePreviewScaffold extends StatelessWidget {
               _c = ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: const Text(
-                    "You pushed the FloatingActionButton!",
+                    'You pushed the FloatingActionButton!',
                   ),
                   action: SnackBarAction(
-                    label: "Great",
+                    label: 'Great',
                     onPressed: () {
                       _c.close();
                     },
@@ -295,13 +295,13 @@ class ThemePreviewScaffoldBody extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Card title"),
+                    const Text('Card title'),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         ElevatedButton(
                           onPressed: () {},
-                          child: const Text("Push me"),
+                          child: const Text('Push me'),
                         ),
                       ],
                     ),
@@ -318,14 +318,14 @@ class ThemePreviewScaffoldBody extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Form title",
+                      'Form title',
                       style: Theme.of(context).textTheme.headline5,
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      "Optio occaecati dolor ut illo provident inventore. Itaque accusamus dolore."
-                      " Ut praesentium officiis sint laborum tenetur vero. Omnis at sint dignissimos eum quia corrupti sed."
-                      " Unde distinctio amet non. Minima similique qui voluptates et.",
+                      'Optio occaecati dolor ut illo provident inventore. Itaque accusamus dolore.'
+                      ' Ut praesentium officiis sint laborum tenetur vero. Omnis at sint dignissimos eum quia corrupti sed.'
+                      ' Unde distinctio amet non. Minima similique qui voluptates et.',
                       style: Theme.of(context).textTheme.bodyText1,
                     ),
                     const SizedBox(height: 15),
@@ -335,7 +335,7 @@ class ThemePreviewScaffoldBody extends StatelessWidget {
                         const Expanded(
                           child: TextField(
                             decoration: InputDecoration(
-                              labelText: "Name",
+                              labelText: 'Name',
                             ),
                           ),
                         ),
@@ -347,7 +347,7 @@ class ThemePreviewScaffoldBody extends StatelessWidget {
                         TextButton(
                           onPressed: () {},
                           // child: const Text("Show Dialog"),
-                          child: const Text("Show Dialog"),
+                          child: const Text('Show Dialog'),
                         ),
                       ],
                     ),
@@ -356,7 +356,7 @@ class ThemePreviewScaffoldBody extends StatelessWidget {
                       height: 100,
                       child: TextField(
                         decoration: InputDecoration(
-                          labelText: "Content",
+                          labelText: 'Content',
                         ),
                         maxLines: null,
                         minLines: null,
@@ -369,12 +369,12 @@ class ThemePreviewScaffoldBody extends StatelessWidget {
                       children: [
                         OutlinedButton(
                           onPressed: () {},
-                          child: const Text("Cancel"),
+                          child: const Text('Cancel'),
                         ),
                         const SizedBox(width: 10),
                         OutlinedButton(
                           onPressed: () {},
-                          child: const Text("Send"),
+                          child: const Text('Send'),
                         ),
                       ],
                     ),

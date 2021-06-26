@@ -62,6 +62,7 @@ class SqlIn<T extends SqlValue<T>> extends SqlBoolValue {
 
   @override
   String toSql(SqlContext ctx) {
-    return '(${value.toSql(ctx)} IN (${list.map((e) => e.toSql(ctx)).join(",")}))';
+    return '(${value.toSql(ctx)} '
+        'IN (${list.map((e) => e.toSql(ctx)).join(",")}))';
   }
 }

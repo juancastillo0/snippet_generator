@@ -24,8 +24,8 @@ class DbConnectionForm extends HookWidget {
             child: Padding(
               padding: const EdgeInsets.all(4.0),
               child: connectionState.map(
-                loading: (_) => const Text("Connecting..."),
-                idle: (_) => const Text("No Database Connection"),
+                loading: (_) => const Text('Connecting...'),
+                idle: (_) => const Text('No Database Connection'),
                 success: (state) {
                   final settings = state.request;
                   return Text(
@@ -43,7 +43,7 @@ class DbConnectionForm extends HookWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              "Error: ${error.error}",
+                              'Error: ${error.error}',
                               style: theme.textTheme.bodyText1!.copyWith(
                                 color: theme.colorScheme.onError,
                               ),
@@ -56,7 +56,7 @@ class DbConnectionForm extends HookWidget {
                             onPressed: () {
                               store.connectionState.idle();
                             },
-                            child: const Text("Hide"),
+                            child: const Text('Hide'),
                           ),
                         ],
                       ),
@@ -78,7 +78,7 @@ class DbConnectionForm extends HookWidget {
                       store.connect();
                     }
                   },
-            child: const Text("CONNECT"),
+            child: const Text('CONNECT'),
           )
         ],
       ),
@@ -103,8 +103,8 @@ class DbConnectionForm extends HookWidget {
             showForm.value = !showForm.value;
           },
           tooltip: showForm.value
-              ? "Hide database connection form"
-              : "Show database connection form",
+              ? 'Hide database connection form'
+              : 'Show database connection form',
           icon: showForm.value
               ? const Icon(Icons.keyboard_arrow_up_rounded)
               : const Icon(Icons.keyboard_arrow_down_rounded),
@@ -131,7 +131,7 @@ class DbConnectionInputs extends HookWidget {
           SizedBox(
             width: 130,
             child: TextField(
-              decoration: const InputDecoration(labelText: "Host"),
+              decoration: const InputDecoration(labelText: 'Host'),
               controller: store.host.controller,
               focusNode: store.host.focusNode,
             ),
@@ -139,7 +139,7 @@ class DbConnectionInputs extends HookWidget {
           SizedBox(
             width: 70,
             child: TextField(
-              decoration: const InputDecoration(labelText: "Port"),
+              decoration: const InputDecoration(labelText: 'Port'),
               controller: store.port.controller,
               focusNode: store.port.focusNode,
             ),
@@ -147,7 +147,7 @@ class DbConnectionInputs extends HookWidget {
           SizedBox(
             width: 130,
             child: TextField(
-              decoration: const InputDecoration(labelText: "User"),
+              decoration: const InputDecoration(labelText: 'User'),
               controller: store.user.controller,
               focusNode: store.user.focusNode,
             ),
@@ -155,7 +155,7 @@ class DbConnectionInputs extends HookWidget {
           SizedBox(
             width: 130,
             child: TextField(
-              decoration: const InputDecoration(labelText: "Password"),
+              decoration: const InputDecoration(labelText: 'Password'),
               controller: store.password.controller,
               focusNode: store.password.focusNode,
             ),
@@ -163,7 +163,7 @@ class DbConnectionInputs extends HookWidget {
           SizedBox(
             width: 130,
             child: TextField(
-              decoration: const InputDecoration(labelText: "Database"),
+              decoration: const InputDecoration(labelText: 'Database'),
               controller: store.db.controller,
               focusNode: store.db.focusNode,
             ),

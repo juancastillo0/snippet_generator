@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:snippet_generator/gen_parsers/models/predifined_parsers.dart';
 import 'package:snippet_generator/gen_parsers/models/tokens.dart';
 import 'package:snippet_generator/utils/extensions.dart';
-import 'dart:ui';
 
 abstract class TokenValue {
   const TokenValue._();
@@ -154,22 +153,22 @@ abstract class TokenValue {
   bool get isSeparated => this is TokenValueSeparated;
 
   static TokenValue fromJson(Map<String, dynamic> map) {
-    switch (map["runtimeType"] as String) {
-      case "and":
+    switch (map['runtimeType'] as String) {
+      case 'and':
         return TokenValueAnd.fromJson(map);
-      case "or":
+      case 'or':
         return TokenValueOr.fromJson(map);
-      case "string":
+      case 'string':
         return TokenValueString.fromJson(map);
-      case "ref":
+      case 'ref':
         return TokenValueRef.fromJson(map);
-      case "predifined":
+      case 'predifined':
         return TokenValuePredifined.fromJson(map);
-      case "separated":
+      case 'separated':
         return TokenValueSeparated.fromJson(map);
       default:
-        throw Exception(
-            'Invalid discriminator for TokenValue.fromJson ${map["runtimeType"]}. Input map: $map');
+        throw Exception('Invalid discriminator for TokenValue.fromJson '
+            '${map["runtimeType"]}. Input map: $map');
     }
   }
 
@@ -218,9 +217,9 @@ class TokenValueAnd extends TokenValue {
   @override
   Map<String, dynamic> toJson() {
     return {
-      "runtimeType": "and",
-      "values": values.map((e) => e.toJson()).toList(),
-      "flatten": flatten,
+      'runtimeType': 'and',
+      'values': values.map((e) => e.toJson()).toList(),
+      'flatten': flatten,
     };
   }
 }
@@ -262,8 +261,8 @@ class TokenValueOr extends TokenValue {
   @override
   Map<String, dynamic> toJson() {
     return {
-      "runtimeType": "or",
-      "values": values.map((e) => e.toJson()).toList(),
+      'runtimeType': 'or',
+      'values': values.map((e) => e.toJson()).toList(),
     };
   }
 }
@@ -315,10 +314,10 @@ class TokenValueString extends TokenValue {
   @override
   Map<String, dynamic> toJson() {
     return {
-      "runtimeType": "string",
-      "value": value,
-      "isPattern": isPattern,
-      "caseSensitive": caseSensitive,
+      'runtimeType': 'string',
+      'value': value,
+      'isPattern': isPattern,
+      'caseSensitive': caseSensitive,
     };
   }
 }
@@ -358,8 +357,8 @@ class TokenValueRef extends TokenValue {
   @override
   Map<String, dynamic> toJson() {
     return {
-      "runtimeType": "ref",
-      "value": value,
+      'runtimeType': 'ref',
+      'value': value,
     };
   }
 }
@@ -419,11 +418,11 @@ class TokenValueSeparated extends TokenValue {
   @override
   Map<String, dynamic> toJson() {
     return {
-      "runtimeType": "separated",
-      "item": item.toJson(),
-      "separator": separator.toJson(),
-      "includeSeparators": includeSeparators,
-      "optionalSeparatorAtEnd": optionalSeparatorAtEnd,
+      'runtimeType': 'separated',
+      'item': item.toJson(),
+      'separator': separator.toJson(),
+      'includeSeparators': includeSeparators,
+      'optionalSeparatorAtEnd': optionalSeparatorAtEnd,
     };
   }
 }
@@ -463,8 +462,8 @@ class TokenValuePredifined extends TokenValue {
   @override
   Map<String, dynamic> toJson() {
     return {
-      "runtimeType": "predifined",
-      "value": value.toJson(),
+      'runtimeType': 'predifined',
+      'value': value.toJson(),
     };
   }
 }

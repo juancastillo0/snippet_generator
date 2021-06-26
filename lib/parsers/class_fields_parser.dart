@@ -1,43 +1,43 @@
 import 'package:petitparser/petitparser.dart';
 
 final _validString =
-    ((letter() | char("_")) & (letter() | digit() | pattern("_?<>")).star())
+    ((letter() | char('_')) & (letter() | digit() | pattern('_?<>')).star())
         .flatten();
 
 final _name =
     (pattern('\'"').optional() & _validString & pattern('\'"').optional())
         .pick(1);
 final _required =
-    (char("@").optional() & string("req") & string("uired").optional())
+    (char('@').optional() & string('req') & string('uired').optional())
         .flatten();
 
 const supportedTypes = {
-  "datetime": "DateTime",
-  "time": "DateTime",
-  "timestamp": "DateTime",
-  "date": "DateTime",
-  "string": "String",
-  "str": "String",
-  "number": "num",
-  "int": "int",
-  "bigint": "int",
-  "num": "num",
-  "double": "double",
-  "float": "double",
-  "array": "List",
-  "map": "Map",
-  "set": "Set",
-  "text": "String",
-  "char": "String",
-  "varchar": "String",
-  "bool": "bool",
-  "boolean": "bool",
+  'datetime': 'DateTime',
+  'time': 'DateTime',
+  'timestamp': 'DateTime',
+  'date': 'DateTime',
+  'string': 'String',
+  'str': 'String',
+  'number': 'num',
+  'int': 'int',
+  'bigint': 'int',
+  'num': 'num',
+  'double': 'double',
+  'float': 'double',
+  'array': 'List',
+  'map': 'Map',
+  'set': 'Set',
+  'text': 'String',
+  'char': 'String',
+  'varchar': 'String',
+  'bool': 'bool',
+  'boolean': 'bool',
 };
 
 final fieldsParser =
-    (_required.trim().optional() & _name & char(":").optional().trim() & _name)
+    (_required.trim().optional() & _name & char(':').optional().trim() & _name)
         .separatedBy(
-  pattern(",;\n\t").star().trim(),
+  pattern(',;\n\t').star().trim(),
   includeSeparators: false,
   optionalSeparatorAtEnd: true,
 )

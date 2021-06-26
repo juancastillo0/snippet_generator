@@ -82,9 +82,9 @@ void setUpEnumFields() {
 }
 
 final _visualDensityNameMap = {
-  VisualDensity.comfortable: "comfortable",
-  VisualDensity.compact: "compact",
-  VisualDensity.standard: "standard",
+  VisualDensity.comfortable: 'comfortable',
+  VisualDensity.compact: 'compact',
+  VisualDensity.standard: 'standard',
 };
 
 class EnumInput<E extends Object> extends StatelessWidget {
@@ -99,7 +99,7 @@ class EnumInput<E extends Object> extends StatelessWidget {
   final List<E> enumList;
   final bool withCard;
 
-  static String _enumToString(Object? e) => e.toString().split(".")[1];
+  static String _enumToString(Object? e) => e.toString().split('.')[1];
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +139,7 @@ enum TextStyleEnum {
 }
 
 extension TextStyleEnumTheme on TextStyleEnum {
-  String toEnumString() => this.toString().split(".")[1];
+  String toEnumString() => this.toString().split('.')[1];
 
   TextStyle? fromTheme(TextTheme theme) {
     switch (this) {

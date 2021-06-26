@@ -1,7 +1,8 @@
 import 'package:meta/meta.dart';
 import 'package:mobx/mobx.dart';
-import 'package:snippet_generator/notifiers/collection_notifier/collection_notifier.dart';
+
 import 'package:snippet_generator/globals/serializer.dart';
+import 'package:snippet_generator/notifiers/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/notifiers/nested_notifier.dart';
 
 @immutable
@@ -43,11 +44,11 @@ abstract class MapEvent<K, V> implements Event<MapEvent<K, V>> {
     if (v is MapRemoveEvent<K, V>) return remove(v);
     if (v is MapManyEvent<K, V>) return many(v);
     if (v is MapReplaceEvent<K, V>) return replace(v);
-    throw "";
+    throw '';
   }
 
   static MapEvent? fromJson(Map<String, dynamic> map) {
-    switch (map["runtimeType"] as String?) {
+    switch (map['runtimeType'] as String?) {
       case 'Change':
         return MapChangeEvent.fromJson(map);
       case 'Insert':
@@ -196,15 +197,15 @@ class MapReplaceEvent<K, V> extends MapEvent<K, V> {
 
   static MapReplaceEvent<K, V> fromJson<K, V>(Map<String, dynamic> map) {
     return MapReplaceEvent._(
-      oldMap: Serializers.fromJsonMap<K, V>(map["oldMap"]),
-      newMap: Serializers.fromJsonMap<K, V>(map["newMap"]),
+      oldMap: Serializers.fromJsonMap<K, V>(map['oldMap']),
+      newMap: Serializers.fromJsonMap<K, V>(map['newMap']),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      "oldMap": Serializers.toJson(oldMap),
-      "newMap": Serializers.toJson(newMap),
+      'oldMap': Serializers.toJson(oldMap),
+      'newMap': Serializers.toJson(newMap),
     };
   }
 

@@ -18,7 +18,8 @@ class EventData<V extends Event<V>> {
   final EventType type;
 }
 
-abstract class EventConsumer<E extends Event<E>> extends ChangeNotifier implements SerializableProp {
+abstract class EventConsumer<E extends Event<E>> extends ChangeNotifier
+    implements SerializableProp {
   @override
   String get name => propKey!;
 
@@ -230,8 +231,8 @@ EventType? parseEventType(String rawString, {EventType? defaultValue}) {
 }
 
 extension EventTypeExtension on EventType {
-  String toEnumString() => toString().split(".")[1];
-  String enumType() => toString().split(".")[0];
+  String toEnumString() => toString().split('.')[1];
+  String enumType() => toString().split('.')[0];
 
   bool get isApply => this == EventType.apply;
   bool get isUndo => this == EventType.undo;

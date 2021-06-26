@@ -32,18 +32,19 @@ class TemplateClassConfig {
   }
 
   String get _required {
-    return typeConfig.rootStore.isCodeGenNullSafe ? "required" : "@required";
+    return typeConfig.rootStore.isCodeGenNullSafe ? 'required' : '@required';
   }
 
   String get _nullable {
-    return typeConfig.rootStore.isCodeGenNullSafe ? "?" : "/*?*/";
+    return typeConfig.rootStore.isCodeGenNullSafe ? '?' : '/*?*/';
   }
 
   String get _classNameWithGenericIds =>
-      "$className${typeConfig.templates.genericIds}";
+      '$className${typeConfig.templates.genericIds}';
 
   String get signature => typeConfig.isSumType
-      ? '$className${typeConfig.templates.generics} extends ${typeConfig.name}${typeConfig.templates.genericIds}'
+      ? '$className${typeConfig.templates.generics} extends '
+          '${typeConfig.name}${typeConfig.templates.genericIds}'
       : typeConfig.signature;
 
   String templateClass() {
@@ -69,7 +70,8 @@ ${typeConfig.isListenable ? _templateClassNotifier() : ""}
   }
 
   String _templateClassNotifier() {
-// class ${className}Notifier${typeConfig.templates.generics} extends ValueNotifier<$classNameWithGenericIds> {
+// class ${className}Notifier${typeConfig.templates.generics} extends
+// ValueNotifier<$classNameWithGenericIds> {
 //   ${className}Notifier($classNameWithGenericIds value): super(value);
     // ${properties.map((p) => "set ${p.name}(${p.type} _v) => value = value.copyWith(${p.name}:  _v);\n"
     //         "${p.type} get ${p.name} => value.${p.name};").join()}
@@ -117,7 +119,7 @@ $_classNameWithGenericIds copyWith(${properties.isEmpty ? "" : "{$_params}"}) {
   }
 
   String _templateClassClone() {
-    return "";
+    return '';
 //     return """
 // $classNameWithGenericIds clone() {
 //     return $_classConstructor(
@@ -128,7 +130,7 @@ $_classNameWithGenericIds copyWith(${properties.isEmpty ? "" : "{$_params}"}) {
   }
 
   String _templateClassEquals() {
-    final _joinedHashCodes = properties.map((e) => e.name).join(",");
+    final _joinedHashCodes = properties.map((e) => e.name).join(',');
     final String _hashCode;
     if (properties.length == 1) {
       _hashCode = '${properties.first.name}.hashCode';
@@ -166,15 +168,15 @@ static $_classNameWithGenericIds fromJson${typeConfig.templates.generics}(Map<St
 ${typeConfig.isSumType ? "@override" : ""}
 Map<String, dynamic> toJson() {
     return {
-      ${typeConfig.isSumType ? '"${typeConfig.serializableConfig.discriminator.value}": "${name.asVariableName()}",' : ""}
-      ${properties.map((e) => '"${e.name}": ${parseFieldToJson(e)},').join()}
+      ${typeConfig.isSumType ? "'${typeConfig.serializableConfig.discriminator.value}': '${name.asVariableName()}'," : ""}
+      ${properties.map((e) => "'${e.name}': ${parseFieldToJson(e)},").join()}
     };
   }
 """;
   }
 
   String _templateClassParams() {
-    return _params((_) => "this.");
+    return _params((_) => 'this.');
   }
 
   String templateFactoryParams() {
@@ -183,7 +185,7 @@ Map<String, dynamic> toJson() {
 
   String _params(String Function(PropertyField) accessor) {
     const _join = '\n    ';
-    String _map(PropertyField p) => "${accessor(p)}${p.name},";
+    String _map(PropertyField p) => '${accessor(p)}${p.name},';
 
     final _posReq = properties
         .where((p) => p.isPositional && p.isRequired)
@@ -195,7 +197,7 @@ Map<String, dynamic> toJson() {
         .join(_join);
     final _namedReq = properties
         .where((p) => !p.isPositional && p.isRequired)
-        .map((p) => "$_required ${accessor(p)}${p.name},")
+        .map((p) => '$_required ${accessor(p)}${p.name},')
         .join(_join);
     final _namedNotReq = properties
         .where((p) => !p.isPositional && !p.isRequired)
@@ -226,10 +228,10 @@ class TemplateTypeConfig {
   String get genericIds {
     final result = this.signatureParserNotifier.value;
     if (result.isSuccess) {
-      final generics = result.value.genericIds.join(",");
-      return generics.isNotEmpty ? "<$generics>" : "";
+      final generics = result.value.genericIds.join(',');
+      return generics.isNotEmpty ? '<$generics>' : '';
     } else {
-      return "";
+      return '';
     }
   }
 
@@ -245,9 +247,9 @@ class TemplateTypeConfig {
   String get generics {
     final result = this.signatureParserNotifier.value;
     if (result.isSuccess) {
-      return innerType.signature.replaceFirst(name, "");
+      return innerType.signature.replaceFirst(name, '');
     } else {
-      return "";
+      return '';
     }
   }
 
@@ -268,13 +270,13 @@ class TemplateTypeConfig {
   }
 
   String get _const {
-    return advancedConfig.isConst ? "const" : "";
+    return advancedConfig.isConst ? 'const' : '';
   }
 
-  String get _nullable => this.rootStore.isCodeGenNullSafe ? "?" : "/*?*/";
+  String get _nullable => this.rootStore.isCodeGenNullSafe ? '?' : '/*?*/';
 
   String get _required =>
-      this.rootStore.isCodeGenNullSafe ? "required" : "@required";
+      this.rootStore.isCodeGenNullSafe ? 'required' : '@required';
 
   String templateSumType() {
     return """
@@ -345,28 +347,28 @@ abstract class ${innerType.signature} {
   String _repeatedPropsTemplate() {
     final props = repeatedProps.value;
     if (props.isEmpty) {
-      return "";
+      return '';
     }
 
     return props.entries
-        .map((e) =>
-            "${e.value.sameType ?? 'Object'}${e.value.isNullable && e.value.sameType == null ? _nullable : ''} get ${e.key};")
+        .map((e) => "${e.value.sameType ?? 'Object'}"
+            "${e.value.isNullable && e.value.sameType == null ? _nullable : ''} get ${e.key};")
         .join();
   }
 
   String get _throwNotFoundVariant {
-    return "throw Exception();";
+    return 'throw Exception();';
   }
 
   String _templateGenericMappers() {
     String _propToMapped(PropertyField p, String generic) {
       String _setter;
       if (p.type == generic) {
-        _setter = "mapper(v.${p.name})";
-      } else if (p.type.endsWith("?") && "$generic?" == p.type) {
-        _setter = "v.${p.name} == null ? null : mapper(v.${p.name}!)";
+        _setter = 'mapper(v.${p.name})';
+      } else if (p.type.endsWith('?') && '$generic?' == p.type) {
+        _setter = 'v.${p.name} == null ? null : mapper(v.${p.name}!)';
       } else {
-        _setter = "v.${p.name}";
+        _setter = 'v.${p.name}';
       }
       return (p.isPositional ? '' : '${p.name}:') + _setter;
     }
@@ -399,7 +401,7 @@ abstract class ${innerType.signature} {
 
   String templateTypeEnum() {
     return globalTemplateEnum(
-      name: "Type$name",
+      name: 'Type$name',
       variants: classes.map((e) => e.name.asVariableName()).toList(),
       nullSafe: rootStore.isCodeGenNullSafe,
     );
@@ -416,10 +418,10 @@ abstract class ${innerType.signature} {
   String _templateSymTypeFromJson() {
     return """
 static $name$genericIds fromJson$generics(Map<String, dynamic> map) {
-  switch (map["${serializableConfig.discriminator.value}"] as String) {
-    ${classes.map((e) => 'case "${e.name.asVariableName()}": return ${e.templates.className}.fromJson$genericIds(map);').join("\n    ")}
+  switch (map['${serializableConfig.discriminator.value}'] as String) {
+    ${classes.map((e) => "case '${e.name.asVariableName()}': return ${e.templates.className}.fromJson$genericIds(map);").join("\n    ")}
     default:
-      throw Exception('Invalid discriminator for ${innerType.signature}.fromJson \${map["${serializableConfig.discriminator.value}"]}. Input map: \$map');
+      throw Exception('Invalid discriminator for ${innerType.signature}.fromJson ''\${map["${serializableConfig.discriminator.value}"]}. Input map: \$map');
   }
 }
 """;
@@ -433,14 +435,14 @@ class CummProp {
   const CummProp({required this.sameType, required this.isNullable});
 
   static CummProp fromProps(List<PropertyField> value) {
-    final isNullable = value.any((p) => p.type.endsWith("?"));
+    final isNullable = value.any((p) => p.type.endsWith('?'));
     final initialType = value.isEmpty
         ? null
-        : (value.first.type.endsWith("?")
+        : (value.first.type.endsWith('?')
             ? value.first.type.substring(0, value.first.type.length - 1)
             : value.first.type);
     final isSameType =
-        value.every((p) => p.type == initialType || p.type == "$initialType?");
+        value.every((p) => p.type == initialType || p.type == '$initialType?');
     return CummProp(
       isNullable: isNullable,
       sameType: isSameType ? initialType : null,
@@ -455,8 +457,8 @@ String globalTemplateEnum({
   required List<String> variants,
   required bool nullSafe,
 }) {
-  final _required = nullSafe ? "required " : "@required ";
-  final _nullable = nullSafe ? "?" : "/*?*/";
+  final _required = nullSafe ? 'required ' : '@required ';
+  final _nullable = nullSafe ? '?' : '/*?*/';
 
   return """
 enum $name {

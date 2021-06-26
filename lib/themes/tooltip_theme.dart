@@ -5,18 +5,18 @@ import 'package:snippet_generator/themes/theme_store.dart';
 
 class TooltipThemeNotifier with PropsSerializable {
   TooltipThemeNotifier(ThemeStore theme, {required this.name})
-      : heightNotifier = AppNotifier.withDefault(() => 32, name: "height"),
+      : heightNotifier = AppNotifier.withDefault(() => 32, name: 'height'),
         paddingNotifier = AppNotifier.withDefault(
             () => const EdgeInsets.symmetric(horizontal: 16.0),
-            name: "padding"),
+            name: 'padding'),
         marginNotifier =
-            AppNotifier.withDefault(() => EdgeInsets.zero, name: "margin"),
+            AppNotifier.withDefault(() => EdgeInsets.zero, name: 'margin'),
         verticalOffsetNotifier =
-            AppNotifier.withDefault(() => 24, name: "verticalOffset"),
+            AppNotifier.withDefault(() => 24, name: 'verticalOffset'),
         preferBelowNotifier =
-            AppNotifier.withDefault(() => true, name: "preferBelow"),
+            AppNotifier.withDefault(() => true, name: 'preferBelow'),
         excludeFromSemanticsNotifier =
-            AppNotifier.withDefault(() => false, name: "excludeFromSemantics"),
+            AppNotifier.withDefault(() => false, name: 'excludeFromSemantics'),
         decorationNotifier = AppNotifier.withDefault(
             () => BoxDecoration(
                   color: (theme.brightness == Brightness.light
@@ -25,7 +25,7 @@ class TooltipThemeNotifier with PropsSerializable {
                       .withOpacity(0.9),
                   borderRadius: const BorderRadius.all(Radius.circular(4)),
                 ),
-            name: "decoration"),
+            name: 'decoration'),
         textStyleNotifier = AppNotifier.withDefault(
             () => theme.textThemeNotifier.bodyText2.value.copyWith(
                   color: theme.brightness == Brightness.light
@@ -33,12 +33,12 @@ class TooltipThemeNotifier with PropsSerializable {
                       : Colors.white,
                   fontSize: 14,
                 ),
-            name: "textStyle"),
+            name: 'textStyle'),
         waitDurationNotifier = AppNotifier.withDefault(
             () => const Duration(milliseconds: 1500),
-            name: "waitDuration"),
+            name: 'waitDuration'),
         showDurationNotifier =
-            AppNotifier.withDefault(() => Duration.zero, name: "showDuration");
+            AppNotifier.withDefault(() => Duration.zero, name: 'showDuration');
 
   @override
   final String name;

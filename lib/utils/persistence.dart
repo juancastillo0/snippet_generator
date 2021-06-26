@@ -7,10 +7,10 @@ import 'package:snippet_generator/globals/serializer.dart';
 import 'package:snippet_generator/types/type_models.dart';
 
 final _boxesMap = {
-  TypeConfig: _BoxConfig<TypeConfig>(0, "type", TypeConfig.serializer),
-  ClassConfig: _BoxConfig<ClassConfig>(1, "class", ClassConfig.serializer),
+  TypeConfig: _BoxConfig<TypeConfig>(0, 'type', TypeConfig.serializer),
+  ClassConfig: _BoxConfig<ClassConfig>(1, 'class', ClassConfig.serializer),
   PropertyField:
-      _BoxConfig<PropertyField>(2, "property", PropertyField.serializer),
+      _BoxConfig<PropertyField>(2, 'property', PropertyField.serializer),
   GenerateParserStoreValue: _BoxConfig<GenerateParserStoreValue>(
     3,
     'parsers',

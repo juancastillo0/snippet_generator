@@ -1,7 +1,7 @@
 import 'package:meta/meta.dart';
 import 'package:mobx/mobx.dart';
-import 'package:snippet_generator/notifiers/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/globals/serializer.dart';
+import 'package:snippet_generator/notifiers/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/notifiers/nested_notifier.dart';
 
 enum SetEventManyType { insert, remove }
@@ -34,7 +34,7 @@ abstract class SetEvent<V> implements Event<SetEvent<V>> {
     if (v is ManyTypedSetEvent<V>) return manyTyped(v.values, v.type);
     if (v is RemoveSetEvent<V>) return remove(v.value);
     if (v is ManySetEvent<V>) return many(v.events);
-    throw "";
+    throw '';
   }
 
   T? maybeWhen<T>({
@@ -54,7 +54,7 @@ abstract class SetEvent<V> implements Event<SetEvent<V>> {
     } else if (v is ManySetEvent<V>) {
       return many != null ? many(v.events) : orElse?.call();
     }
-    throw "";
+    throw '';
   }
 
   T map<T>({
@@ -68,7 +68,7 @@ abstract class SetEvent<V> implements Event<SetEvent<V>> {
     if (v is ManyTypedSetEvent<V>) return manyTyped(v);
     if (v is RemoveSetEvent<V>) return remove(v);
     if (v is ManySetEvent<V>) return many(v);
-    throw "";
+    throw '';
   }
 
   T? maybeMap<T>({
@@ -88,11 +88,11 @@ abstract class SetEvent<V> implements Event<SetEvent<V>> {
     } else if (v is ManySetEvent<V>) {
       return many != null ? many(v) : orElse?.call();
     }
-    throw "";
+    throw '';
   }
 
   static SetEvent? fromJson(Map<String, dynamic> map) {
-    switch (map["runtimeType"] as String?) {
+    switch (map['runtimeType'] as String?) {
       case 'InsertSetEvent':
         return InsertSetEvent.fromJson(map);
       case 'ChangeSetEvent':
@@ -122,7 +122,7 @@ class InsertSetEvent<V> extends SetEvent<V> {
 
   Map<String, dynamic> toJson() {
     return {
-      "runtimeType": "InsertSetEvent",
+      'runtimeType': 'InsertSetEvent',
       'value': Serializers.toJson(value),
     };
   }
@@ -145,7 +145,7 @@ class ManyTypedSetEvent<V> extends SetEvent<V> {
   static ManyTypedSetEvent<V> fromJson<V>(Map<String, dynamic> map) {
     return ManyTypedSetEvent<V>(
       values: Serializers.fromJsonList<V>(map['values'] as Iterable),
-      type: map['type'] == SetEventManyType.insert.toString().split(".")[1]
+      type: map['type'] == SetEventManyType.insert.toString().split('.')[1]
           ? SetEventManyType.insert
           : SetEventManyType.remove,
     );
@@ -153,9 +153,9 @@ class ManyTypedSetEvent<V> extends SetEvent<V> {
 
   Map<String, dynamic> toJson() {
     return {
-      "runtimeType": "ManyTypedSetEvent",
+      'runtimeType': 'ManyTypedSetEvent',
       'value': Serializers.toJson(values),
-      'type': type.toString().split(".")[1],
+      'type': type.toString().split('.')[1],
     };
   }
 
@@ -185,7 +185,7 @@ class RemoveSetEvent<V> extends SetEvent<V> {
 
   Map<String, dynamic> toJson() {
     return {
-      "runtimeType": "RemoveSetEvent",
+      'runtimeType': 'RemoveSetEvent',
       'value': Serializers.toJson(value),
     };
   }
@@ -205,13 +205,13 @@ class ManySetEvent<V> extends SetEvent<V> {
 
   static ManySetEvent<V> fromJson<V>(Map<String, dynamic> map) {
     return ManySetEvent(
-      events: Serializers.fromJsonList<SetEvent<V>>(map["events"] as Iterable),
+      events: Serializers.fromJsonList<SetEvent<V>>(map['events'] as Iterable),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      "runtimeType": "ManySetEvent",
+      'runtimeType': 'ManySetEvent',
       'events': events.map((e) => e).toList(),
     };
   }
@@ -482,7 +482,7 @@ class SetNotifier<V> extends EventConsumer<SetEvent<V>> implements Set<V> {
   Iterator<V> get iterator => _inner.iterator;
 
   @override
-  String join([String separator = ""]) => _inner.join(separator);
+  String join([String separator = '']) => _inner.join(separator);
 
   @override
   V get last => _inner.last;

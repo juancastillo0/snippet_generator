@@ -87,12 +87,12 @@ class SqlIfValue<T extends SqlValue<T>> extends SqlValue<T> {
 
   @override
   String toSql(SqlContext ctx) {
-    return """
+    return '''
 CASE
 WHEN ${conditions.toSql(ctx)} THEN ${whenTrue.toSql(ctx)}
 ELSE ${whenFalse.toSql(ctx)}
 END
-""";
+''';
   }
 }
 

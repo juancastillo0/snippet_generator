@@ -128,7 +128,7 @@ class SelectColumnsField extends HookWidget {
         children: [
           Row(
             children: const [
-              Expanded(child: Text("Column")),
+              Expanded(child: Text('Column')),
               Text('Include'),
               SizedBox(
                 width: 32,
@@ -156,7 +156,7 @@ class SelectColumnsField extends HookWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 TextButton(
-                                  key: Key("t$colIndex"),
+                                  key: Key('t$colIndex'),
                                   onPressed: colIndex != 0
                                       ? () {
                                           list[colIndex] = list[colIndex - 1];
@@ -175,7 +175,7 @@ class SelectColumnsField extends HookWidget {
                                   ),
                                 ),
                                 TextButton(
-                                  key: Key("b$colIndex"),
+                                  key: Key('b$colIndex'),
                                   onPressed: colIndex != list.length - 1
                                       ? () {
                                           list[colIndex] = list[colIndex + 1];

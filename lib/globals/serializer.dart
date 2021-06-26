@@ -118,7 +118,7 @@ class _MapSerializer<K, V> implements Serializer<Map<K, V>> {
         ),
       );
     }
-    throw "";
+    throw Error();
   }
 
   @override

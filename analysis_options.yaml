@@ -16,6 +16,8 @@ linter:
     prefer_const_constructors: true
     lines_longer_than_80_chars: true
 
+    prefer_single_quotes: true
+
 analyzer:
   exclude:
     - lib/**.g.dart

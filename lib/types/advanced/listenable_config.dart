@@ -17,21 +17,21 @@ class ListenableConfig with PropsSerializable {
     nameParam,
   ];
 
-  final generateSetters = AppNotifier(false, name: "setters");
-  final generateGetters = AppNotifier(false, name: "getters");
-  final generateProps = AppNotifier(true, name: "props");
-  final privateNotifiers = AppNotifier(true, name: "privateNotifiers");
+  final generateSetters = AppNotifier(false, name: 'setters');
+  final generateGetters = AppNotifier(false, name: 'getters');
+  final generateProps = AppNotifier(true, name: 'props');
+  final privateNotifiers = AppNotifier(true, name: 'privateNotifiers');
 
   final nameParam = TextNotifier(
-    initialText: "",
-    name: "nameParam",
+    initialText: '',
+    name: 'nameParam',
   );
   final suffix = TextNotifier(
-    initialText: "Notifier",
-    name: "suffix",
+    initialText: 'Notifier',
+    name: 'suffix',
   );
   final notifierClass = TextNotifier(
-    initialText: "ValueNotifier",
-    name: "notifierClass",
+    initialText: 'ValueNotifier',
+    name: 'notifierClass',
   );
 }

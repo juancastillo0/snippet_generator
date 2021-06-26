@@ -38,11 +38,11 @@ ButtonStyle _actionButtonPadded(BuildContext context) =>
     );
 
 const appTabsTitles = {
-  AppTabs.ui: "Widgets",
-  AppTabs.types: "Types",
-  AppTabs.theme: "Themes",
-  AppTabs.database: "Data",
-  AppTabs.parsers: "Parsers",
+  AppTabs.ui: 'Widgets',
+  AppTabs.types: 'Types',
+  AppTabs.theme: 'Themes',
+  AppTabs.database: 'Data',
+  AppTabs.parsers: 'Parsers',
 };
 
 class TabButton extends HookWidget {
@@ -123,7 +123,7 @@ class HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
           style: topButtonStyle,
           onPressed: rootStore.saveHive,
           icon: const Icon(Icons.save),
-          label: const Text("Save"),
+          label: const Text('Save'),
         ),
         TextButton.icon(
           style: buttonStyle,
@@ -134,7 +134,7 @@ class HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
             }
           },
           icon: const Icon(Icons.file_upload),
-          label: const Text("Import"),
+          label: const Text('Import'),
         ),
         TextButton.icon(
           style: buttonStyle,
@@ -142,7 +142,7 @@ class HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
             rootStore.downloadJson();
           },
           icon: const Icon(Icons.file_download),
-          label: const Text("Export"),
+          label: const Text('Export'),
         ),
       ];
 
@@ -169,7 +169,7 @@ class HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text("Dark Mode"),
+              const Text('Dark Mode'),
               rootStore.themeModeNotifier.rebuild(
                 (mode) => Switch(
                   value: rootStore.themeModeNotifier.value == ThemeMode.dark,

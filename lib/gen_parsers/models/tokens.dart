@@ -88,8 +88,8 @@ class RepeatRange {
 
   Map<String, dynamic> toJson() {
     return {
-      "min": min,
-      "max": max,
+      'min': min,
+      'max': max,
     };
   }
 

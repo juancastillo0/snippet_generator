@@ -78,7 +78,8 @@ class SqlTable {
 
   @override
   String toString() {
-    return """SqlTable{name: $name, columns: $columns, primaryKey: $primaryKey, tableKeys: $tableKeys, foreignKeys: $foreignKeys}""";
+    return 'SqlTable{name: $name, columns: $columns, primaryKey: $primaryKey, '
+        'tableKeys: $tableKeys, foreignKeys: $foreignKeys}';
   }
 
   SqlTable copyWith({
@@ -278,9 +279,15 @@ class Tuple3<F, S, L> {
     Option<L>? last,
   }) {
     return Tuple3<F, S, L>(
-      null is F ? (first != null ? first.valueOrNull as F : this.first) : (first?.valueOrNull ?? this.first),
-      null is S ? (second != null ? second.valueOrNull as S : this.second) : (second?.valueOrNull ?? this.second),
-      null is L ? (last != null ? last.valueOrNull as L : this.last) : (last?.valueOrNull ?? this.last),
+      null is F
+          ? (first != null ? first.valueOrNull as F : this.first)
+          : (first?.valueOrNull ?? this.first),
+      null is S
+          ? (second != null ? second.valueOrNull as S : this.second)
+          : (second?.valueOrNull ?? this.second),
+      null is L
+          ? (last != null ? last.valueOrNull as L : this.last)
+          : (last?.valueOrNull ?? this.last),
     );
   }
 }

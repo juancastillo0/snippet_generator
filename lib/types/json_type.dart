@@ -23,8 +23,8 @@ SupportedJsonType? parseSupportedJsonType(String rawString,
 }
 
 extension SupportedJsonTypeExtension on SupportedJsonType {
-  String toEnumString() => toString().split(".")[1];
-  String enumType() => toString().split(".")[0];
+  String toEnumString() => toString().split('.')[1];
+  String enumType() => toString().split('.')[0];
 
   bool get isString => this == SupportedJsonType.String;
   bool get isInt => this == SupportedJsonType.int;

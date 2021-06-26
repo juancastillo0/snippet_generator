@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:snippet_generator/utils/formatters.dart';
 import 'package:snippet_generator/types/type_models.dart';
 import 'package:snippet_generator/utils/extensions.dart';
+import 'package:snippet_generator/utils/formatters.dart';
 import 'package:snippet_generator/utils/theme.dart';
 
 class EnumTable extends StatelessWidget {
@@ -49,7 +49,7 @@ class EnumTable extends StatelessWidget {
               onPressed: typeConfig.addVariant,
               style: elevatedStyle(context),
               icon: const Icon(Icons.add),
-              label: const Text("Add Variant"),
+              label: const Text('Add Variant'),
             )
           ],
         ),

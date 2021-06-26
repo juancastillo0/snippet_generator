@@ -1,7 +1,7 @@
-import 'package:snippet_generator/types/type_models.dart';
+import 'package:snippet_generator/parsers/models/json_type.dart';
 import 'package:snippet_generator/parsers/signature_parser.dart';
 import 'package:snippet_generator/parsers/type_parser.dart';
-import 'package:snippet_generator/parsers/models/json_type.dart';
+import 'package:snippet_generator/types/type_models.dart';
 
 String _parseJsonTypeFromJson(
   String getter,
@@ -21,14 +21,14 @@ String _parseJsonTypeFromJson(
     primitiveParser: (v) {
       if (v.type.isCustom) {
         if (generics.any((g) => g.id == v.raw)) {
-          return "Serializers.fromJson<${v.raw}>($getter)";
+          return 'Serializers.fromJson<${v.raw}>($getter)';
         } else {
-          final _genericIds = v.genericIds.join(",");
-          final genericIds = _genericIds.isNotEmpty ? "<$_genericIds>" : "";
-          return "${v.raw}.fromJson$genericIds($getter as Map<String, dynamic>)";
+          final _genericIds = v.genericIds.join(',');
+          final genericIds = _genericIds.isNotEmpty ? '<$_genericIds>' : '';
+          return '${v.raw}.fromJson$genericIds($getter as Map<String, dynamic>)';
         }
       } else {
-        return "$getter as ${v.raw}";
+        return '$getter as ${v.raw}';
       }
     },
   );
@@ -41,7 +41,9 @@ String parseFieldFromJson(PropertyField e) {
   }
   final parsedResult = e.classConfig!.typeConfig.signatureParserNotifier.value;
   // TODO: can parsedResult fail?
-  final generics = parsedResult.isSuccess ? parsedResult.value.generics : <SignatureGeneric>[];
+  final generics = parsedResult.isSuccess
+      ? parsedResult.value.generics
+      : <SignatureGeneric>[];
   return _parseJsonTypeFromJson("map['${e.name}']", result.value, generics);
 }
 
@@ -63,9 +65,9 @@ String _parseJsonTypeToJson(
     primitiveParser: (v) {
       if (v.type.isCustom) {
         if (generics.any((g) => g.id == v.raw)) {
-          return "Serializers.toJson<${v.raw}>($getter)"; //"($getter as dynamic).toJson()";
+          return 'Serializers.toJson<${v.raw}>($getter)'; //"($getter as dynamic).toJson()";
         } else {
-          return "$getter.toJson()";
+          return '$getter.toJson()';
         }
       } else {
         return getter;
@@ -81,6 +83,8 @@ String parseFieldToJson(PropertyField e) {
   }
   final parsedResult = e.classConfig!.typeConfig.signatureParserNotifier.value;
   // TODO: can parsedResult fail?
-  final generics = parsedResult.isSuccess ? parsedResult.value.generics : <SignatureGeneric>[];
+  final generics = parsedResult.isSuccess
+      ? parsedResult.value.generics
+      : <SignatureGeneric>[];
   return _parseJsonTypeToJson(e.name, result.value, generics);
 }

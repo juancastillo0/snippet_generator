@@ -1,5 +1,5 @@
-import 'package:snippet_generator/parsers/parsers.dart';
 import 'package:petitparser/petitparser.dart';
+import 'package:snippet_generator/parsers/parsers.dart';
 
 class SignatureParser {
   const SignatureParser(this.name, this.generics);
@@ -24,7 +24,7 @@ class SignatureGeneric {
   final String? inherits;
 
   static final parser =
-      (identifier & (string("extends") & identifier.trim()).trim().optional())
+      (identifier & (string('extends') & identifier.trim()).trim().optional())
           .map(
     (value) => SignatureGeneric(
       value[0] as String,

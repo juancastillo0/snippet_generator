@@ -75,7 +75,7 @@ class DatabaseTabView extends HookWidget {
                                         icon:
                                             const Icon(Icons.download_rounded),
                                         label: const Text(
-                                          "Import Code from Database",
+                                          'Import Code from Database',
                                           textAlign: TextAlign.center,
                                         ),
                                       ),
@@ -92,7 +92,7 @@ class DatabaseTabView extends HookWidget {
                                           child: const Icon(Icons.upload),
                                         ),
                                         label: const Text(
-                                          "Import Tables from Code",
+                                          'Import Tables from Code',
                                           textAlign: TextAlign.center,
                                         ),
                                       ),

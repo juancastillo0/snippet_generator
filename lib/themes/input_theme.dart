@@ -9,58 +9,58 @@ class InputDecorationThemeNotifier with PropsSerializable {
 
   InputDecorationThemeNotifier(InputDecorationTheme value, {required this.name})
       : labelStyleNotifier =
-            AppNotifier<TextStyle?>(value.labelStyle, name: "labelStyle"),
+            AppNotifier<TextStyle?>(value.labelStyle, name: 'labelStyle'),
         helperStyleNotifier =
-            AppNotifier<TextStyle?>(value.helperStyle, name: "helperStyle"),
+            AppNotifier<TextStyle?>(value.helperStyle, name: 'helperStyle'),
         helperMaxLinesNotifier =
-            AppNotifier<int?>(value.helperMaxLines, name: "helperMaxLines"),
+            AppNotifier<int?>(value.helperMaxLines, name: 'helperMaxLines'),
         hintStyleNotifier =
-            AppNotifier<TextStyle?>(value.hintStyle, name: "hintStyle"),
+            AppNotifier<TextStyle?>(value.hintStyle, name: 'hintStyle'),
         errorStyleNotifier =
-            AppNotifier<TextStyle?>(value.errorStyle, name: "errorStyle"),
+            AppNotifier<TextStyle?>(value.errorStyle, name: 'errorStyle'),
         errorMaxLinesNotifier =
-            AppNotifier<int?>(value.errorMaxLines, name: "errorMaxLines"),
+            AppNotifier<int?>(value.errorMaxLines, name: 'errorMaxLines'),
         hasFloatingPlaceholderNotifier = AppNotifier<bool>(
             value.hasFloatingPlaceholder,
-            name: "hasFloatingPlaceholder"),
+            name: 'hasFloatingPlaceholder'),
         floatingLabelBehaviorNotifier = AppNotifier<FloatingLabelBehavior>(
             value.floatingLabelBehavior,
-            name: "floatingLabelBehavior"),
-        isDenseNotifier = AppNotifier<bool>(value.isDense, name: "isDense"),
+            name: 'floatingLabelBehavior'),
+        isDenseNotifier = AppNotifier<bool>(value.isDense, name: 'isDense'),
         contentPaddingNotifier = AppNotifier<EdgeInsets?>(
             // TODO: support EdgeInsetsGeometry
             value.contentPadding as EdgeInsets?,
-            name: "contentPadding"),
+            name: 'contentPadding'),
         isCollapsedNotifier =
-            AppNotifier<bool>(value.isCollapsed, name: "isCollapsed"),
+            AppNotifier<bool>(value.isCollapsed, name: 'isCollapsed'),
         prefixStyleNotifier =
-            AppNotifier<TextStyle?>(value.prefixStyle, name: "prefixStyle"),
+            AppNotifier<TextStyle?>(value.prefixStyle, name: 'prefixStyle'),
         suffixStyleNotifier =
-            AppNotifier<TextStyle?>(value.suffixStyle, name: "suffixStyle"),
+            AppNotifier<TextStyle?>(value.suffixStyle, name: 'suffixStyle'),
         counterStyleNotifier =
-            AppNotifier<TextStyle?>(value.counterStyle, name: "counterStyle"),
-        filledNotifier = AppNotifier<bool>(value.filled, name: "filled"),
+            AppNotifier<TextStyle?>(value.counterStyle, name: 'counterStyle'),
+        filledNotifier = AppNotifier<bool>(value.filled, name: 'filled'),
         fillColorNotifier =
-            AppNotifier<Color?>(value.fillColor, name: "fillColor"),
+            AppNotifier<Color?>(value.fillColor, name: 'fillColor'),
         focusColorNotifier =
-            AppNotifier<Color?>(value.focusColor, name: "focusColor"),
+            AppNotifier<Color?>(value.focusColor, name: 'focusColor'),
         hoverColorNotifier =
-            AppNotifier<Color?>(value.hoverColor, name: "hoverColor"),
+            AppNotifier<Color?>(value.hoverColor, name: 'hoverColor'),
         errorBorderNotifier =
-            AppNotifier<InputBorder?>(value.errorBorder, name: "errorBorder"),
+            AppNotifier<InputBorder?>(value.errorBorder, name: 'errorBorder'),
         focusedBorderNotifier = AppNotifier<InputBorder?>(value.focusedBorder,
-            name: "focusedBorder"),
+            name: 'focusedBorder'),
         focusedErrorBorderNotifier = AppNotifier<InputBorder?>(
             value.focusedErrorBorder,
-            name: "focusedErrorBorder"),
+            name: 'focusedErrorBorder'),
         disabledBorderNotifier = AppNotifier<InputBorder?>(value.disabledBorder,
-            name: "disabledBorder"),
+            name: 'disabledBorder'),
         enabledBorderNotifier = AppNotifier<InputBorder?>(value.enabledBorder,
-            name: "enabledBorder"),
+            name: 'enabledBorder'),
         borderNotifier =
-            AppNotifier<InputBorder?>(value.border, name: "border"),
+            AppNotifier<InputBorder?>(value.border, name: 'border'),
         alignLabelWithHintNotifier = AppNotifier<bool>(value.alignLabelWithHint,
-            name: "alignLabelWithHint");
+            name: 'alignLabelWithHint');
 
   InputDecorationTheme get value => computedValue.value;
 

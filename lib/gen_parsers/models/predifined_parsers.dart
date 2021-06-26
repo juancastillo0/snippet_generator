@@ -26,9 +26,9 @@ extension PredifinedParserToJson on PredifinedParser {
       case PredifinedParser.whitespace:
         return 'whitespace()';
       case PredifinedParser.integer:
-        return "integerParser";
+        return 'integerParser';
       case PredifinedParser.double:
-        return "doubleParser";
+        return 'doubleParser';
     }
   }
 
@@ -59,12 +59,12 @@ extension PredifinedParserToJson on PredifinedParser {
       case PredifinedParser.integer:
         return "final integerParser = (char('-').optional() & "
             "char('0').or(pattern('1-9') & digit().star()) "
-            ").flatten().map((value) => int.parse(value));";
+            ').flatten().map((value) => int.parse(value));';
       case PredifinedParser.double:
         return "final doubleParser =(char('-').optional() & "
             "char('0').or(pattern('1-9') & digit().star()) & "
             "(char('.') & char('0').or(pattern('1-9') & digit().star())).optional() "
-            ").flatten().map((value) => double.parse(value));";
+            ').flatten().map((value) => double.parse(value));';
     }
   }
 }

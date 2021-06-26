@@ -71,7 +71,8 @@ class Time {
 
   @override
   String toString() {
-    return 'Time(hour: $hour, minute: $minute, second: $second, millisecond: $millisecond, microsecond: $microsecond)';
+    return 'Time(hour: $hour, minute: $minute, second: $second, '
+        'millisecond: $millisecond, microsecond: $microsecond)';
   }
 
   @override

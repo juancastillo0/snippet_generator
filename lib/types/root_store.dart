@@ -47,13 +47,13 @@ class RootStore {
   final selectedTabNotifier = AppNotifier(AppTabs.ui);
   AppTabs get selectedTab => selectedTabNotifier.value;
 
-  final themeModeNotifier = AppNotifier(ThemeMode.light, name: "themeMode");
+  final themeModeNotifier = AppNotifier(ThemeMode.light, name: 'themeMode');
 
   final componentWidgetsStore = ComponentWidgetsStore();
 
   final parserStore = GenerateParserStore();
 
-  final themesStore = ThemesStore(name: "themesStore");
+  final themesStore = ThemesStore(name: 'themesStore');
 
   final types = MapNotifier<String, TypeConfig>();
 
@@ -96,9 +96,9 @@ class RootStore {
 
   Future<void> _saveTypeFiles(FileSystemDirectoryHandle directory) async {
     final Map<String, TypeConfig> typesToSave = types.map(
-      (key, value) => MapEntry("${value.name.trim()}.dart", value),
+      (key, value) => MapEntry('${value.name.trim()}.dart', value),
     );
-    typesToSave.remove(".dart");
+    typesToSave.remove('.dart');
 
     final _futs = typesToSave.entries.map((entry) async {
       final type = entry.value;
@@ -247,15 +247,15 @@ class RootStore {
 
   void downloadJson() {
     final json = {
-      "type": selectedType!.toJson(),
-      "classes": selectedType!.classes.map((e) => e.toJson()).toList(),
-      "fields": selectedType!.classes
+      'type': selectedType!.toJson(),
+      'classes': selectedType!.classes.map((e) => e.toJson()).toList(),
+      'fields': selectedType!.classes
           .expand((e) => e.properties)
           .map((e) => e.toJson())
           .toList()
     };
     final jsonString = jsonEncode(json);
-    downloadToClient(jsonString, "snippet_model.json", "application/json");
+    downloadToClient(jsonString, 'snippet_model.json', 'application/json');
   }
 
   bool importJson(String jsonString) {
@@ -263,20 +263,20 @@ class RootStore {
     try {
       json = jsonDecode(jsonString) as Map<String, dynamic>;
     } catch (e, s) {
-      print("jsonDecode error $e\n$s");
+      print('jsonDecode error $e\n$s');
     }
     try {
-      final type = TypeConfig.fromJson(json["type"] as Map<String, dynamic>);
+      final type = TypeConfig.fromJson(json['type'] as Map<String, dynamic>);
 
       types[type.key] = type;
-      for (final _classJson in json["classes"] as List<dynamic>) {
+      for (final _classJson in json['classes'] as List<dynamic>) {
         final c = ClassConfig.fromJson(_classJson as Map<String, dynamic>);
         _loadItem<ClassConfig>(
           c,
           c.typeConfig.classes,
         );
       }
-      for (final _propertyJson in json["fields"] as List<dynamic>) {
+      for (final _propertyJson in json['fields'] as List<dynamic>) {
         final p = PropertyField.fromJson(_propertyJson as Map<String, dynamic>);
         _loadItem(
           p,
@@ -286,7 +286,7 @@ class RootStore {
       selectedTypeNotifier.value = type;
       return true;
     } catch (e, s) {
-      print("error $e\n$s");
+      print('error $e\n$s');
       _messageEventsController.add(MessageEvent.errorImportingTypes);
       return false;
     }
@@ -415,6 +415,6 @@ enum MessageEvent {
 }
 
 extension MessageEventExtension on MessageEvent {
-  String toEnumString() => toString().split(".")[1];
-  String enumType() => toString().split(".")[0];
+  String toEnumString() => toString().split('.')[1];
+  String enumType() => toString().split('.')[0];
 }

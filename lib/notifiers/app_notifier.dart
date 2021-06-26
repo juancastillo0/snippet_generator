@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart' hide Listenable;
-import 'package:snippet_generator/globals/props_serializable.dart';
-import 'package:snippet_generator/notifiers/rebuilder.dart';
-import 'package:snippet_generator/globals/serializer.dart';
 import 'package:snippet_generator/fields/fields.dart';
+import 'package:snippet_generator/globals/props_serializable.dart';
+import 'package:snippet_generator/globals/serializer.dart';
+import 'package:snippet_generator/notifiers/rebuilder.dart';
 
 class AppNotifier<T>
     with ListenableFromObservable
@@ -26,7 +26,7 @@ class AppNotifier<T>
   set value(T value) {
     runInAction(
       () => observable.value = value,
-      name: "${name}Setter",
+      name: '${name}Setter',
     );
   }
 
@@ -155,7 +155,8 @@ class TextNotifier extends AppNotifier<String> {
     String? name,
     bool? isRequired,
   })  : controller = controller ?? TextEditingController(text: initialText),
-        super(controller?.text ?? initialText ?? '', name: name, isRequired: isRequired) {
+        super(controller?.text ?? initialText ?? '',
+            name: name, isRequired: isRequired) {
     _init();
   }
 

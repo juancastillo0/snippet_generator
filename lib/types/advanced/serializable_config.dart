@@ -16,18 +16,18 @@ class SerializableConfig with PropsSerializable {
     generateFromJson,
   ];
 
-  final staticFunction = AppNotifier(true, name: "staticFunction");
-  final returnString = AppNotifier(false, name: "returnString");
-  final generateToJson = AppNotifier(true, name: "toJson");
-  final generateFromJson = AppNotifier(true, name: "fromJson");
+  final staticFunction = AppNotifier(true, name: 'staticFunction');
+  final returnString = AppNotifier(false, name: 'returnString');
+  final generateToJson = AppNotifier(true, name: 'toJson');
+  final generateFromJson = AppNotifier(true, name: 'fromJson');
 
   final suffix = TextNotifier(
-    initialText: "Json",
-    name: "suffix",
+    initialText: 'Json',
+    name: 'suffix',
   );
 
   final discriminator = TextNotifier(
-    initialText: "runtimeType",
-    name: "discriminator",
+    initialText: 'runtimeType',
+    name: 'discriminator',
   );
 }

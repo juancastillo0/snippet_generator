@@ -94,8 +94,8 @@ TypeOption? parseTypeOption(String rawString, {bool caseSensitive = true}) {
 }
 
 extension TypeOptionExtension on TypeOption {
-  String toEnumString() => toString().split(".")[1];
-  String enumType() => toString().split(".")[0];
+  String toEnumString() => toString().split('.')[1];
+  String enumType() => toString().split('.')[0];
 
   bool get isSome => this == TypeOption.some;
   bool get isNone => this == TypeOption.none;

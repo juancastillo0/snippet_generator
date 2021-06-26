@@ -33,7 +33,7 @@ void main() {
     test('simple', () {
       final _ = WorkingHoursModel.serializerFunc;
       final result = Serializers.fromJson<WorkingHoursModel>(
-          {"dayId": 1, "startHourId": true});
+          {'dayId': 1, 'startHourId': true});
 
       expect(result.dayId, 1);
 

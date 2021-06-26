@@ -173,7 +173,7 @@ class InheModel<T> extends InheritedModelElement<T> {
   final Map<Element, Object?> __dependents = HashMap<Element, Object?>();
 
   Map<Element, Object?> get _dependents {
-    print("__dependents");
+    print('__dependents');
     return __dependents;
   }
 }

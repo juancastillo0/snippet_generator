@@ -20,46 +20,46 @@ abstract class BaseButtonThemeNotifier with PropsSerializable {
 
   late final alignment = AppNotifier.withDefault<Alignment>(
       () => defaultValue.value.alignment as Alignment,
-      name: "alignment");
+      name: 'alignment');
   late final elevation = AppNotifier.withDefault<double>(
       () => defaultValue.value.elevation!.resolve({MaterialState.selected})!,
-      name: "elevation");
+      name: 'elevation');
   late final fixedSize = AppNotifier.withDefault<Size?>(
       () => defaultValue.value.fixedSize?.resolve({MaterialState.selected}),
-      name: "fixedSize");
+      name: 'fixedSize');
   late final minimumSize = AppNotifier.withDefault<Size?>(
       () => defaultValue.value.minimumSize?.resolve({MaterialState.selected}),
-      name: "minimumSize");
+      name: 'minimumSize');
   late final padding = AppNotifier.withDefault<EdgeInsetsGeometry>(
       () => defaultValue.value.padding!.resolve({MaterialState.selected})!
           as EdgeInsets,
-      name: "padding");
+      name: 'padding');
   late final primary = AppNotifier.withDefault<Color>(
       () => type == ButtonType.elevated
           ? defaultValue.value.backgroundColor!
               .resolve({MaterialState.selected})!
           : defaultValue.value.foregroundColor!
               .resolve({MaterialState.selected})!,
-      name: "primary");
+      name: 'primary');
   late final onSurface = AppNotifier.withDefault<Color>(
       () => defaultValue.value.foregroundColor!
           .resolve({MaterialState.selected})!,
-      name: "onSurface");
+      name: 'onSurface');
   late final shadowColor = AppNotifier.withDefault<Color>(
       () => defaultValue.value.shadowColor!.resolve({MaterialState.selected})!,
-      name: "shadowColor");
+      name: 'shadowColor');
   late final side = AppNotifier.withDefault<BorderSide?>(
       () => defaultValue.value.side?.resolve({MaterialState.selected}),
-      name: "side");
+      name: 'side');
   late final visualDensity = AppNotifier.withDefault<VisualDensity>(
       () => defaultValue.value.visualDensity!,
-      name: "visualDensity");
+      name: 'visualDensity');
   late final tapTargetSize = AppNotifier.withDefault<MaterialTapTargetSize>(
       () => defaultValue.value.tapTargetSize!,
-      name: "tapTargetSize");
+      name: 'tapTargetSize');
   late final shape = AppNotifier.withDefault<OutlinedBorder>(
       () => defaultValue.value.shape!.resolve({MaterialState.selected})!,
-      name: "shape");
+      name: 'shape');
 
   Computed<ButtonStyle> get defaultValue;
 
@@ -89,7 +89,7 @@ class TextButtonThemeNotifier extends BaseButtonThemeNotifier {
   late final backgroundColor = AppNotifier.withDefault<Color>(
       () => defaultValue.value.backgroundColor!
           .resolve({MaterialState.selected})!,
-      name: "backgroundColor");
+      name: 'backgroundColor');
   final ThemeStore themeStore;
 
   TextButtonThemeData get value => computed.value;
@@ -160,7 +160,7 @@ class OutlinedButtonThemeNotifier extends BaseButtonThemeNotifier {
   late final backgroundColor = AppNotifier.withDefault<Color>(
       () => defaultValue.value.backgroundColor!
           .resolve({MaterialState.selected})!,
-      name: "backgroundColor");
+      name: 'backgroundColor');
   final ThemeStore themeStore;
 
   OutlinedButtonThemeData get value => computed.value;
@@ -234,7 +234,7 @@ class ElevatedButtonThemeNotifier extends BaseButtonThemeNotifier {
   late final onPrimary = AppNotifier.withDefault<Color>(
       () => defaultValue.value.foregroundColor!
           .resolve({MaterialState.selected})!,
-      name: "onPrimary");
+      name: 'onPrimary');
   final ThemeStore themeStore;
 
   ElevatedButtonThemeData get value => computed.value;

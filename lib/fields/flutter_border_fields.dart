@@ -19,7 +19,7 @@ class BorderSideInput extends HookWidget {
     final value = notifier.value ?? const BorderSide();
     final style = useMemoized(
       () => PropClass.fromNotifier(
-        "style",
+        'style',
         ValueNotifier(BorderStyle.solid),
       ),
     );
@@ -28,7 +28,7 @@ class BorderSideInput extends HookWidget {
       label: notifier.name,
       children: [
         DoubleInput(
-          label: "width",
+          label: 'width',
           onChanged: (newWidth) {
             if (newWidth != null) {
               notifier.set(value.copyWith(width: newWidth));
@@ -38,7 +38,7 @@ class BorderSideInput extends HookWidget {
         ),
         const SizedBox(height: 10),
         ColorFieldRow(
-          name: "color",
+          name: 'color',
           width: 60,
           onChanged: (color) {
             notifier.set(value.copyWith(color: color));
@@ -74,7 +74,7 @@ class BorderRadiusInput extends HookWidget {
           children: [
             Expanded(
               child: DoubleInput(
-                label: "topLeft",
+                label: 'topLeft',
                 value: value.topLeft.x,
                 onChanged: (v) {
                   set(value.copyWith(topLeft: Radius.circular(v ?? 0)));
@@ -84,7 +84,7 @@ class BorderRadiusInput extends HookWidget {
             const SizedBox(width: 15),
             Expanded(
               child: DoubleInput(
-                label: "top",
+                label: 'top',
                 value: value.hasTop ? value.topLeft.x : null,
                 onChanged: (v) {
                   if (v != null) {
@@ -97,7 +97,7 @@ class BorderRadiusInput extends HookWidget {
             const SizedBox(width: 15),
             Expanded(
               child: DoubleInput(
-                label: "topRight",
+                label: 'topRight',
                 value: value.topRight.x,
                 onChanged: (v) {
                   set(value.copyWith(topRight: Radius.circular(v ?? 0)));
@@ -110,7 +110,7 @@ class BorderRadiusInput extends HookWidget {
           children: [
             Expanded(
               child: DoubleInput(
-                label: "left",
+                label: 'left',
                 value: value.bottomLeft.x,
                 onChanged: (v) {
                   if (v != null) {
@@ -123,7 +123,7 @@ class BorderRadiusInput extends HookWidget {
             const SizedBox(width: 15),
             Expanded(
               child: DoubleInput(
-                label: "all",
+                label: 'all',
                 value: value.hasAll ? value.topLeft.x : null,
                 onChanged: (v) {
                   if (v != null) {
@@ -136,7 +136,7 @@ class BorderRadiusInput extends HookWidget {
             const SizedBox(width: 15),
             Expanded(
               child: DoubleInput(
-                label: "right",
+                label: 'right',
                 value: value.hasRight ? value.topRight.x : null,
                 onChanged: (v) {
                   if (v != null) {
@@ -152,7 +152,7 @@ class BorderRadiusInput extends HookWidget {
           children: [
             Expanded(
               child: DoubleInput(
-                label: "bottomLeft",
+                label: 'bottomLeft',
                 value: value.bottomLeft.x,
                 onChanged: (v) {
                   set(value.copyWith(bottomLeft: Radius.circular(v ?? 0)));
@@ -162,7 +162,7 @@ class BorderRadiusInput extends HookWidget {
             const SizedBox(width: 15),
             Expanded(
               child: DoubleInput(
-                label: "bottom",
+                label: 'bottom',
                 value: value.hasBottom ? value.bottomLeft.x : null,
                 onChanged: (v) {
                   if (v != null) {
@@ -175,7 +175,7 @@ class BorderRadiusInput extends HookWidget {
             const SizedBox(width: 15),
             Expanded(
               child: DoubleInput(
-                label: "bottomRight",
+                label: 'bottomRight',
                 value: value.bottomRight.x,
                 onChanged: (v) {
                   set(value.copyWith(bottomRight: Radius.circular(v ?? 0)));
@@ -228,14 +228,14 @@ class InputBorderInput extends HookWidget {
     }
 
     type = usePropClass<InputBorderType?>(
-      "type",
+      'type',
       value is OutlineInputBorder
           ? InputBorderType.outline
           : InputBorderType.underline,
       _onChange,
     );
-    borderRadius = usePropClass("borderRadius", null, _onChange);
-    borderSide = usePropClass<BorderSide?>("borderSide", null, _onChange);
+    borderRadius = usePropClass('borderRadius', null, _onChange);
+    borderSide = usePropClass<BorderSide?>('borderSide', null, _onChange);
 
     return DefaultCardInput(
       label: notifier.name,
@@ -247,7 +247,7 @@ class InputBorderInput extends HookWidget {
         ),
         if (value is OutlineInputBorder)
           DoubleInput(
-            label: "gapPadding",
+            label: 'gapPadding',
             onChanged: (v) {
               notifier.set(value.copyWith(gapPadding: v));
             },

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
-import 'package:snippet_generator/notifiers/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/globals/props_serializable.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
+import 'package:snippet_generator/notifiers/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/themes/button_themes.dart';
 import 'package:snippet_generator/themes/input_theme.dart';
 import 'package:snippet_generator/themes/text_themes.dart';
@@ -13,13 +13,13 @@ int _themeCount = 0;
 class ThemesStore with PropsSerializable {
   ThemesStore({required this.name});
 
-  final isUsingDarkTheme = AppNotifier(false, name: "isUsingDarkTheme");
-  final themes = ListNotifier([ThemeCouple()], propKey: "themes");
+  final isUsingDarkTheme = AppNotifier(false, name: 'isUsingDarkTheme');
+  final themes = ListNotifier([ThemeCouple()], propKey: 'themes');
 
   final debugShowMaterialGrid =
-      AppNotifier(false, name: "debugShowMaterialGrid");
+      AppNotifier(false, name: 'debugShowMaterialGrid');
   final showSemanticsDebugger =
-      AppNotifier(false, name: "showSemanticsDebugger");
+      AppNotifier(false, name: 'showSemanticsDebugger');
 
   @override
   final String name;
@@ -34,12 +34,12 @@ class ThemesStore with PropsSerializable {
 }
 
 class ThemeCouple with ItemsSerializable {
-  final light = ThemeStore(brightness: Brightness.light, name: "light");
-  final dark = ThemeStore(brightness: Brightness.dark, name: "light");
+  final light = ThemeStore(brightness: Brightness.light, name: 'light');
+  final dark = ThemeStore(brightness: Brightness.dark, name: 'light');
 
   final TextNotifier name = TextNotifier(
-    initialText: "unnamed${_themeCount++}",
-    name: "name",
+    initialText: 'unnamed${_themeCount++}',
+    name: 'name',
   );
 
   @override
@@ -64,7 +64,7 @@ class ThemeStore with PropsSerializable {
           brightness == Brightness.dark
               ? _defaultDarkTheme.colorScheme
               : _defaultTheme.colorScheme,
-          name: "colorScheme",
+          name: 'colorScheme',
         ) {
     if (brightness == Brightness.dark) {
       runInAction(() {
@@ -88,98 +88,98 @@ class ThemeStore with PropsSerializable {
   // COLORS
 
   final primaryColor =
-      AppNotifier<Color>(_defaultTheme.primaryColor, name: "primaryColor");
+      AppNotifier<Color>(_defaultTheme.primaryColor, name: 'primaryColor');
   final accentColor =
-      AppNotifier<Color>(_defaultTheme.accentColor, name: "accentColor");
+      AppNotifier<Color>(_defaultTheme.accentColor, name: 'accentColor');
   final primaryColorLight = AppNotifier<Color>(_defaultTheme.primaryColorLight,
-      name: "primaryColorLight");
+      name: 'primaryColorLight');
   final primaryColorDark = AppNotifier<Color>(_defaultTheme.primaryColorDark,
-      name: "primaryColorDark");
+      name: 'primaryColorDark');
 
   final canvasColor =
-      AppNotifier<Color>(_defaultTheme.canvasColor, name: "canvasColor");
+      AppNotifier<Color>(_defaultTheme.canvasColor, name: 'canvasColor');
   final scaffoldBackgroundColor = AppNotifier<Color>(
       _defaultTheme.scaffoldBackgroundColor,
-      name: "scaffoldBackgroundColor");
+      name: 'scaffoldBackgroundColor');
   final cardColor =
-      AppNotifier<Color>(_defaultTheme.cardColor, name: "cardColor");
+      AppNotifier<Color>(_defaultTheme.cardColor, name: 'cardColor');
   final buttonColor =
-      AppNotifier<Color>(_defaultTheme.buttonColor, name: "buttonColor");
+      AppNotifier<Color>(_defaultTheme.buttonColor, name: 'buttonColor');
   final backgroundColor = AppNotifier<Color>(_defaultTheme.backgroundColor,
-      name: "backgroundColor");
+      name: 'backgroundColor');
   final errorColor =
-      AppNotifier<Color>(_defaultTheme.errorColor, name: "errorColor");
+      AppNotifier<Color>(_defaultTheme.errorColor, name: 'errorColor');
   final toggleableActiveColor = AppNotifier<Color>(
       _defaultTheme.toggleableActiveColor,
-      name: "toggleableActiveColor");
+      name: 'toggleableActiveColor');
   final dialogBackgroundColor = AppNotifier<Color>(
       _defaultTheme.dialogBackgroundColor,
-      name: "dialogBackgroundColor");
+      name: 'dialogBackgroundColor');
   final shadowColor =
-      AppNotifier<Color>(_defaultTheme.shadowColor, name: "shadowColor");
-  final hintColor = AppNotifier<Color>(_defaultTheme.hintColor, name: "hintColor");
-  final focusColor = AppNotifier<Color>(_defaultTheme.focusColor, name: "focusColor");
-  final hoverColor = AppNotifier<Color>(_defaultTheme.hoverColor, name: "hoverColor");
-  final splashColor = AppNotifier<Color>(_defaultTheme.splashColor, name: "splashColor");
-  final disabledColor = AppNotifier<Color>(_defaultTheme.disabledColor, name: "disabledColor");
-  final highlightColor = AppNotifier<Color>(_defaultTheme.highlightColor, name: "highlightColor");
-  final indicatorColor = AppNotifier<Color>(_defaultTheme.indicatorColor, name: "indicatorColor");
-  final selectedRowColor = AppNotifier<Color>(_defaultTheme.selectedRowColor, name: "selectedRowColor");
-  final unselectedWidgetColor = AppNotifier<Color>(_defaultTheme.unselectedWidgetColor, name: "unselectedWidgetColor");
+      AppNotifier<Color>(_defaultTheme.shadowColor, name: 'shadowColor');
+  final hintColor = AppNotifier<Color>(_defaultTheme.hintColor, name: 'hintColor');
+  final focusColor = AppNotifier<Color>(_defaultTheme.focusColor, name: 'focusColor');
+  final hoverColor = AppNotifier<Color>(_defaultTheme.hoverColor, name: 'hoverColor');
+  final splashColor = AppNotifier<Color>(_defaultTheme.splashColor, name: 'splashColor');
+  final disabledColor = AppNotifier<Color>(_defaultTheme.disabledColor, name: 'disabledColor');
+  final highlightColor = AppNotifier<Color>(_defaultTheme.highlightColor, name: 'highlightColor');
+  final indicatorColor = AppNotifier<Color>(_defaultTheme.indicatorColor, name: 'indicatorColor');
+  final selectedRowColor = AppNotifier<Color>(_defaultTheme.selectedRowColor, name: 'selectedRowColor');
+  final unselectedWidgetColor = AppNotifier<Color>(_defaultTheme.unselectedWidgetColor, name: 'unselectedWidgetColor');
 
   final materialTapTargetSize = AppNotifier<MaterialTapTargetSize>(
       _defaultTheme.materialTapTargetSize,
-      name: "materialTapTargetSize");
+      name: 'materialTapTargetSize');
   final visualDensity = AppNotifier<VisualDensity>(_defaultTheme.visualDensity,
-      name: "visualDensity");
+      name: 'visualDensity');
 
   final ColorSchemeNotifier colorScheme;
 
   final textTheme =
-      AppNotifier<TextTheme>(_defaultTheme.textTheme, name: "textTheme");
+      AppNotifier<TextTheme>(_defaultTheme.textTheme, name: 'textTheme');
 
   final textThemeNotifier = TextThemeNotifier();
 
   final inputDecorationTheme = InputDecorationThemeNotifier(
       _defaultTheme.inputDecorationTheme,
-      name: "inputDecorationTheme");
+      name: 'inputDecorationTheme');
   final iconTheme =
-      AppNotifier<IconThemeData>(_defaultTheme.iconTheme, name: "iconTheme");
+      AppNotifier<IconThemeData>(_defaultTheme.iconTheme, name: 'iconTheme');
   late final tooltipTheme = TooltipThemeNotifier(this,
-      name: "tooltipTheme");
+      name: 'tooltipTheme');
   final cardTheme =
-      AppNotifier<CardTheme>(_defaultTheme.cardTheme, name: "cardTheme");
+      AppNotifier<CardTheme>(_defaultTheme.cardTheme, name: 'cardTheme');
   final scrollbarTheme = AppNotifier<ScrollbarThemeData>(
       _defaultTheme.scrollbarTheme,
-      name: "scrollbarTheme");
-  late final dialogTheme = DialogThemeNotifier(this, "dialogTheme");
+      name: 'scrollbarTheme');
+  late final dialogTheme = DialogThemeNotifier(this, 'dialogTheme');
   final typography =
-      AppNotifier<Typography>(_defaultTheme.typography, name: "typography");
+      AppNotifier<Typography>(_defaultTheme.typography, name: 'typography');
   final snackBarTheme = AppNotifier<SnackBarThemeData>(
       _defaultTheme.snackBarTheme,
-      name: "snackBarTheme");
+      name: 'snackBarTheme');
   final bottomSheetTheme = AppNotifier<BottomSheetThemeData>(
       _defaultTheme.bottomSheetTheme,
-      name: "bottomSheetTheme");
+      name: 'bottomSheetTheme');
   late final textButtonTheme =
-      TextButtonThemeNotifier(name: "textButtonTheme", themeStore: this);
+      TextButtonThemeNotifier(name: 'textButtonTheme', themeStore: this);
   late final elevatedButtonTheme = ElevatedButtonThemeNotifier(
-      name: "elevatedButtonTheme", themeStore: this);
+      name: 'elevatedButtonTheme', themeStore: this);
   late final outlinedButtonTheme = OutlinedButtonThemeNotifier(
-      name: "outlinedButtonTheme", themeStore: this);
+      name: 'outlinedButtonTheme', themeStore: this);
   final textSelectionTheme = AppNotifier<TextSelectionThemeData>(
       _defaultTheme.textSelectionTheme,
-      name: "textSelectionTheme");
+      name: 'textSelectionTheme');
   final dataTableTheme = AppNotifier<DataTableThemeData>(
       _defaultTheme.dataTableTheme,
-      name: "dataTableTheme");
+      name: 'dataTableTheme');
   final checkboxTheme = AppNotifier<CheckboxThemeData>(
       _defaultTheme.checkboxTheme,
-      name: "checkboxTheme");
+      name: 'checkboxTheme');
   final radioTheme =
-      AppNotifier<RadioThemeData>(_defaultTheme.radioTheme, name: "radioTheme");
+      AppNotifier<RadioThemeData>(_defaultTheme.radioTheme, name: 'radioTheme');
   final switchTheme = AppNotifier<SwitchThemeData>(_defaultTheme.switchTheme,
-      name: "switchTheme");
+      name: 'switchTheme');
 
   late final themeData = Computed<ThemeData>(() {
     return ThemeData(
@@ -288,26 +288,26 @@ class ColorSchemeNotifier with PropsSerializable {
   final Brightness brightness;
 
   ColorSchemeNotifier(this.brightness, ColorScheme value, {required this.name})
-      : primaryNotifier = AppNotifier<Color>(value.primary, name: "primary"),
+      : primaryNotifier = AppNotifier<Color>(value.primary, name: 'primary'),
         primaryVariantNotifier =
-            AppNotifier<Color>(value.primaryVariant, name: "primaryVariant"),
+            AppNotifier<Color>(value.primaryVariant, name: 'primaryVariant'),
         secondaryNotifier =
-            AppNotifier<Color>(value.secondary, name: "secondary"),
+            AppNotifier<Color>(value.secondary, name: 'secondary'),
         secondaryVariantNotifier = AppNotifier<Color>(value.secondaryVariant,
-            name: "secondaryVariant"),
-        surfaceNotifier = AppNotifier<Color>(value.surface, name: "surface"),
+            name: 'secondaryVariant'),
+        surfaceNotifier = AppNotifier<Color>(value.surface, name: 'surface'),
         backgroundNotifier =
-            AppNotifier<Color>(value.background, name: "background"),
-        errorNotifier = AppNotifier<Color>(value.error, name: "error"),
+            AppNotifier<Color>(value.background, name: 'background'),
+        errorNotifier = AppNotifier<Color>(value.error, name: 'error'),
         onPrimaryNotifier =
-            AppNotifier<Color>(value.onPrimary, name: "onPrimary"),
+            AppNotifier<Color>(value.onPrimary, name: 'onPrimary'),
         onSecondaryNotifier =
-            AppNotifier<Color>(value.onSecondary, name: "onSecondary"),
+            AppNotifier<Color>(value.onSecondary, name: 'onSecondary'),
         onSurfaceNotifier =
-            AppNotifier<Color>(value.onSurface, name: "onSurface"),
+            AppNotifier<Color>(value.onSurface, name: 'onSurface'),
         onBackgroundNotifier =
-            AppNotifier<Color>(value.onBackground, name: "onBackground"),
-        onErrorNotifier = AppNotifier<Color>(value.onError, name: "onError");
+            AppNotifier<Color>(value.onBackground, name: 'onBackground'),
+        onErrorNotifier = AppNotifier<Color>(value.onError, name: 'onError');
 
   @override
   late final List<AppNotifier<Color>> props = [
@@ -391,21 +391,21 @@ class DialogThemeNotifier with PropsSerializable {
 
   late final AppNotifierWithDefault<Color> backgroundColor =
       AppNotifier.withDefault(() => themeStore.dialogBackgroundColor.value,
-          name: "backgroundColor");
+          name: 'backgroundColor');
   final elevation =
-      AppNotifier.withDefault<double>(() => 24.0, name: "elevation");
+      AppNotifier.withDefault<double>(() => 24.0, name: 'elevation');
   late final AppNotifierWithDefault<ShapeBorder> shape =
       AppNotifier.withDefault(
           () => const RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(4.0)),
               ),
-          name: "shape");
+          name: 'shape');
   late final AppNotifierWithDefault<TextStyle> titleTextStyle =
       AppNotifier.withDefault(() => themeStore.textTheme.value.headline6!,
-          name: "titleTextStyle");
+          name: 'titleTextStyle');
   late final contentTextStyle = TextStyleNotifier(themeStore.textThemeNotifier,
       defaultStyle: () => themeStore.textTheme.value.subtitle1!,
-      name: "contentTextStyle");
+      name: 'contentTextStyle');
 
   DialogTheme get value => computedValue.value;
 

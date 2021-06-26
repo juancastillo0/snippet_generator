@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/parsers/views/components_widget_store.dart';
+import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/utils/theme.dart';
 import 'package:snippet_generator/widgets/context_menu_portal.dart';
@@ -59,11 +59,11 @@ class ParsersView extends HookWidget {
               TextButton(
                 onPressed: store.addComponentWidget,
                 style: menuStyle(context),
-                child: const Text("ADD"),
+                child: const Text('ADD'),
               ),
               const Padding(
                 padding: EdgeInsets.only(left: 12.0, right: 8.0),
-                child: Center(child: Text("Theme")),
+                child: Center(child: Text('Theme')),
               ),
               Observer(
                 builder: (context) => DropdownButton<int>(
@@ -88,7 +88,7 @@ class ParsersView extends HookWidget {
               const SizedBox(width: 12),
               RowBoolField(
                 notifier: store.useDarkTheme,
-                label: "Dark",
+                label: 'Dark',
               ),
             ],
           ),
@@ -121,7 +121,7 @@ class ComponentWidgetTab extends HookWidget {
       options: [
         TextButton(
           onPressed: onDelete,
-          child: const Text("delete"),
+          child: const Text('delete'),
         )
       ],
       onClose: () {
@@ -182,7 +182,7 @@ class _ParsersViewBody extends HookWidget {
                             selected.tokenParsedParams,
                             componentWidget.controller,
                           )
-                        : const Center(child: Text("No widget"));
+                        : const Center(child: Text('No widget'));
                   },
                 ),
               ),
@@ -210,7 +210,7 @@ class _ParsersViewBody extends HookWidget {
               final themeCouple =
                   rootStore.themesStore.themes[store.selectedThemeIndex.value];
               return MaterialApp(
-                title: "Snippet Generator",
+                title: 'Snippet Generator',
                 theme: themeCouple.light.themeData.value,
                 darkTheme: themeCouple.dark.themeData.value,
                 debugShowCheckedModeBanner: false,
@@ -247,17 +247,17 @@ class ParsedWidgetView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("ddw1");
+    print('ddw1');
     return Observer(
       builder: (context) {
         final result = componentWidget.parsedWidget;
-        print("ddw2");
+        print('ddw2');
         return result.isSuccess
             ? Column(
                 children: [
                   ElevatedButton(
                     onPressed: () {},
-                    child: const Text("dwd"),
+                    child: const Text('dwd'),
                   ),
                   Expanded(
                     child: Center(
@@ -270,7 +270,7 @@ class ParsedWidgetView extends StatelessWidget {
               )
             : Center(
                 child: Text(
-                  "Invalid text:\n$result",
+                  'Invalid text:\n$result',
                   textAlign: TextAlign.center,
                 ),
               );

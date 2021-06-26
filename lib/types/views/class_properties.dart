@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:snippet_generator/types/json_type.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/notifiers/computed_notifier.dart';
-import 'package:snippet_generator/utils/extensions.dart';
-import 'package:snippet_generator/utils/formatters.dart';
 import 'package:snippet_generator/notifiers/rebuilder.dart';
+import 'package:snippet_generator/types/json_type.dart';
 import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/types/type_models.dart';
+import 'package:snippet_generator/utils/extensions.dart';
+import 'package:snippet_generator/utils/formatters.dart';
 import 'package:snippet_generator/utils/theme.dart';
 import 'package:snippet_generator/widgets/context_menu_portal.dart';
 import 'package:snippet_generator/widgets/row_fields.dart';
@@ -42,7 +42,7 @@ class ClassPropertiesTable extends HookWidget {
                           children: [
                             RowTextField(
                               controller: data.nameNotifier.controller,
-                              label: "Class Name",
+                              label: 'Class Name',
                             ),
                             const Spacer(),
                             ElevatedButton.icon(
@@ -50,16 +50,16 @@ class ClassPropertiesTable extends HookWidget {
                                   data.typeConfig.classes.remove(data),
                               style: elevatedStyle(context),
                               icon: const Icon(Icons.delete),
-                              label: const Text("Remove Class"),
+                              label: const Text('Remove Class'),
                             )
                           ],
                         ),
                       )
                     : const SizedBox(),
-                key: const Key("header"),
+                key: const Key('header'),
               ),
               ConstrainedBox(
-                key: const Key("table"),
+                key: const Key('table'),
                 constraints: const BoxConstraints(maxHeight: 300),
                 child: SingleChildScrollView(
                   child: SingleChildScrollView(
@@ -93,7 +93,7 @@ class ClassPropertiesTable extends HookWidget {
                                 ),
                               ),
                               const DataColumn(
-                                tooltip: "Required",
+                                tooltip: 'Required',
                                 label: Text('Req.'),
                               ),
                               const DataColumn(
@@ -128,13 +128,13 @@ class ClassPropertiesTable extends HookWidget {
               ),
               const SizedBox(height: 9),
               Row(
-                key: const Key("footer"),
+                key: const Key('footer'),
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   if (hasProperties)
                     RowBoolField(
                       notifier: data.isReorderingNotifier,
-                      label: "Reorder",
+                      label: 'Reorder',
                     )
                   else
                     const SizedBox(width: 110),
@@ -142,7 +142,7 @@ class ClassPropertiesTable extends HookWidget {
                     onPressed: data.addProperty,
                     style: elevatedStyle(context),
                     icon: const Icon(Icons.add),
-                    label: const Text("Add Field"),
+                    label: const Text('Add Field'),
                   ),
                   SizedBox(
                     width: 110,
@@ -157,7 +157,7 @@ class ClassPropertiesTable extends HookWidget {
                           },
                         );
                       },
-                      child: const Text("Import Raw"),
+                      child: const Text('Import Raw'),
                     ),
                   ),
                 ],
@@ -175,12 +175,12 @@ class ClassPropertiesTable extends HookWidget {
     return [
       if (data.isReordering)
         Center(
-          key: const Key("reorder"),
+          key: const Key('reorder'),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               InkWell(
-                key: Key("t$index"),
+                key: Key('t$index'),
                 onTap: index != 0
                     ? () {
                         data.properties.syncTransaction(() {
@@ -196,7 +196,7 @@ class ClassPropertiesTable extends HookWidget {
                 ),
               ),
               InkWell(
-                key: Key("b$index"),
+                key: Key('b$index'),
                 onTap: index != data.properties.length - 1
                     ? () {
                         data.properties.syncTransaction(() {
@@ -217,12 +217,12 @@ class ClassPropertiesTable extends HookWidget {
           ),
         ),
       TextField(
-        key: const Key("name"),
+        key: const Key('name'),
         controller: property.nameNotifier.controller,
         inputFormatters: Formatters.variableName,
       ),
       AnimatedBuilder(
-        key: const Key("type"),
+        key: const Key('type'),
         animation: Listenable.merge(
           [typeNotifier.textNotifier, typeNotifier.focusNode],
         ),
@@ -259,7 +259,7 @@ class ClassPropertiesTable extends HookWidget {
         },
       ),
       Center(
-        key: const Key("required"),
+        key: const Key('required'),
         child: property.isRequiredNotifier.rebuild(
           (isRequired) => Checkbox(
             value: isRequired,
@@ -271,7 +271,7 @@ class ClassPropertiesTable extends HookWidget {
         ),
       ),
       Center(
-        key: const Key("positional"),
+        key: const Key('positional'),
         child: property.isPositionalNotifier.rebuild(
           (isPositional) => Checkbox(
             value: isPositional,
@@ -283,7 +283,7 @@ class ClassPropertiesTable extends HookWidget {
         ),
       ),
       Builder(
-        key: const Key("more"),
+        key: const Key('more'),
         builder: (context) {
           return _MoreOptions(
             data: data,
@@ -319,7 +319,7 @@ class RawImportField extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Raw Import", style: context.textTheme.headline5),
+              Text('Raw Import', style: context.textTheme.headline5),
               IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: close,
@@ -338,8 +338,8 @@ class RawImportField extends StatelessWidget {
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       helperText:
-                          "Line or coma separated field descriptions, e.g:"
-                          "\n• String name\n• req int count,\n• isAvailable : bool",
+                          'Line or coma separated field descriptions, e.g:'
+                          '\n• String name\n• req int count,\n• isAvailable : bool',
                     ),
                     expands: true,
                     minLines: null,
@@ -358,14 +358,14 @@ class RawImportField extends StatelessWidget {
                             listResult.value.any((f) => f.isRequired);
                         return Column(
                           children: [
-                            Text("Fields", style: context.textTheme.headline6),
+                            Text('Fields', style: context.textTheme.headline6),
                             const SizedBox(height: 5),
                             Expanded(
                               child: ListView(
                                 children: [
                                   ...listResult.value.map(
                                     (e) => SelectableText(
-                                      "${e.type} ${e.name} ${e.isRequired}",
+                                      '${e.type} ${e.name} ${e.isRequired}',
                                     ),
                                   )
                                 ],
@@ -377,7 +377,7 @@ class RawImportField extends StatelessWidget {
                                 if (!atLeastOneRequired)
                                   RowBoolField(
                                     notifier: allRequired,
-                                    label: "All Required",
+                                    label: 'All Required',
                                   )
                                 else
                                   const SizedBox(),
@@ -394,7 +394,7 @@ class RawImportField extends StatelessWidget {
                                     }
                                     close();
                                   },
-                                  child: const Text("Import"),
+                                  child: const Text('Import'),
                                 ),
                               ],
                             )
@@ -403,7 +403,7 @@ class RawImportField extends StatelessWidget {
                       } else {
                         return Center(
                           child: Text(
-                            "Wrong input\n" + listResult.toString(),
+                            'Wrong input\n' + listResult.toString(),
                           ),
                         );
                       }
@@ -441,7 +441,7 @@ class _MoreOptions extends HookWidget {
           },
           style: menuStyle(context),
           icon: const Icon(Icons.delete),
-          label: const Text("Remove Field"),
+          label: const Text('Remove Field'),
         )
       ],
       width: 170,

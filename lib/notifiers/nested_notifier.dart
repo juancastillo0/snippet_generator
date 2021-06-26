@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:snippet_generator/notifiers/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/globals/models.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
+import 'package:snippet_generator/notifiers/collection_notifier/collection_notifier.dart';
 
 class NestedNotifier extends ChangeNotifier {
   final _notifiers = <AppNotifier>[];

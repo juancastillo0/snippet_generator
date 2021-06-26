@@ -263,18 +263,18 @@ abstract class SqlType {
   TypeSqlType get typeEnum;
 
   static SqlType fromJson(Map<String, dynamic> map) {
-    switch (map["runtimeType"] as String) {
-      case "date":
+    switch (map['runtimeType'] as String) {
+      case 'date':
         return SqlTypeDate.fromJson(map);
-      case "string":
+      case 'string':
         return SqlTypeString.fromJson(map);
-      case "enumeration":
+      case 'enumeration':
         return SqlTypeEnumeration.fromJson(map);
-      case "integer":
+      case 'integer':
         return SqlTypeInteger.fromJson(map);
-      case "decimal":
+      case 'decimal':
         return SqlTypeDecimal.fromJson(map);
-      case "json":
+      case 'json':
         return SqlTypeJson.fromJson(map);
       default:
         throw Exception(
@@ -308,8 +308,8 @@ TypeSqlType? parseTypeSqlType(String rawString, {bool caseSensitive = true}) {
 }
 
 extension TypeSqlTypeExtension on TypeSqlType {
-  String toEnumString() => toString().split(".")[1];
-  String enumType() => toString().split(".")[0];
+  String toEnumString() => toString().split('.')[1];
+  String enumType() => toString().split('.')[0];
 
   bool get isDate => this == TypeSqlType.date;
   bool get isString => this == TypeSqlType.string;
@@ -402,9 +402,9 @@ class SqlTypeDate extends SqlType {
   @override
   Map<String, dynamic> toJson() {
     return {
-      "runtimeType": "date",
-      "type": type.toEnumString(),
-      "fractionalSeconds": fractionalSeconds,
+      'runtimeType': 'date',
+      'type': type.toEnumString(),
+      'fractionalSeconds': fractionalSeconds,
     };
   }
 
@@ -449,11 +449,11 @@ class SqlTypeString extends SqlType {
   @override
   Map<String, dynamic> toJson() {
     return {
-      "runtimeType": "string",
-      "variableSize": variableSize,
-      "binary": binary,
-      "size": size,
-      "characterSet": characterSet,
+      'runtimeType': 'string',
+      'variableSize': variableSize,
+      'binary': binary,
+      'size': size,
+      'characterSet': characterSet,
     };
   }
 
@@ -498,10 +498,10 @@ class SqlTypeEnumeration extends SqlType {
   @override
   Map<String, dynamic> toJson() {
     return {
-      "runtimeType": "enumeration",
-      "variants": variants.map((e) => e).toList(),
-      "allowMultipleValues": allowMultipleValues,
-      "characterSet": characterSet,
+      'runtimeType': 'enumeration',
+      'variants': variants.map((e) => e).toList(),
+      'allowMultipleValues': allowMultipleValues,
+      'characterSet': characterSet,
     };
   }
 
@@ -544,10 +544,10 @@ class SqlTypeInteger extends SqlType {
   @override
   Map<String, dynamic> toJson() {
     return {
-      "runtimeType": "integer",
-      "bytes": bytes,
-      "unsigned": unsigned,
-      "zerofill": zerofill,
+      'runtimeType': 'integer',
+      'bytes': bytes,
+      'unsigned': unsigned,
+      'zerofill': zerofill,
     };
   }
 
@@ -617,12 +617,12 @@ class SqlTypeDecimal extends SqlType {
   @override
   Map<String, dynamic> toJson() {
     return {
-      "runtimeType": "decimal",
-      "digitsTotal": digitsTotal,
-      "digitsDecimal": digitsDecimal,
-      "unsigned": unsigned,
-      "zerofill": zerofill,
-      "type": type.toEnumString(),
+      'runtimeType': 'decimal',
+      'digitsTotal': digitsTotal,
+      'digitsDecimal': digitsDecimal,
+      'unsigned': unsigned,
+      'zerofill': zerofill,
+      'type': type.toEnumString(),
     };
   }
 
@@ -672,7 +672,7 @@ class SqlTypeJson extends SqlType {
   @override
   Map<String, dynamic> toJson() {
     return {
-      "runtimeType": "json",
+      'runtimeType': 'json',
     };
   }
 }

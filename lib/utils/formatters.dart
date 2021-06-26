@@ -1,7 +1,7 @@
 // ignore_for_file: unnecessary_raw_strings
 import 'package:flutter/services.dart';
 
-final _variableNameRegex = RegExp(r"^[a-zA-Z_][a-zA-Z_0-9]*");
+final _variableNameRegex = RegExp(r'^[a-zA-Z_][a-zA-Z_0-9]*');
 
 class Formatters {
   const Formatters._();
@@ -12,7 +12,7 @@ class Formatters {
     TextInputFormatter.withFunction((oldValue, newValue) {
       final m = _variableNameRegex.firstMatch(newValue.text);
       return m != null || newValue.text.isEmpty
-          ? newValue.copyWith(text: m?.group(0) ?? "")
+          ? newValue.copyWith(text: m?.group(0) ?? '')
           : oldValue;
     })
   ];
@@ -20,26 +20,25 @@ class Formatters {
   // SPACES
 
   static final onlySpaceWhitespace =
-      FilteringTextInputFormatter.deny(RegExp(r"(\s)"), replacementString: " ");
+      FilteringTextInputFormatter.deny(RegExp(r'(\s)'), replacementString: ' ');
   static final noWhitespaces =
-      FilteringTextInputFormatter.deny(RegExp(r"(\s)"));
+      FilteringTextInputFormatter.deny(RegExp(r'(\s)'));
   static final noDoubleSpace = FilteringTextInputFormatter.deny(
-      RegExp(r"[ ]{2,}"),
-      replacementString: " ");
+      RegExp(r'[ ]{2,}'),
+      replacementString: ' ');
   static final noStartWhitespaces =
-      FilteringTextInputFormatter.allow(RegExp(r"^\S[\s\S]*"));
+      FilteringTextInputFormatter.allow(RegExp(r'^\S[\s\S]*'));
 
   // NUMBERS
   static final noStartNumber =
-      FilteringTextInputFormatter.allow(RegExp(r"^[^0-9][\s\S]*"));
-  static final onlyDigits =
-      FilteringTextInputFormatter.allow(RegExp(r"[0-9]"));
+      FilteringTextInputFormatter.allow(RegExp(r'^[^0-9][\s\S]*'));
+  static final onlyDigits = FilteringTextInputFormatter.allow(RegExp(r'[0-9]'));
   static final onlyDigitsOrSpace =
-      FilteringTextInputFormatter.allow(RegExp(r"[0-9 ]"));
+      FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]'));
   static final onlyQuantities =
-      FilteringTextInputFormatter.allow(RegExp(r"[1-9][0-9]*"));
+      FilteringTextInputFormatter.allow(RegExp(r'[1-9][0-9]*'));
   static final onlyDigitsOrDecimal =
-      FilteringTextInputFormatter.allow(RegExp(r"[\.0-9]"));
+      FilteringTextInputFormatter.allow(RegExp(r'[\.0-9]'));
 
   static CustomFormatter onlyDigitsCustom({
     int minLenght = 0,

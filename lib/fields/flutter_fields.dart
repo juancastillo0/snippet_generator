@@ -53,7 +53,7 @@ class AlignmentInput extends HookWidget {
                 Expanded(
                   child: TextField(
                     controller: controllerL,
-                    decoration: const InputDecoration(labelText: "delta x"),
+                    decoration: const InputDecoration(labelText: 'delta x'),
                     onChanged: (String dx) {
                       final dxNum = double.tryParse(dx);
                       if (dxNum != null) {
@@ -66,7 +66,7 @@ class AlignmentInput extends HookWidget {
                 Expanded(
                   child: TextField(
                     controller: controllerR,
-                    decoration: const InputDecoration(labelText: "delta y"),
+                    decoration: const InputDecoration(labelText: 'delta y'),
                     onChanged: (String dy) {
                       final dyNum = double.tryParse(dy);
                       if (dyNum != null) {
@@ -84,7 +84,7 @@ class AlignmentInput extends HookWidget {
                     (e) => DropdownMenuItem(
                       value: e,
                       key: ValueKey(e),
-                      child: Text(e.toString().split(".")[1]),
+                      child: Text(e.toString().split('.')[1]),
                     ),
                   )
                   .toList(),
@@ -146,7 +146,7 @@ class PaddingInput extends HookWidget {
               children: [
                 Expanded(
                   child: DoubleInput(
-                    label: "horizontal",
+                    label: 'horizontal',
                     value: value.hasHorizontal ? value.left : null,
                     onChanged: (v) {
                       set(value.copyWith(left: v, right: v));
@@ -156,7 +156,7 @@ class PaddingInput extends HookWidget {
                 const SizedBox(width: 15),
                 Expanded(
                   child: DoubleInput(
-                    label: "top",
+                    label: 'top',
                     value: value.top,
                     onChanged: (v) {
                       set(value.copyWith(top: v));
@@ -166,7 +166,7 @@ class PaddingInput extends HookWidget {
                 const SizedBox(width: 15),
                 Expanded(
                   child: DoubleInput(
-                    label: "vertical",
+                    label: 'vertical',
                     value: value.hasVertical ? value.top : null,
                     onChanged: (v) {
                       set(value.copyWith(top: v, bottom: v));
@@ -179,7 +179,7 @@ class PaddingInput extends HookWidget {
               children: [
                 Expanded(
                   child: DoubleInput(
-                    label: "left",
+                    label: 'left',
                     value: value.left,
                     onChanged: (v) {
                       set(value.copyWith(left: v));
@@ -189,7 +189,7 @@ class PaddingInput extends HookWidget {
                 const SizedBox(width: 15),
                 Expanded(
                   child: DoubleInput(
-                    label: "all",
+                    label: 'all',
                     value: value.hasAll ? value.left : null,
                     onChanged: (v) {
                       // TODO:
@@ -200,7 +200,7 @@ class PaddingInput extends HookWidget {
                 const SizedBox(width: 15),
                 Expanded(
                   child: DoubleInput(
-                    label: "right",
+                    label: 'right',
                     value: value.right,
                     onChanged: (v) {
                       set(value.copyWith(right: v));
@@ -215,7 +215,7 @@ class PaddingInput extends HookWidget {
                 const SizedBox(width: 15),
                 Expanded(
                   child: DoubleInput(
-                    label: "bottom",
+                    label: 'bottom',
                     value: value.bottom,
                     onChanged: (v) {
                       set(value.copyWith(bottom: v));
@@ -252,14 +252,14 @@ class SizeInput extends StatelessWidget {
       label: notifier.name,
       children: [
         DoubleInput(
-          label: "width",
+          label: 'width',
           onChanged: (w) => notifier.set(
             w == null ? null : Size(w, notifier.value?.height ?? 0),
           ),
           value: notifier.value?.width,
         ),
         DoubleInput(
-          label: "height",
+          label: 'height',
           onChanged: (h) => notifier.set(
             h == null ? null : Size(notifier.value?.width ?? 0, h),
           ),

@@ -15,7 +15,7 @@ abstract class Nested<V> {
     final Nested<V> v = this;
     if (v is _Child<V>) return child(v.child);
     if (v is _Children<V>) return children(v.children);
-    throw "";
+    throw '';
   }
 
   T? maybeWhen<T>({
@@ -29,7 +29,7 @@ abstract class Nested<V> {
     } else if (v is _Children<V>) {
       return children != null ? children(v.children) : orElse?.call();
     }
-    throw "";
+    throw '';
   }
 
   T map<T>({
@@ -39,7 +39,7 @@ abstract class Nested<V> {
     final Nested<V> v = this;
     if (v is _Child<V>) return child(v);
     if (v is _Children<V>) return children(v);
-    throw "";
+    throw '';
   }
 
   T? maybeMap<T>({
@@ -53,7 +53,7 @@ abstract class Nested<V> {
     } else if (v is _Children<V>) {
       return children != null ? children(v) : orElse?.call();
     }
-    throw "";
+    throw '';
   }
 }
 

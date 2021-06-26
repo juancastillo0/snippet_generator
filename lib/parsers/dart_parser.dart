@@ -10,7 +10,7 @@ final dartMultiLineStringParser = (string('"""') &
             string('"""') |
         string("'''") & any().starLazy(string("'''")) & string("'''"))
     .map<String>(
-        (value) => List.castFrom<dynamic, String>(value[1] as List).join(""));
+        (value) => List.castFrom<dynamic, String>(value[1] as List).join(''));
 
 final dartSingleLineStringParser = (char('"') &
             _stringContentDq.star() &
@@ -19,7 +19,7 @@ final dartSingleLineStringParser = (char('"') &
         string('@"') & pattern('^"\n\r').star() & char('"') |
         string("@'") & pattern("^'\n\r").star() & char("'"))
     .map<String>(
-        (value) => List.castFrom<dynamic, String>(value[1] as List).join(""));
+        (value) => List.castFrom<dynamic, String>(value[1] as List).join(''));
 
 final _stringContentDq = pattern('^\\"\n\r') | char('\\') & pattern('\n\r');
 

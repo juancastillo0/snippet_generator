@@ -28,11 +28,11 @@ class AdvancedTypeConfig
     required this.name,
   }) {
     overrideConstructorNotifier = AppNotifier(overrideConstructor ?? false,
-        parent: this, name: "overrideConstructor");
+        parent: this, name: 'overrideConstructor');
     customCodeNotifier =
-        TextNotifier(initialText: customCode, parent: this, name: "customCode");
+        TextNotifier(initialText: customCode, parent: this, name: 'customCode');
     isConstNotifier =
-        AppNotifier(isConst ?? true, parent: this, name: "isConst");
+        AppNotifier(isConst ?? true, parent: this, name: 'isConst');
 
     _listenable = Listenable.merge([
       overrideConstructorNotifier,
@@ -44,9 +44,9 @@ class AdvancedTypeConfig
   @override
   Map<String, dynamic> toJson() {
     return {
-      "customCode": customCode,
-      "overrideConstructor": overrideConstructor,
-      "isConst": isConst,
+      'customCode': customCode,
+      'overrideConstructor': overrideConstructor,
+      'isConst': isConst,
     };
   }
 

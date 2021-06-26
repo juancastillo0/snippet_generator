@@ -35,12 +35,12 @@ class CodeGenerated extends HookWidget {
                 },
                 style: elevatedStyle(context),
                 icon: const Icon(Icons.copy),
-                label: const Text("Copy Source Code"),
+                label: const Text('Copy Source Code'),
               ),
             ),
             if (showNullSafe)
               RowBoolField(
-                label: "Null Safe",
+                label: 'Null Safe',
                 notifier: rootStore.isCodeGenNullSafeNotifier,
               ),
           ],

@@ -142,7 +142,7 @@ class RootStoreMessager extends HookWidget {
             width: 350,
             duration: const Duration(seconds: 7),
             action: SnackBarAction(
-              label: "Close",
+              label: 'Close',
               textColor: Colors.white,
               onPressed: () {
                 controller.close();
@@ -165,17 +165,17 @@ class RootStoreMessager extends HookWidget {
       final subs = rootStore.messageEvents.listen((messageEvent) {
         switch (messageEvent) {
           case MessageEvent.sourceCodeCopied:
-            return _showSnackbar("Source code copied");
+            return _showSnackbar('Source code copied');
           case MessageEvent.typeCopied:
-            return _showSnackbar("Type copied");
+            return _showSnackbar('Type copied');
           case MessageEvent.typesSaved:
-            return _showSnackbar("Types saved");
+            return _showSnackbar('Types saved');
           case MessageEvent.errorImportingTypes:
-            return _showSnackbar("Invalid json file", type: SnackbarType.error);
+            return _showSnackbar('Invalid json file', type: SnackbarType.error);
           case MessageEvent.errorFileSystemAccessNotSupported:
             return _showSnackbar(
-              "File system access not available. This functionality is supported "
-              "in Google Chrome, Microsoft Edge, Opera and Samsung Internet browsers",
+              'File system access not available. This functionality is supported '
+              'in Google Chrome, Microsoft Edge, Opera and Samsung Internet browsers',
               type: SnackbarType.error,
             );
         }

@@ -9,7 +9,7 @@ class TextThemeInput extends HookWidget {
     required ValueKey<String> key,
     TextTheme? value,
     required this.set,
-  })   : value = value ?? const TextTheme(),
+  })  : value = value ?? const TextTheme(),
         super(key: key);
 
   final TextTheme value;
@@ -44,13 +44,13 @@ class TextThemeInput extends HookWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Font Family"),
+                const Text('Font Family'),
                 TextButton(
                   onPressed: () {
-                    launch("https://fonts.google.com/");
+                    launch('https://fonts.google.com/');
                   },
                   child: Text(
-                    "Open Google Fonts",
+                    'Open Google Fonts',
                     style: Theme.of(context).textTheme.button!.copyWith(
                           decoration: TextDecoration.underline,
                         ),
@@ -96,7 +96,7 @@ class TextThemeInput extends HookWidget {
                 ),
                 TextButton(
                   onPressed: fetch,
-                  child: const Text("Fetch"),
+                  child: const Text('Fetch'),
                 )
               ],
             ),

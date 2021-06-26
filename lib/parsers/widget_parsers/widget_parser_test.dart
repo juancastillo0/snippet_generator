@@ -20,7 +20,7 @@ void main() {
 
   test('nested Container and SizedBox', () {
     final result = WidgetParser.parser.parse(
-        "Container(alignment: center, height: 10, child: SizedBox( width: 4),)");
+        'Container(alignment: center, height: 10, child: SizedBox( width: 4),)');
     print(result.message);
     print(result.toPositionString());
     print(result);

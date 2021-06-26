@@ -25,12 +25,12 @@ class WidgetFormState {
     if (token == null) {
       final _mapStr =
           tokenMap!.buffer.substring(tokenMap!.start, tokenMap!.stop);
-      start = tokenMap!.start + _mapStr.lastIndexOf(")");
+      start = tokenMap!.start + _mapStr.lastIndexOf(')');
       stop = start;
-      if (map.isNotEmpty && !RegExp(r",\s*\)\s*$").hasMatch(_mapStr)) {
-        value = ", $key: $_value";
+      if (map.isNotEmpty && !RegExp(r',\s*\)\s*$').hasMatch(_mapStr)) {
+        value = ', $key: $_value';
       } else {
-        value = "$key: $_value";
+        value = '$key: $_value';
       }
     } else {
       start = token.start;
@@ -75,9 +75,9 @@ class AlignmentParserFormInput extends StatelessWidget {
 
     void set(Alignment? newValue) {
       String newStrValue = newValue.toString();
-      newStrValue = newStrValue.startsWith("Alignment.")
-          ? newStrValue.replaceRange(0, 10, "")
-          : "Alignment(${newValue!.x}, ${newValue.y})";
+      newStrValue = newStrValue.startsWith('Alignment.')
+          ? newStrValue.replaceRange(0, 10, '')
+          : 'Alignment(${newValue!.x}, ${newValue.y})';
 
       global.replace(key.value, newStrValue, token);
     }
@@ -152,13 +152,13 @@ class DecorationInput extends HookWidget {
       if (newValue is ShapeDecoration) {
         global.replace(
           key.value,
-          "0x$newValue",
+          '0x$newValue',
           token,
         );
       } else if (newValue is BoxDecoration) {
         global.replace(
           key.value,
-          "0x$newValue",
+          '0x$newValue',
           token,
         );
       }
@@ -202,11 +202,11 @@ class PaddingParserFormInput extends HookWidget {
     final token = global.map[key.value];
 
     void set(EdgeInsets newValue) {
-      String _f(String v, double vd) => vd == 0 ? "" : "$v: $vd, ";
+      String _f(String v, double vd) => vd == 0 ? '' : '$v: $vd, ';
 
       String str;
       if (newValue.hasAll) {
-        str = "${newValue.bottom}";
+        str = '${newValue.bottom}';
       } else if (newValue.hasHorizontal && newValue.hasVertical) {
         str =
             "(${_f("horizontal", newValue.left)}${_f("vertical", newValue.top)})";

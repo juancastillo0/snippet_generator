@@ -20,8 +20,8 @@ PrimitiveJson parsePrimitiveJson(String rawString,
 }
 
 extension PrimitiveJsonExtension on PrimitiveJson {
-  String toEnumString() => toString().split(".")[1];
-  String enumType() => toString().split(".")[0];
+  String toEnumString() => toString().split('.')[1];
+  String enumType() => toString().split('.')[0];
 
   bool get isString => this == PrimitiveJson.String;
   bool get isInt => this == PrimitiveJson.int;

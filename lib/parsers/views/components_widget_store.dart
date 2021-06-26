@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:petitparser/petitparser.dart';
-import 'package:snippet_generator/notifiers/collection_notifier/list_notifier.dart';
-import 'package:snippet_generator/types/type_models.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
+import 'package:snippet_generator/notifiers/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/parsers/widget_parsers/widget_parser.dart';
+import 'package:snippet_generator/types/type_models.dart';
 
-const _initialWidgetText = """
+const _initialWidgetText = '''
 Center()
 SizedBox(width: 400.0)
 Container(
@@ -23,7 +23,7 @@ Row()
   Padding(padding: 20)
   Text(text: "kk")
 ]
-""";
+''';
 
 class ParsedState {
   ParsedState() {
@@ -34,13 +34,13 @@ class ParsedState {
   Result<WidgetParser> get parsedWidget => _parsedWidget.value;
   late final AppNotifier<Result<WidgetParser>> _parsedWidget = AppNotifier(
     WidgetParser.parser.parse(controller.text),
-    name: "parsedWidget",
+    name: 'parsedWidget',
   );
 
   WidgetParser? get selectedWidget => _selectedWidget.value;
   late final AppNotifier<WidgetParser?> _selectedWidget = AppNotifier(
     null,
-    name: "selectedWidget",
+    name: 'selectedWidget',
   );
 
   final key = uuid.v4();
@@ -49,7 +49,7 @@ class ParsedState {
 
   WidgetParser? _onControllerChange() {
     if (controller.text != _parsedWidget.value.buffer) {
-      print("dwda");
+      print('dwda');
       _parsedWidget.value = WidgetParser.parser.parse(controller.text);
     }
 
@@ -91,10 +91,10 @@ class ParsedState {
 
 class ComponentWidgetsStore {
   final componentWidgets = ListNotifier<ParsedState>([ParsedState()]);
-  final selectedThemeIndex = AppNotifier(0, name: "selectedThemeIndex");
-  final useDarkTheme = AppNotifier(false, name: "useDarkTheme");
+  final selectedThemeIndex = AppNotifier(0, name: 'selectedThemeIndex');
+  final useDarkTheme = AppNotifier(false, name: 'useDarkTheme');
 
-  final selectedIndex = AppNotifier(0, name: "selectedIndex");
+  final selectedIndex = AppNotifier(0, name: 'selectedIndex');
 
   void addComponentWidget() {
     selectedIndex.value = componentWidgets.length;

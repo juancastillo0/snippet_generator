@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
-import 'package:snippet_generator/widgets/resizable_scrollable/scrollable.dart';
-import 'package:snippet_generator/utils/theme.dart';
-import 'package:snippet_generator/types/views/class_properties.dart';
-import 'package:snippet_generator/types/type_models.dart';
-import 'package:snippet_generator/utils/extensions.dart';
-import 'package:snippet_generator/types/views/enum_config.dart';
-import 'package:snippet_generator/widgets/row_fields.dart';
 import 'package:snippet_generator/notifiers/collection_notifier/list_notifier.dart';
+import 'package:snippet_generator/types/root_store.dart';
+import 'package:snippet_generator/types/type_models.dart';
+import 'package:snippet_generator/types/views/class_properties.dart';
+import 'package:snippet_generator/types/views/enum_config.dart';
+import 'package:snippet_generator/utils/extensions.dart';
+import 'package:snippet_generator/utils/theme.dart';
+import 'package:snippet_generator/widgets/resizable_scrollable/scrollable.dart';
+import 'package:snippet_generator/widgets/row_fields.dart';
 
 class TypeConfigTitleView extends HookWidget {
   const TypeConfigTitleView({
@@ -27,7 +27,7 @@ class TypeConfigTitleView extends HookWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             RowTextField(
-              label: "Type Name",
+              label: 'Type Name',
               controller: typeConfig.signatureNotifier.controller,
               width: 220.0,
             ),
@@ -104,8 +104,8 @@ class TypeConfigView extends HookWidget {
                         icon: const Icon(Icons.add),
                         style: elevatedStyle(context),
                         label: typeConfig.isEnum
-                            ? const Text("Add Variant")
-                            : const Text("Add Class"),
+                            ? const Text('Add Variant')
+                            : const Text('Add Class'),
                       ),
                     )
                   : const SizedBox(),
@@ -156,7 +156,7 @@ class TypeSettingsView extends HookWidget {
         isExpandedList[_map[index]] = !isExpanded;
       },
       children: typeConfig.allSettings.entries
-          .followedBy([MapEntry("Advanced", AppNotifier(true))])
+          .followedBy([MapEntry('Advanced', AppNotifier(true))])
           .map((e) {
             gIndex++;
 
@@ -182,8 +182,8 @@ class TypeSettingsView extends HookWidget {
 }
 
 final Map<String, Widget Function(TypeConfig)> _expansionPanelBuilders = {
-  "Data Value": (typeConfig) => const Text("d"),
-  "Listenable": (typeConfig) {
+  'Data Value': (typeConfig) => const Text('d'),
+  'Listenable': (typeConfig) {
     final listenableConfig = typeConfig.listenableConfig;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20),
@@ -192,37 +192,37 @@ final Map<String, Widget Function(TypeConfig)> _expansionPanelBuilders = {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           RowBoolField(
-            label: "Setters",
+            label: 'Setters',
             notifier: listenableConfig.generateSetters,
           ),
           RowBoolField(
-            label: "Props",
+            label: 'Props',
             notifier: listenableConfig.generateProps,
           ),
           RowBoolField(
-            label: "Getters",
+            label: 'Getters',
             notifier: listenableConfig.generateGetters,
           ),
           RowTextField(
             rowLayout: false,
             controller: listenableConfig.suffix.controller,
-            label: "Suffix",
+            label: 'Suffix',
           ),
           RowTextField(
             rowLayout: false,
             controller: listenableConfig.notifierClass.controller,
-            label: "Notifier Class",
+            label: 'Notifier Class',
           ),
           RowTextField(
             rowLayout: false,
             controller: listenableConfig.nameParam.controller,
-            label: "Name Param",
+            label: 'Name Param',
           ),
         ],
       ),
     );
   },
-  "Serializable": (typeConfig) {
+  'Serializable': (typeConfig) {
     final serializableConfig = typeConfig.serializableConfig;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20),
@@ -232,30 +232,30 @@ final Map<String, Widget Function(TypeConfig)> _expansionPanelBuilders = {
         alignment: WrapAlignment.center,
         children: [
           RowBoolField(
-            label: "from/to String",
+            label: 'from/to String',
             notifier: serializableConfig.returnString,
           ),
           RowBoolField(
-            label: "Static From Json",
+            label: 'Static From Json',
             notifier: serializableConfig.staticFunction,
           ),
           RowBoolField(
-            label: "To Json",
+            label: 'To Json',
             notifier: serializableConfig.generateToJson,
           ),
           RowBoolField(
-            label: "From Json",
+            label: 'From Json',
             notifier: serializableConfig.generateFromJson,
           ),
           RowTextField(
             rowLayout: false,
             controller: serializableConfig.suffix.controller,
-            label: "Suffix",
+            label: 'Suffix',
           ),
           RowTextField(
             rowLayout: false,
             controller: serializableConfig.discriminator.controller,
-            label: "Discriminator",
+            label: 'Discriminator',
           ),
           // RowBoolField(
           //   label: "bool getters",
@@ -265,40 +265,40 @@ final Map<String, Widget Function(TypeConfig)> _expansionPanelBuilders = {
       ),
     );
   },
-  "Sum Type": (typeConfig) {
+  'Sum Type': (typeConfig) {
     final sumTypeConfig = typeConfig.sumTypeConfig;
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Wrap(
         children: [
           RowBoolField(
-            label: "Enum",
+            label: 'Enum',
             notifier: sumTypeConfig.enumDiscriminant,
           ),
           RowBoolField(
-            label: "Bool Getters",
+            label: 'Bool Getters',
             notifier: sumTypeConfig.boolGetters,
           ),
           RowBoolField(
-            label: "Generic Mappers",
+            label: 'Generic Mappers',
             notifier: sumTypeConfig.genericMappers,
           ),
           RowTextField(
             rowLayout: false,
             controller: sumTypeConfig.prefix.controller,
-            label: "Prefix",
+            label: 'Prefix',
           ),
           RowTextField(
             rowLayout: false,
             controller: sumTypeConfig.suffix.controller,
-            label: "Suffix",
+            label: 'Suffix',
           ),
         ],
       ),
     );
   },
-  "Enum": (typeConfig) => const Text("enum"),
-  "Advanced": (typeConfig) {
+  'Enum': (typeConfig) => const Text('enum'),
+  'Advanced': (typeConfig) {
     final advancedConfig = typeConfig.advancedConfig;
     return ConstrainedBox(
       constraints: const BoxConstraints(maxHeight: 420),
@@ -310,13 +310,13 @@ final Map<String, Widget Function(TypeConfig)> _expansionPanelBuilders = {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Custom Code"),
+                const Text('Custom Code'),
                 RowBoolField(
-                  label: "Const",
+                  label: 'Const',
                   notifier: advancedConfig.isConstNotifier,
                 ),
                 RowBoolField(
-                  label: "Override Constructor",
+                  label: 'Override Constructor',
                   notifier: advancedConfig.overrideConstructorNotifier,
                 )
               ],

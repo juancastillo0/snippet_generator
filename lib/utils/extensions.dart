@@ -59,7 +59,7 @@ T? parseEnum<T>(String rawString, List<T> enumValues,
   for (final value in enumValues) {
     final str =
         caseSensitive ? value.toString() : value.toString().toLowerCase();
-    if (str == _rawStringComp || str.split(".")[1] == _rawStringComp) {
+    if (str == _rawStringComp || str.split('.')[1] == _rawStringComp) {
       return value;
     }
   }
@@ -110,7 +110,7 @@ extension CasingString on String {
       length > 0 ? substring(0, 1).toLowerCase() + substring(1) : this;
   String firstToUpperCase() =>
       length > 0 ? substring(0, 1).toUpperCase() + substring(1) : this;
-  String asVariableName() => replaceFirst("_", "").firstToLowerCase();
+  String asVariableName() => replaceFirst('_', '').firstToLowerCase();
 
   String snakeToCamel({bool firstUpperCase = false}) {
     int lastIndex = 0;

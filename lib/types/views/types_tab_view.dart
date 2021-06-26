@@ -65,9 +65,9 @@ class HistoryView extends HookWidget {
     final history = eventConsumer.history;
     return Column(
       children: [
-        Text("Position: ${history.position}"),
-        Text("canUndo: ${history.canUndo}"),
-        Text("canRedo: ${history.canRedo}"),
+        Text('Position: ${history.position}'),
+        Text('canUndo: ${history.canUndo}'),
+        Text('canRedo: ${history.canRedo}'),
         Expanded(
           child: ListView(
             children: history.events

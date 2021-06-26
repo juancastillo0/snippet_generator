@@ -111,7 +111,7 @@ final doubleStringInput = StringInputSerializer<double>(
   double.tryParse,
   (v) {
     final str = v.toString();
-    return str.endsWith(".0") ? str.substring(0, str.length - 2) : str;
+    return str.endsWith('.0') ? str.substring(0, str.length - 2) : str;
   },
 );
 
@@ -146,7 +146,7 @@ TextInputParams useTextInput<T>(
 
   useEffect(() {
     if (value == null) {
-      controller.value = controller.value.copyWith(text: "");
+      controller.value = controller.value.copyWith(text: '');
     } else if (serializer.fromString(controller.text) != value) {
       error.value = null;
       controller.value = controller.value.copyWith(

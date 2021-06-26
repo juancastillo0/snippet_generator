@@ -1,12 +1,13 @@
 import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobx/mobx.dart';
-import 'package:snippet_generator/notifiers/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/fields/enum_fields.dart';
 import 'package:snippet_generator/fields/fields.dart';
 import 'package:snippet_generator/globals/props_serializable.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
+import 'package:snippet_generator/notifiers/collection_notifier/list_notifier.dart';
 
 class TextFamily {
   final String family;
@@ -23,15 +24,15 @@ class TextFamily {
 }
 
 class TextThemeNotifier {
-  final defaultFamilyIndex = AppNotifier<int>(0, name: "defaultFamily");
+  final defaultFamilyIndex = AppNotifier<int>(0, name: 'defaultFamily');
   final textFamilies = ListNotifier<String>(
-    ["Nunito Sans"],
-    propKey: "textFamilies",
+    ['Nunito Sans'],
+    propKey: 'textFamilies',
   );
 
   final customTextStyles = ListNotifier<TextStyleNotifier>(
     [],
-    propKey: "customTextStyles",
+    propKey: 'customTextStyles',
   );
 
   late final Computed<TextTheme> defaultTheme = Computed<TextTheme>(() {
@@ -40,43 +41,43 @@ class TextThemeNotifier {
 
   late final headline1 = AppNotifier.withDefault<TextStyle>(
       () => defaultTheme.value.headline1!,
-      name: "headline1");
+      name: 'headline1');
   late final headline2 = AppNotifier.withDefault<TextStyle>(
       () => defaultTheme.value.headline2!,
-      name: "headline2");
+      name: 'headline2');
   late final headline3 = AppNotifier.withDefault<TextStyle>(
       () => defaultTheme.value.headline3!,
-      name: "headline3");
+      name: 'headline3');
   late final headline4 = AppNotifier.withDefault<TextStyle>(
       () => defaultTheme.value.headline4!,
-      name: "headline4");
+      name: 'headline4');
   late final headline5 = AppNotifier.withDefault<TextStyle>(
       () => defaultTheme.value.headline5!,
-      name: "headline5");
+      name: 'headline5');
   late final headline6 = AppNotifier.withDefault<TextStyle>(
       () => defaultTheme.value.headline6!,
-      name: "headline6");
+      name: 'headline6');
   late final subtitle1 = AppNotifier.withDefault<TextStyle>(
       () => defaultTheme.value.subtitle1!,
-      name: "subtitle1");
+      name: 'subtitle1');
   late final subtitle2 = AppNotifier.withDefault<TextStyle>(
       () => defaultTheme.value.subtitle2!,
-      name: "subtitle2");
+      name: 'subtitle2');
   late final bodyText1 = AppNotifier.withDefault<TextStyle>(
       () => defaultTheme.value.bodyText1!,
-      name: "bodyText1");
+      name: 'bodyText1');
   late final bodyText2 = AppNotifier.withDefault<TextStyle>(
       () => defaultTheme.value.bodyText2!,
-      name: "bodyText2");
+      name: 'bodyText2');
   late final caption = AppNotifier.withDefault<TextStyle>(
       () => defaultTheme.value.caption!,
-      name: "caption");
+      name: 'caption');
   late final button = AppNotifier.withDefault<TextStyle>(
       () => defaultTheme.value.button!,
-      name: "button");
+      name: 'button');
   late final overline = AppNotifier.withDefault<TextStyle>(
       () => defaultTheme.value.overline!,
-      name: "overline");
+      name: 'overline');
 
   late final Computed<TextTheme> computedValue = Computed(() {
     return TextTheme(
@@ -117,68 +118,68 @@ class TextStyleNotifier
   }
 
   final baseThemeTextStyle = AppNotifier<TextStyleEnum>(TextStyleEnum.bodyText1,
-      name: "baseThemeTextStyle");
+      name: 'baseThemeTextStyle');
 
   late final inherit = AppNotifier.withDefault<bool>(
       () => defaultValue().inherit,
-      name: "inherit");
+      name: 'inherit');
   late final color = AppNotifier.withDefault<Color>(() => defaultValue().color!,
-      name: "color");
+      name: 'color');
   late final backgroundColor = AppNotifier.withDefault<Color?>(
       () => defaultValue().backgroundColor,
-      name: "backgroundColor");
+      name: 'backgroundColor');
   late final fontFamily = AppNotifier.withDefault<String?>(
       () => defaultValue().fontFamily,
-      name: "fontFamily");
+      name: 'fontFamily');
   late final fontSize = AppNotifier.withDefault<double?>(
       () => defaultValue().fontSize,
-      name: "fontSize");
+      name: 'fontSize');
   late final fontWeight = AppNotifier.withDefault<FontWeight?>(
       () => defaultValue().fontWeight,
-      name: "fontWeight");
+      name: 'fontWeight');
   late final fontStyle = AppNotifier.withDefault<FontStyle?>(
       () => defaultValue().fontStyle,
-      name: "fontStyle");
+      name: 'fontStyle');
   late final letterSpacing = AppNotifier.withDefault<double?>(
       () => defaultValue().letterSpacing,
-      name: "letterSpacing");
+      name: 'letterSpacing');
   late final wordSpacing = AppNotifier.withDefault<double?>(
       () => defaultValue().wordSpacing,
-      name: "wordSpacing");
+      name: 'wordSpacing');
   late final textBaseline = AppNotifier.withDefault<TextBaseline?>(
       () => defaultValue().textBaseline,
-      name: "textBaseline");
+      name: 'textBaseline');
   late final height = AppNotifier.withDefault<double?>(
       () => defaultValue().height,
-      name: "height");
+      name: 'height');
   late final leadingDistribution =
       AppNotifier.withDefault<ui.TextLeadingDistribution?>(
           () => defaultValue().leadingDistribution,
-          name: "leadingDistribution");
+          name: 'leadingDistribution');
   late final locale = AppNotifier.withDefault<Locale?>(
       () => defaultValue().locale,
-      name: "locale");
+      name: 'locale');
   late final foreground = AppNotifier.withDefault<Paint?>(
       () => defaultValue().foreground,
-      name: "foreground");
+      name: 'foreground');
   late final background = AppNotifier.withDefault<Paint?>(
       () => defaultValue().background,
-      name: "background");
+      name: 'background');
   late final decoration = AppNotifier.withDefault<TextDecoration?>(
       () => defaultValue().decoration,
-      name: "decoration");
+      name: 'decoration');
   late final decorationColor = AppNotifier.withDefault<Color?>(
       () => defaultValue().decorationColor,
-      name: "decorationColor");
+      name: 'decorationColor');
   late final decorationStyle = AppNotifier.withDefault<TextDecorationStyle?>(
       () => defaultValue().decorationStyle,
-      name: "decorationStyle");
+      name: 'decorationStyle');
   late final decorationThickness = AppNotifier.withDefault<double?>(
       () => defaultValue().decorationThickness,
-      name: "decorationThickness");
+      name: 'decorationThickness');
   late final debugLabel = AppNotifier.withDefault<String?>(
       () => defaultValue().debugLabel,
-      name: "debugLabel");
+      name: 'debugLabel');
 
   @override
   void set(TextStyle value) {

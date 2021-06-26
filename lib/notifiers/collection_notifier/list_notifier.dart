@@ -3,8 +3,8 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 import 'package:mobx/mobx.dart';
-import 'package:snippet_generator/notifiers/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/globals/serializer.dart';
+import 'package:snippet_generator/notifiers/collection_notifier/collection_notifier.dart';
 import 'package:snippet_generator/notifiers/nested_notifier.dart';
 
 enum ListEventEnum { change, insert, remove, many, recreate }
@@ -57,7 +57,7 @@ abstract class ListEvent<E> implements Event<ListEvent<E>> {
     if (v is RemoveListEvent<E>) return remove(v);
     if (v is ManyListEvent<E>) return many(v);
     if (v is RecreateListEvent<E>) return recreate(v);
-    throw "";
+    throw '';
   }
 }
 
@@ -412,7 +412,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E>> implements List<E> {
   /// 0 <= start <= end <= length
   void validateRange(int start, int end) {
     if (0 > start || start > end || end > length) {
-      throw "0 <= start <= end <= length";
+      throw '0 <= start <= end <= length';
     }
   }
 
@@ -420,7 +420,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E>> implements List<E> {
   /// !lengthInclusive: 0 <= index < length
   void validateIndex(int index, {required bool lengthInclusive}) {
     if (0 > index || (lengthInclusive ? index > length : index >= length)) {
-      throw lengthInclusive ? "0 <= index <= length" : "0 <= index < length";
+      throw lengthInclusive ? '0 <= index <= length' : '0 <= index < length';
     }
   }
 
@@ -483,7 +483,7 @@ class ListNotifier<E> extends EventConsumer<ListEvent<E>> implements List<E> {
   Iterator<E> get iterator => _inner.iterator;
 
   @override
-  String join([String separator = ""]) => _inner.join(separator);
+  String join([String separator = '']) => _inner.join(separator);
 
   @override
   int lastIndexOf(E element, [int? start]) =>

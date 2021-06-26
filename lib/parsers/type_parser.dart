@@ -1,8 +1,8 @@
 import 'package:petitparser/petitparser.dart';
-import 'package:snippet_generator/parsers/parsers.dart';
 import 'package:snippet_generator/parsers/models/json_type.dart';
+import 'package:snippet_generator/parsers/parsers.dart';
 
-// ignore: constant_identifier_names  
+// ignore: constant_identifier_names
 enum CollectionType { List, Set }
 
 CollectionType? parseCollectionType(String rawString,
@@ -16,8 +16,8 @@ CollectionType? parseCollectionType(String rawString,
 }
 
 extension CollectionTypeExtension on CollectionType {
-  String toEnumString() => toString().split(".")[1];
-  String enumType() => toString().split(".")[0];
+  String toEnumString() => toString().split('.')[1];
+  String enumType() => toString().split('.')[0];
 
   bool get isList => this == CollectionType.List;
   bool get isSet => this == CollectionType.Set;
@@ -51,21 +51,21 @@ class CollectionParser extends JsonTypeParser {
   static CollectionParser _collect(dynamic parserOutput) {
     if (parserOutput is String) {
       return CollectionParser(
-          parserOutput == "List" ? CollectionType.List : CollectionType.Set,
+          parserOutput == 'List' ? CollectionType.List : CollectionType.Set,
           null);
     } else if (parserOutput is List) {
       return CollectionParser(
-          parserOutput[0] == "List" ? CollectionType.List : CollectionType.Set,
+          parserOutput[0] == 'List' ? CollectionType.List : CollectionType.Set,
           parserOutput[1] as JsonTypeParser);
     }
-    throw "";
+    throw '';
   }
 
   static final listParser =
-      (string("List").trim() & singleGeneric(JsonTypeParser.parser).optional())
+      (string('List').trim() & singleGeneric(JsonTypeParser.parser).optional())
           .map(_collect);
-  static final setParser = (string("Set").trim() |
-          string("Set").trim() & singleGeneric(JsonTypeParser.parser))
+  static final setParser = (string('Set').trim() |
+          string('Set').trim() & singleGeneric(JsonTypeParser.parser))
       .end()
       .map(_collect);
 }
@@ -74,7 +74,7 @@ class MapParser extends JsonTypeParser {
   const MapParser(this.genericType);
   final DoubleGeneric<PrimitiveParser, JsonTypeParser>? genericType;
 
-  static final parser = (string("Map").trim() &
+  static final parser = (string('Map').trim() &
           DoubleGeneric.parser(
             PrimitiveParser.parser,
             JsonTypeParser._parser,
@@ -110,19 +110,19 @@ class PrimitiveParser extends JsonTypeParser {
         orElse: () => PrimitiveParser(type, rawString),
       )!;
     }
-    throw "";
+    throw '';
   }
 
-  static final parser = (string("int") |
-          string("double") |
-          string("num") |
-          string("String") |
-          string("bool") |
+  static final parser = (string('int') |
+          string('double') |
+          string('num') |
+          string('String') |
+          string('bool') |
           (identifier &
-              (char("<") &
-                      identifier.separatedBy(char(","),
+              (char('<') &
+                      identifier.separatedBy(char(','),
                           includeSeparators: false) &
-                      char(">"))
+                      char('>'))
                   .pick(1)
                   .optional()))
       .map(_collect);
@@ -140,7 +140,7 @@ class JsonTypeParser {
     if (v is MapParser) return mapParser(v);
     if (v is CollectionParser) return collectionParser(v);
     if (v is PrimitiveParser) return primitiveParser(v);
-    throw "";
+    throw '';
   }
 
   static void init() {

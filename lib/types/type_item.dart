@@ -57,7 +57,7 @@ abstract class TypeItem implements Clonable<TypeItem> {
     if (v is _TypeI) return typeI(v.value);
     if (v is _PropertyI) return propertyI(v.value);
     if (v is _PropertyListI) return propertyListI(v.value);
-    throw "";
+    throw '';
   }
 
   T? maybeWhen<T>({
@@ -77,7 +77,7 @@ abstract class TypeItem implements Clonable<TypeItem> {
     } else if (v is _PropertyListI) {
       return propertyListI != null ? propertyListI(v.value) : orElse?.call();
     }
-    throw "";
+    throw '';
   }
 
   T map<T>({
@@ -91,7 +91,7 @@ abstract class TypeItem implements Clonable<TypeItem> {
     if (v is _TypeI) return typeI(v);
     if (v is _PropertyI) return propertyI(v);
     if (v is _PropertyListI) return propertyListI(v);
-    throw "";
+    throw '';
   }
 
   T? maybeMap<T>({
@@ -111,11 +111,11 @@ abstract class TypeItem implements Clonable<TypeItem> {
     } else if (v is _PropertyListI) {
       return propertyListI != null ? propertyListI(v) : orElse?.call();
     }
-    throw "";
+    throw '';
   }
 
   static TypeItem? fromJson(Map<String, dynamic> map) {
-    switch (map["runtimeType"] as String?) {
+    switch (map['runtimeType'] as String?) {
       case '_ClassI':
         return _ClassI.fromJson(map);
       case '_TypeI':

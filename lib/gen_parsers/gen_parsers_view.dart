@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart' hide Action;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:snippet_generator/fields/button_select_field.dart';
 import 'package:snippet_generator/gen_parsers/models/stores.dart';
 import 'package:snippet_generator/gen_parsers/models/tokens.dart';
@@ -28,7 +27,7 @@ class GenerateParserTabView extends HookWidget {
               Align(
                 alignment: Alignment.topLeft,
                 child: Text(
-                  "Tokens",
+                  'Tokens',
                   style: Theme.of(context).textTheme.headline5,
                 ),
               ),
@@ -168,7 +167,7 @@ class TokenList extends HookWidget {
                   onPressed: () {
                     store.add();
                   },
-                  child: const Text("ADD"),
+                  child: const Text('ADD'),
                 ),
               ),
             ),
@@ -198,7 +197,7 @@ class TokenRow extends HookWidget {
             width: 160,
             child: TextFormField(
               initialValue: token.value.name,
-              decoration: const InputDecoration(labelText: "Name"),
+              decoration: const InputDecoration(labelText: 'Name'),
               onChanged: (value) {
                 token.setName(value);
               },
@@ -251,7 +250,7 @@ class TokenRow extends HookWidget {
           const SizedBox(width: 10),
           IconButton(
             splashRadius: 26,
-            tooltip: "Delete",
+            tooltip: 'Delete',
             onPressed: () {
               store.remove(token.key);
             },
@@ -279,10 +278,10 @@ class RepeatForm extends StatelessWidget {
     return Column(
       children: [
         ...const {
-          "Optional (?)": RepeatRange.optional(),
-          "Plus (+)": RepeatRange.plus(),
-          "Star (*)": RepeatRange.star(),
-          "Single (1)": RepeatRange.times(1),
+          'Optional (?)': RepeatRange.optional(),
+          'Plus (+)': RepeatRange.plus(),
+          'Star (*)': RepeatRange.star(),
+          'Single (1)': RepeatRange.times(1),
         }.entries.map(
           (entry) {
             return TextButton(

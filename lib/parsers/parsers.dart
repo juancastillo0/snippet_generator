@@ -3,7 +3,7 @@ import 'package:petitparser/petitparser.dart';
 final identifier = (letter() & (letter() | digit()).star()).flatten();
 
 Parser<T> singleGeneric<T>(Parser<T> p) =>
-    (char("<") & p.trim() & char(">")).pick(1).cast();
+    (char('<') & p.trim() & char('>')).pick(1).cast();
 
 class DoubleGeneric<L, R> {
   const DoubleGeneric(this.left, this.right);
@@ -14,7 +14,7 @@ class DoubleGeneric<L, R> {
     Parser<L> left,
     Parser<R> right,
   ) =>
-      (char("<") & left.trim() & char(",") & right.trim() & char(">")).map(
+      (char('<') & left.trim() & char(',') & right.trim() & char('>')).map(
         (list) => DoubleGeneric(list[1] as L, list[3] as R),
       );
 }
@@ -26,7 +26,7 @@ class ManyGeneric<T> {
   static Parser<ManyGeneric<T>> parser<T>(
     Parser<T> p,
   ) =>
-      (char("<") & p.trim() & (char(",") & p.trim()).star() & char(">")).map(
+      (char('<') & p.trim() & (char(',') & p.trim()).star() & char('>')).map(
         (list) {
           final out = [list[1] as T];
           if (list[2] != null) {
@@ -44,9 +44,9 @@ class ManyGeneric<T> {
 Parser<T> enumParser<T>(List<T> enumValues, {String? optionalPrefix}) {
   return enumValues.fold<Parser<T>?>(null, (Parser<T>? value, T element) {
     Parser<T> curr =
-        string(element.toString().split(".")[1]).map((value) => element);
+        string(element.toString().split('.')[1]).map((value) => element);
     if (optionalPrefix != null) {
-      curr = (string("$optionalPrefix.").optional() & curr).pick(1).cast();
+      curr = (string('$optionalPrefix.').optional() & curr).pick(1).cast();
     }
     if (value == null) {
       value = curr;
@@ -75,15 +75,15 @@ Parser<List<T>> separatedParser<T>(
   Parser? right,
   Parser? separator,
 }) {
-  return ((left ?? char("[")).trim() &
+  return ((left ?? char('[')).trim() &
           parser
               .separatedBy(
-                (separator ?? char(",")).trim(),
+                (separator ?? char(',')).trim(),
                 includeSeparators: false,
                 optionalSeparatorAtEnd: true,
               )
               .optional() &
-          (right ?? char("]")).trim())
+          (right ?? char(']')).trim())
       .pick(1)
       .map((value) => List.castFrom<dynamic, T>(value as List? ?? []));
 }
@@ -94,29 +94,29 @@ Parser<Map<String, T>> structParser<T>(
 }) {
   final parser = separatedParser(
     structParamsParser(params),
-    left: char("("),
-    right: char(")"),
+    left: char('('),
+    right: char(')'),
   ).map((entries) => Map.fromEntries(entries));
-  final hasFactory = params["factory"] != null;
+  final hasFactory = params['factory'] != null;
 
   Parser<Map<String, T>> result = parser;
 
   if (hasFactory && optionalName != null) {
-    result = ((string(optionalName).trim() & char(".").trim()).optional() &
-            params["factory"]!.optional() &
+    result = ((string(optionalName).trim() & char('.').trim()).optional() &
+            params['factory']!.optional() &
             parser)
         .map((value) {
       final r = value[2] as Map<String, T>;
       if (value[1] != null) {
-        r["factory"] = value[1] as T;
+        r['factory'] = value[1] as T;
       }
       return r;
     });
   } else if (hasFactory) {
-    result = (params["factory"]!.optional() & parser).map((value) {
+    result = (params['factory']!.optional() & parser).map((value) {
       final r = value[1] as Map<String, T>;
       if (value[0] != null) {
-        r["factory"] = value[0] as T;
+        r['factory'] = value[0] as T;
       }
       return r;
     });
@@ -131,7 +131,7 @@ Parser<MapEntry<String, T>> structParamsParser<T>(
   final parser = params.entries.fold<Parser<MapEntry<String, T>>?>(null,
       (previousValue, element) {
     final curr =
-        (string(element.key).trim() & char(":").trim() & element.value.trim())
+        (string(element.key).trim() & char(':').trim() & element.value.trim())
             .map((value) => MapEntry(value[0] as String, value[2] as T));
     if (previousValue == null) {
       previousValue = curr;
@@ -165,7 +165,7 @@ Parser<MapEntry<String, Token<T>>> structParamsParserToken<T>(
   final parser = params.entries.fold<Parser<MapEntry<String, Token<T>>>?>(null,
       (previousValue, element) {
     final curr = (string(element.key).trim() &
-            char(":").trim() &
+            char(':').trim() &
             element.value.trim().token())
         .map((value) => MapEntry(value[0] as String, value[2] as Token<T>));
     if (previousValue == null) {
@@ -184,15 +184,15 @@ Parser<List<T>> tupleParser<T>(
   int? numberRequired,
 }) {
   int index = 0;
-  final parser = (char("(").trim() &
+  final parser = (char('(').trim() &
           params.fold<Parser<List<T>>?>(null,
               (Parser<List<T>>? previousValue, Parser<T> element) {
             Parser curr = element.trim();
 
             if (index == params.length - 1) {
-              curr = (curr & char(",").trim().optional()).pick(0);
+              curr = (curr & char(',').trim().optional()).pick(0);
             } else {
-              curr = (curr & char(",").trim()).pick(0);
+              curr = (curr & char(',').trim()).pick(0);
             }
             if (numberRequired != null && index > numberRequired) {
               curr = curr.optional();
@@ -208,7 +208,7 @@ Parser<List<T>> tupleParser<T>(
             index++;
             return previousValue;
           })! &
-          char(")").trim())
+          char(')').trim())
       .pick(1)
       .cast<List<T>>();
 
