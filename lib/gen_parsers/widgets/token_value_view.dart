@@ -196,7 +196,8 @@ class TokenValueView extends HookWidget {
                         padding: const EdgeInsets.only(top: 4.0),
                         child: SizedBox(
                           width: 125,
-                          child: TextField(
+                          child: TextFormField(
+                            initialValue: token.name,
                             onChanged: (value) {
                               onChanged(token.copyWith(name: value));
                             },
@@ -307,7 +308,8 @@ class TokenValueView extends HookWidget {
                             selected: store
                                 .tokens[(tokenValue as TokenValueRef).value],
                           ),
-                          string: (v) => TextField(
+                          string: (v) => TextFormField(
+                            initialValue: v.value,
                             onChanged: (value) {
                               onChangedValue(TokenValue.string(
                                 value,

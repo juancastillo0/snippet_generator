@@ -196,7 +196,8 @@ class TokenRow extends HookWidget {
         children: [
           SizedBox(
             width: 160,
-            child: TextField(
+            child: TextFormField(
+              initialValue: token.value.name,
               decoration: const InputDecoration(labelText: "Name"),
               onChanged: (value) {
                 token.setName(value);
@@ -280,7 +281,8 @@ class RepeatForm extends StatelessWidget {
         ...const {
           "Optional (?)": RepeatRange.optional(),
           "Plus (+)": RepeatRange.plus(),
-          "Star (*)": RepeatRange.star()
+          "Star (*)": RepeatRange.star(),
+          "Single (1)": RepeatRange.times(1),
         }.entries.map(
           (entry) {
             return TextButton(
@@ -299,7 +301,8 @@ class RepeatForm extends StatelessWidget {
           children: [
             SizedBox(
               width: 60,
-              child: TextField(
+              child: TextFormField(
+                initialValue: token.repeat.min.toString(),
                 decoration: const InputDecoration(labelText: 'min'),
                 onChanged: (s) {
                   final valueMin = int.tryParse(s);
@@ -319,9 +322,10 @@ class RepeatForm extends StatelessWidget {
             const SizedBox(width: 8),
             SizedBox(
               width: 60,
-              child: TextField(
+              child: TextFormField(
+                initialValue: token.repeat.max?.toString(),
                 decoration: const InputDecoration(labelText: 'max'),
-                onSubmitted: (_) {
+                onFieldSubmitted: (_) {
                   notif.hide();
                 },
                 onChanged: (s) {
