@@ -85,6 +85,7 @@ class _ResizableState extends State<Resizable> {
       final child = Column(
         key: _childKey,
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (!isBottom) handle,
           Expanded(child: widget.child),
@@ -118,6 +119,7 @@ class _ResizableState extends State<Resizable> {
       final child = Row(
         key: _childKey,
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (!isRight) handle,
           Expanded(child: widget.child),

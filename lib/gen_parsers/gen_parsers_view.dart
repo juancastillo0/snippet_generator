@@ -138,13 +138,13 @@ class TokenList extends HookWidget {
                   children: [
                     ...store.tokenKeys.expand(
                       (tokenKey) sync* {
-                        yield Container(
-                          height: 1,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withOpacity(0.1),
-                        );
+                        // yield Container(
+                        //   height: 1,
+                        //   color: Theme.of(context)
+                        //       .colorScheme
+                        //       .onSurface
+                        //       .withOpacity(0.1),
+                        // );
                         yield Observer(
                           key: Key(tokenKey),
                           builder: (context) {
@@ -153,7 +153,7 @@ class TokenList extends HookWidget {
                           },
                         );
                       },
-                    ).skip(1),
+                    ),
                   ],
                 ),
               ),
@@ -204,32 +204,10 @@ class TokenRow extends HookWidget {
             ),
           ),
           const SizedBox(width: 10),
-          // Expanded(
-          //   flex: 3,
-          //   child: TextField(
-          //     decoration:
-          //         const InputDecoration(labelText: "RegExp"),
-          //     onChanged: (value) {
-          //       token.setRegExp(value);
-          //     },
-          //   ),
-          // ),
-          // const SizedBox(width: 10),
-          // Expanded(
-          //   child: Observer(builder: (context) {
-          //     return CustomDropdownField<ParserTokenNotifier>(
-          //       asString: (t) => t.value.name,
-          //       onChange: (t) => token.setRef(t.key),
-          //       options: store.tokens.values
-          //           .where((t) => t.key != tokenKey),
-          //       selected: token.ref.value,
-          //     );
-          //   }),
-          // ),
-          const SizedBox(width: 10),
           Expanded(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 140),
+            child: Resizable(
+              vertical: ResizeVertical.bottom,
+              defaultHeight: 150,
               child: SingleChildScrollView(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
