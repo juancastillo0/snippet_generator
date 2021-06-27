@@ -458,6 +458,16 @@ class TokenValueView extends HookWidget {
                   child: Text(tokenValue.isSeparated ? 'SEPARATED' : 'CHOICE'),
                 ),
                 const SizedBox(height: 5),
+                SizedBox(
+                  width: 95,
+                  child: TextFormField(
+                    initialValue: token.name,
+                    onChanged: (value) {
+                      onChanged(token.copyWith(name: value));
+                    },
+                  ),
+                ),
+                const SizedBox(height: 5),
                 Row(
                   children: [
                     _collectionButtonsRow,
@@ -491,7 +501,16 @@ class TokenValueView extends HookWidget {
                   padding: EdgeInsets.only(left: 7.0),
                   child: Text('SEQUENCE'),
                 ),
-                const SizedBox(width: 5),
+                const SizedBox(width: 6),
+                SizedBox(
+                  width: 110,
+                  child: TextFormField(
+                    initialValue: token.name,
+                    onChanged: (value) {
+                      onChanged(token.copyWith(name: value));
+                    },
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6.0),
                   child: Row(
