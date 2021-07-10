@@ -49,7 +49,9 @@ class TemplateClassConfig {
 
   String templateClass() {
     return """
+${typeConfig.isSerializable && !typeConfig.isSumType ? "import 'dart:convert';" : ""}
 ${typeConfig.isDataValue && !typeConfig.isSumType ? "import 'dart:ui';" : ""}
+
 class $signature {
   ${properties.map((p) => 'final ${p.type} ${p.name};').join('\n  ')}
 
@@ -155,7 +157,8 @@ int get hashCode => ${properties.isEmpty ? "${typeConfig.templates._const} $_cla
 
   String _templateClassFromJson() {
     return """
-static $_classNameWithGenericIds fromJson${typeConfig.templates.generics}(Map<String, dynamic> map) {
+static $_classNameWithGenericIds fromJson${typeConfig.templates.generics}(Object? _map) {
+    ${_makeMap(_classNameWithGenericIds)}
     return ${properties.isEmpty ? typeConfig.templates._const : ""} $_classConstructor(
       ${propertiesSorted.map((e) => "${e.isPositional ? '' : '${e.name}:'} ${parseFieldFromJson(e)},").join("\n      ")}
     );
@@ -280,8 +283,9 @@ class TemplateTypeConfig {
 
   String templateSumType() {
     return """
-${!this.rootStore.isCodeGenNullSafe ? "import 'package:meta/meta.dart';" : ""}
+${innerType.isSerializable ? "import 'dart:convert';" : ""}
 ${innerType.isDataValue ? "import 'dart:ui';" : ""}
+${!this.rootStore.isCodeGenNullSafe ? "import 'package:meta/meta.dart';" : ""}
 
 abstract class ${innerType.signature} {
   ${advancedConfig.overrideConstructor ? '' : '$_const $name._();'}
@@ -417,7 +421,8 @@ abstract class ${innerType.signature} {
 
   String _templateSymTypeFromJson() {
     return """
-static $name$genericIds fromJson$generics(Map<String, dynamic> map) {
+static $name$genericIds fromJson$generics(Object? _map) {
+  ${_makeMap('$name$genericIds')}
   switch (map['${serializableConfig.discriminator.value}'] as String) {
     ${classes.map((e) => "case '${e.name.asVariableName()}': return ${e.templates.className}.fromJson$genericIds(map);").join("\n    ")}
     default:
@@ -427,6 +432,17 @@ static $name$genericIds fromJson$generics(Map<String, dynamic> map) {
 """;
   }
 }
+
+String _makeMap(String type) => '''
+final Map<String, dynamic> map;
+if (_map is $type) {
+  return _map;
+} else if (_map is String) {
+  map = jsonDecode(_map) as Map<String, dynamic>;
+} else {
+  map = (_map! as Map).cast();
+}
+''';
 
 class CummProp {
   final String? sameType;
@@ -456,11 +472,55 @@ String globalTemplateEnum({
   required String name,
   required List<String> variants,
   required bool nullSafe,
+  bool asClass = true,
 }) {
   final _required = nullSafe ? 'required ' : '@required ';
   final _nullable = nullSafe ? '?' : '/*?*/';
 
-  return """
+  final String _declaration;
+  if (asClass) {
+    _declaration = """
+class $name {
+  final String _inner;
+
+  const $name(this._inner);
+
+  ${variants.map((e) => "static const $e = $name('$e');").join("\n  ")}
+
+  static const values = [${variants.map((e) => "$name.$e,").join()}];
+
+  static $name fromJson(Object? json) {
+    if (json == null) {
+      throw Error(); 
+    }
+    for (final v in values) {
+      // ignore: unrelated_type_equality_checks
+      if (json == v) {
+        return v;
+      }
+    }
+    throw Error();
+  }
+
+  String toJson() {
+    return _inner;
+  }
+
+  @override
+  String toString() {
+    return _inner;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other.toString() == _inner;
+  }
+
+  @override
+  int get hashCode => _inner.hashCode;
+""";
+  } else {
+    _declaration = """
 enum $name {
   ${variants.map((e) => "$e,").join("\n  ")}
 }
@@ -478,20 +538,25 @@ $name$_nullable parse$name(String rawString, {bool caseSensitive = true}) {
 
 extension ${name}Extension on $name {
   String toEnumString() => toString().split(".")[1];
+  String toJson() => toString().split(".")[1];
   String enumType() => toString().split(".")[0];
+""";
+  }
 
+  return """
+$_declaration
   ${variants.map((e) => "bool get is${e.firstToUpperCase()} => this == $name.$e;").join("\n  ")}
 
   _T when<_T>({
     ${variants.map((e) => "$_required _T Function() ${e.firstToLowerCase()},").join("\n    ")}
   }) {
-    switch (this) {
+    switch (this._inner) {
       ${variants.map((e) => """
-case $name.$e:
+case '$e':
         return $e();
       """).join()}
     }
-    ${nullSafe ? '' : 'throw Exception("");'}
+    ${nullSafe ? 'throw Error();' : 'throw Error();'}
   }
 
   _T maybeWhen<_T>({
@@ -499,9 +564,9 @@ case $name.$e:
     $_required _T Function() orElse,
   }) {
     _T Function()$_nullable c;
-    switch (this) {
+    switch (this._inner) {
       ${variants.map((e) => """
-case $name.$e:
+case '$e':
         c = $e;
         break;   
       """).join()}
