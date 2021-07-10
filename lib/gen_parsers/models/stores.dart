@@ -15,6 +15,7 @@ import 'package:snippet_generator/notifiers/collection_notifier/list_notifier.da
 import 'package:snippet_generator/notifiers/collection_notifier/map_notifier.dart';
 import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/types/type_models.dart';
+import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/utils/persistence.dart';
 import 'package:uuid/uuid.dart';
 
@@ -413,12 +414,17 @@ class ParserTokenNotifier {
               ')';
         },
         string: (string, isPattern, caseSensitive) {
+          final _c = string.contains("'") ? '"' : "'";
           if (caseSensitive) {
-            return isPattern ? "pattern('$string')" : "string('$string')";
+            return isPattern
+                ? 'pattern($_c$string$_c)'
+                : string.length == 1
+                    ? 'char($_c$string$_c)'
+                    : 'string($_c$string$_c)';
           } else {
             return isPattern
-                ? "patternIgnoreCase('$string')"
-                : "stringIgnoreCase('$string')";
+                ? 'patternIgnoreCase($_c$string$_c)'
+                : 'stringIgnoreCase($_c$string$_c)';
           }
         },
         ref: (ref) => store.tokens[ref]?.value.name ?? '',
@@ -455,9 +461,6 @@ extension ClassNameString on String {
     if (_value.toUpperCase() == _value) {
       _value = _value.toLowerCase();
     }
-    return _value.isEmpty
-        ? _value
-        : '${_value.substring(0, 1).toUpperCase()}'
-            '${_value.length > 1 ? _value.substring(1) : ""}';
+    return _value.snakeToCamel(firstUpperCase: true);
   }
 }

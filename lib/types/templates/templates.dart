@@ -171,7 +171,7 @@ static $_classNameWithGenericIds fromJson${typeConfig.templates.generics}(Object
 ${typeConfig.isSumType ? "@override" : ""}
 Map<String, dynamic> toJson() {
     return {
-      ${typeConfig.isSumType ? "'${typeConfig.serializableConfig.discriminator.value}': '${name.asVariableName()}'," : ""}
+      ${typeConfig.isSumType ? "'${typeConfig.serializableConfig.discriminator.value}': '${name.asVariableName(dart: false)}'," : ""}
       ${properties.map((e) => "'${e.name}': ${parseFieldToJson(e)},").join()}
     };
   }
@@ -424,7 +424,7 @@ abstract class ${innerType.signature} {
 static $name$genericIds fromJson$generics(Object? _map) {
   ${_makeMap('$name$genericIds')}
   switch (map['${serializableConfig.discriminator.value}'] as String) {
-    ${classes.map((e) => "case '${e.name.asVariableName()}': return ${e.templates.className}.fromJson$genericIds(map);").join("\n    ")}
+    ${classes.map((e) => "case '${e.name.asVariableName(dart: false)}': return ${e.templates.className}.fromJson$genericIds(map);").join("\n    ")}
     default:
       throw Exception('Invalid discriminator for ${innerType.signature}.fromJson ''\${map["${serializableConfig.discriminator.value}"]}. Input map: \$map');
   }
@@ -483,19 +483,18 @@ String globalTemplateEnum({
 class $name {
   final String _inner;
 
-  const $name(this._inner);
+  const $name._(this._inner);
 
-  ${variants.map((e) => "static const $e = $name('$e');").join("\n  ")}
+  ${variants.map((e) => "static const ${e.asVariableName()} = $name._('$e');").join("\n  ")}
 
-  static const values = [${variants.map((e) => "$name.$e,").join()}];
+  static const values = [${variants.map((e) => "$name.${e.asVariableName()},").join()}];
 
   static $name fromJson(Object? json) {
     if (json == null) {
       throw Error(); 
     }
     for (final v in values) {
-      // ignore: unrelated_type_equality_checks
-      if (json == v) {
+      if (json.toString() == v._inner) {
         return v;
       }
     }
@@ -513,7 +512,7 @@ class $name {
 
   @override
   bool operator ==(Object other) {
-    return other.toString() == _inner;
+    return other is $name && other.runtimeType == runtimeType && other._inner == _inner;
   }
 
   @override

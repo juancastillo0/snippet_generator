@@ -110,7 +110,14 @@ extension CasingString on String {
       length > 0 ? substring(0, 1).toLowerCase() + substring(1) : this;
   String firstToUpperCase() =>
       length > 0 ? substring(0, 1).toUpperCase() + substring(1) : this;
-  String asVariableName() => replaceFirst('_', '').firstToLowerCase();
+  String asVariableName({bool dart = true}) {
+    String value = replaceFirst('_', '').firstToLowerCase();
+    const _reserved = {'null', 'true', 'false', 'default'};
+    if (dart && _reserved.contains(value)) {
+      value += '_';
+    }
+    return value;
+  }
 
   String snakeToCamel({bool firstUpperCase = false}) {
     int lastIndex = 0;
