@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:dart_style/dart_style.dart';
 import 'package:file_system_access/src/models/result.dart' as fs;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobx/mobx.dart';
@@ -11,6 +14,7 @@ import 'package:snippet_generator/notifiers/app_notifier.dart';
 import 'package:snippet_generator/notifiers/collection_notifier/list_notifier.dart';
 import 'package:snippet_generator/notifiers/collection_notifier/map_notifier.dart';
 import 'package:snippet_generator/types/root_store.dart';
+import 'package:snippet_generator/types/type_models.dart';
 import 'package:snippet_generator/utils/persistence.dart';
 import 'package:uuid/uuid.dart';
 
@@ -28,6 +32,8 @@ GenerateParserStore useParserStore() {
 
 class GenerateParserStore {
   late final persistence = GenerateParserStorePersistence(this);
+
+  final _formatter = DartFormatter();
 
   final tokenKeys = ListNotifier<String>([]);
   final tokens = MapNotifier<String, ParserTokenNotifier>();
@@ -96,16 +102,26 @@ class GenerateParserStore {
     for (final v in tokens.values) {
       _processToken(v.value);
     }
-    return """
+    String code = """
+import 'dart:convert';
+import 'dart:ui';
+import 'package:petitparser/petitparser.dart';
 
 ${predifined.map((e) => e.dartDefinition()).whereType<String>().join('\n')}
 
 ${tokens.values.map((e) {
       final t = e.value;
-      return "final ${t.name} = ${e.expression.value}";
+      final expressionContext = e.expression.value;
+      return 'final ${t.name} = ${expressionContext.expression};\n'
+          '\n$expressionContext';
     }).join('\n\n')}
 
 """;
+
+    try {
+      code = _formatter.format(code);
+    } catch (_) {}
+    return code;
   }
 
   late final parserTestResult = Computed(
@@ -128,6 +144,7 @@ class GenerateParserStorePersistence {
     await parserBox.clear();
 
     final value = store.makeValue();
+    final _str = jsonEncode(value.toJson());
     await parserBox.add(value);
   }
 
@@ -141,6 +158,40 @@ class GenerateParserStorePersistence {
       store.add();
     }
     store.selectedTestTokenKey.value = store.tokenKeys.first;
+  }
+}
+
+class TokenContext {
+  final List<TypeConfig> types = [];
+  String expression = '';
+  bool withinFlatten = false;
+  String _lastName = '';
+
+  String getName(String newName) {
+    if (newName.isEmpty) {
+      return _lastName;
+    } else {
+      _lastName = newName;
+      return newName;
+    }
+  }
+
+  TokenContext();
+
+  void add(TypeConfig value) {
+    if (withinFlatten) {
+      return;
+    }
+    types.add(value);
+  }
+
+  @override
+  String toString() {
+    return types
+        .map((e) => e.sourceCode.value)
+        .join('\n')
+        .replaceAll("import 'dart:ui';", '')
+        .replaceAll("import 'dart:convert';", '');
   }
 }
 
@@ -202,29 +253,182 @@ class ParserTokenNotifier {
   }
 
   late final expression = Computed(() {
-    return _expr(value);
+    final context = TokenContext();
+    final expression = _expr(
+      context,
+      value,
+      parent: null,
+    );
+    context.expression = expression;
+    return context;
   });
 
-  String _expr(ParserToken token) {
+  String _expr(
+    TokenContext context,
+    ParserToken token, {
+    required ParserToken? parent,
+  }) {
     final _inner = token.value.when(
-        and: (list, flatten) =>
-            '(' +
-            list.map((e) => _expr(e)).join(' & ') +
-            ')${flatten ? ".flatten()" : ""}',
-        or: (list) => '(' + list.map((e) => _expr(e)).join(' | ') + ')',
+        and: (list, flatten) {
+          if (!flatten) {
+            final type = TypeConfig(
+              isDataValue: true,
+              isSerializable: true,
+            );
+            type.addVariant();
+            final _class = type.classes.first;
+            _class.typeConfig = type;
+            type.signatureNotifier.value = token.name.toClassName();
+
+            if (list.length == 1) {
+            } else {
+              for (final innerToken in list) {
+                if (innerToken.name.isEmpty) {
+                  continue;
+                }
+                final prop = _class.addProperty();
+                prop.classConfig = _class;
+                prop.nameNotifier.value = innerToken.name;
+
+                final _type = innerToken.dartType(store.tokens, parent: token);
+
+                final _optional = innerToken.repeat.min == 0;
+                prop.isRequiredNotifier.value = !_optional;
+                prop.typeNotifier.value = innerToken.repeat.canBeMany
+                    ? 'List<$_type>${_optional ? "?" : ""}'
+                    : '$_type${_optional ? "?" : ""}';
+              }
+              context.add(type);
+            }
+          }
+          final _prev = context.withinFlatten;
+          context.withinFlatten = _prev || flatten;
+          final code = '(' +
+              list.map((e) => _expr(context, e, parent: token)).join(' & ') +
+              ')${flatten ? ".flatten()" : ""}';
+          if (!_prev && flatten) {
+            context.withinFlatten = false;
+          }
+          return code;
+        },
+        or: (list) {
+          final allStrings = list.every(
+            (element) => element.value.maybeMap(
+              and: (and) => and.flatten,
+              string: (string) => !string.isPattern,
+              orElse: () => false,
+            ),
+          );
+          if (allStrings) {
+            final type = TypeConfig(
+              isSerializable: true,
+              isEnum: true,
+            );
+            type.signatureNotifier.value =
+                (parent?.name.toClassName() ?? '') + token.name.toClassName();
+
+            int _index = 0;
+            for (final innerToken in list) {
+              type.addVariant();
+              final _class = type.classes[_index++];
+              _class.typeConfig = type;
+              _class.nameNotifier.value = innerToken.value.maybeMap(
+                and: (and) => innerToken.name,
+                string: (string) => string.value,
+                orElse: () => throw Error(),
+              );
+              if (_class.name.toUpperCase() == _class.name) {
+                _class.nameNotifier.value = _class.name.toLowerCase();
+              }
+            }
+
+            context.add(type);
+          } else {
+            final type = TypeConfig(
+              isSerializable: true,
+              isDataValue: true,
+              isSumType: true,
+            );
+            type.sumTypeConfig.prefix.value = parent?.name.toClassName() ?? '';
+            type.signatureNotifier.value = token.dartType(
+              store.tokens,
+              parent: parent,
+            );
+
+            int _index = 0;
+            for (final innerToken in list) {
+              type.addVariant();
+              final _class = type.classes[_index++];
+              _class.typeConfig = type;
+
+              final nameAndType = innerToken.value.map(
+                and: (and) => and.flatten
+                    ? [
+                        innerToken.name,
+                      ]
+                    : [innerToken.name, innerToken.name.toClassName()],
+                or: (or) => [innerToken.name, innerToken.name.toClassName()],
+                string: (string) => [
+                  string.isPattern ? innerToken.name : string.value,
+                  'String'
+                ],
+                predifined: (predifined) =>
+                    [innerToken.name, predifined.value.toDartType()],
+                ref: (ref) {
+                  final _refToken = store.tokens[ref.value];
+                  return [
+                    innerToken.name.isEmpty
+                        ? _refToken?.value.name ?? ''
+                        : innerToken.name,
+                    _refToken?.value.dartType(store.tokens, parent: token) ?? ''
+                  ];
+                },
+                separated: (separated) => [
+                  innerToken.name.isEmpty
+                      ? separated.item.name
+                      : innerToken.name,
+                  'List<${separated.item.dartType(
+                    store.tokens,
+                    parent: token,
+                  )}>'
+                ],
+              );
+
+              _class.nameNotifier.value = nameAndType.first.toClassName();
+
+              final prop = _class.addProperty();
+              prop.classConfig = _class;
+              prop.nameNotifier.value = 'value';
+
+              final _type = nameAndType.last;
+              prop.typeNotifier.value = innerToken.repeat.canBeMany
+                  ? 'List<$_type>'
+                  : '$_type${innerToken.repeat.isOptionalSingle ? "?" : ""}';
+            }
+
+            context.add(type);
+          }
+          return '(' +
+              list.map((e) => _expr(context, e, parent: token)).join(' | ') +
+              ')';
+        },
         string: (string, isPattern, caseSensitive) {
           if (caseSensitive) {
-            return isPattern ? 'pattern("$string")' : 'string("$string")';
+            return isPattern ? "pattern('$string')" : "string('$string')";
           } else {
             return isPattern
-                ? 'patternIgnoreCase("$string")'
-                : 'stringIgnoreCase("$string")';
+                ? "patternIgnoreCase('$string')"
+                : "stringIgnoreCase('$string')";
           }
         },
-        ref: (ref) => (store.tokens[ref]?.value.name ?? '') + '()',
+        ref: (ref) => store.tokens[ref]?.value.name ?? '',
         predifined: (pred) => pred.toDart(),
         separated: (item, separator, includeSeparators, separatorAtEnd) =>
-            '${_expr(item)}.separatedBy(${_expr(separator)}, '
+            '${_expr(context, item, parent: token)}.separatedBy(${_expr(
+              context,
+              separator,
+              parent: token,
+            )}, '
             'includeSeparators: $includeSeparators, '
             'optionalSeparatorAtEnd: $separatorAtEnd)');
 
@@ -242,5 +446,18 @@ class ParserTokenNotifier {
 
   void setRepeat(RepeatRange repeat) {
     notifier.value = notifier.value.copyWith(repeat: repeat);
+  }
+}
+
+extension ClassNameString on String {
+  String toClassName() {
+    String _value = this;
+    if (_value.toUpperCase() == _value) {
+      _value = _value.toLowerCase();
+    }
+    return _value.isEmpty
+        ? _value
+        : '${_value.substring(0, 1).toUpperCase()}'
+            '${_value.length > 1 ? _value.substring(1) : ""}';
   }
 }

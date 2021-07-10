@@ -207,7 +207,7 @@ class TokenRow extends HookWidget {
           Expanded(
             child: Resizable(
               vertical: ResizeVertical.bottom,
-              defaultHeight: 150,
+              defaultHeight: 190,
               child: SingleChildScrollView(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,

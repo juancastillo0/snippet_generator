@@ -32,6 +32,23 @@ extension PredifinedParserToJson on PredifinedParser {
     }
   }
 
+  String toDartType() {
+    switch (this) {
+      case PredifinedParser.any:
+        return 'String';
+      case PredifinedParser.letter:
+        return 'String';
+      case PredifinedParser.digit:
+        return 'String';
+      case PredifinedParser.whitespace:
+        return 'String';
+      case PredifinedParser.integer:
+        return 'int';
+      case PredifinedParser.double:
+        return 'double';
+    }
+  }
+
   Parser parser() {
     switch (this) {
       case PredifinedParser.any:

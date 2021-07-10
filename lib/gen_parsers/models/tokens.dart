@@ -1,5 +1,8 @@
 import 'package:petitparser/petitparser.dart';
+import 'package:snippet_generator/gen_parsers/models/predifined_parsers.dart';
+import 'package:snippet_generator/gen_parsers/models/stores.dart';
 import 'package:snippet_generator/gen_parsers/models/token_value.dart';
+import 'package:snippet_generator/widgets/make_table.dart';
 
 // any
 // digit
@@ -44,7 +47,8 @@ class RepeatRange {
       : min = times,
         max = times;
 
-  bool get isOptional => min == 0 && max == 1;
+  bool get isOptionalSingle => min == 0 && isSingle;
+  bool get isOptionalMany => min == 0 && canBeMany;
   bool get isStar => min == 0 && max == null;
   bool get isPlus => min == 1 && max == null;
   bool get isFixed => min == max;
@@ -103,6 +107,7 @@ class RepeatRange {
 
 class ParserToken {
   final String name;
+  final String? parentKey;
   final TokenValue value;
   final RepeatRange repeat;
   final bool trim;
@@ -114,6 +119,7 @@ class ParserToken {
     required this.repeat,
     required this.trim,
     required this.negated,
+    required this.parentKey,
   });
 
   const ParserToken.def({
@@ -123,6 +129,7 @@ class ParserToken {
     this.repeat = const RepeatRange.times(1),
     this.trim = true,
     this.negated = false,
+    this.parentKey,
   });
 
   ParserToken copyWith({
@@ -131,6 +138,7 @@ class ParserToken {
     RepeatRange? repeat,
     bool? trim,
     bool? negated,
+    Ref<String?>? parentKey,
   }) {
     return ParserToken(
       name: name ?? this.name,
@@ -138,7 +146,27 @@ class ParserToken {
       repeat: repeat ?? this.repeat,
       trim: trim ?? this.trim,
       negated: negated ?? this.negated,
+      parentKey: parentKey != null ? parentKey.value : this.parentKey,
     );
+  }
+
+  String dartType(
+    Map<String, ParserTokenNotifier> tokens, {
+    required ParserToken? parent,
+  }) {
+    return this.value.map(
+          and: (and) => and.flatten ? 'String' : this.name.toClassName(),
+          or: (or) =>
+              (parent?.name.toClassName() ?? '') + this.name.toClassName(),
+          string: (string) => 'String',
+          ref: (ref) =>
+              tokens[ref.value]?.value.dartType(tokens, parent: null) ?? '',
+          predifined: (predifined) => predifined.value.toDartType(),
+          separated: (separated) => 'List<${separated.item.dartType(
+            tokens,
+            parent: this,
+          )}>',
+        );
   }
 
   Map<String, dynamic> toJson() {
@@ -148,6 +176,7 @@ class ParserToken {
       'repeat': repeat.toJson(),
       'trim': trim,
       'negated': negated,
+      'parentKey': parentKey,
     };
   }
 
@@ -158,6 +187,7 @@ class ParserToken {
       repeat: RepeatRange.fromJson(map['repeat'] as Map<String, dynamic>),
       trim: map['trim'] as bool,
       negated: map['negated'] as bool,
+      parentKey: map['parentKey'] as String?,
     );
   }
 }
