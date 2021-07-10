@@ -9,20 +9,28 @@ final doubleParser = (char('-').optional() &
     .map((value) => double.parse(value));
 
 final table = (stringIgnoreCase('CREATE').trim() &
-        (stringIgnoreCase('TEMPORARY') | stringIgnoreCase('TEMP'))
+        (stringIgnoreCase('TEMPORARY').map((_) => TableTemp.temporary) |
+                stringIgnoreCase('TEMP').map((_) => TableTemp.temp))
+            .cast<TableTemp>()
             .trim()
             .optional() &
         stringIgnoreCase('TABLE').trim() &
         identifier.trim() &
-        string('(').trim() &
+        char('(').trim() &
         column
             .trim()
-            .separatedBy(string(',').trim(),
+            .separatedBy(char(',').trim(),
                 includeSeparators: false, optionalSeparatorAtEnd: false)
             .trim() &
-        string(')').trim() &
-        string(';').trim())
-    .trim();
+        char(')').trim() &
+        char(';').trim())
+    .map((l) {
+  return Table(
+    temp: l[1] as TableTemp?,
+    name: l[3] as String,
+    columns: l[5] as List<Column>,
+  );
+}).trim();
 
 class Table {
   final TableTemp? temp;
@@ -89,10 +97,10 @@ class Table {
 class TableTemp {
   final String _inner;
 
-  const TableTemp(this._inner);
+  const TableTemp._(this._inner);
 
-  static const temporary = TableTemp('temporary');
-  static const temp = TableTemp('temp');
+  static const temporary = TableTemp._('temporary');
+  static const temp = TableTemp._('temp');
 
   static const values = [
     TableTemp.temporary,
@@ -104,8 +112,7 @@ class TableTemp {
       throw Error();
     }
     for (final v in values) {
-      // ignore: unrelated_type_equality_checks
-      if (json == v) {
+      if (json.toString() == v._inner) {
         return v;
       }
     }
@@ -123,7 +130,9 @@ class TableTemp {
 
   @override
   bool operator ==(Object other) {
-    return other.toString() == _inner;
+    return other is TableTemp &&
+        other.runtimeType == runtimeType &&
+        other._inner == _inner;
   }
 
   @override
@@ -163,42 +172,57 @@ class TableTemp {
   }
 }
 
-final identifier = (letter() & (letter() | digit()).star()).flatten().trim();
+final identifier =
+    ((letter() | char('_')) & (letter() | digit() | char('_')).star())
+        .flatten()
+        .trim();
 
 final column = (identifier.trim() &
         columnType.trim().optional() &
         constraint.trim().star())
-    .trim();
+    .map((l) {
+  return Column(
+    name: l[0] as String,
+    type: l[1] as ColumnType?,
+    constraints: l[2] as List<Constraint>?,
+  );
+}).trim();
 
 class Column {
   final String name;
   final ColumnType? type;
+  final List<Constraint>? constraints;
 
   const Column({
     required this.name,
     this.type,
+    this.constraints,
   });
 
   Column copyWith({
     String? name,
     ColumnType? type,
+    List<Constraint>? constraints,
   }) {
     return Column(
       name: name ?? this.name,
       type: type ?? this.type,
+      constraints: constraints ?? this.constraints,
     );
   }
 
   @override
   bool operator ==(Object other) {
     if (other is Column) {
-      return this.name == other.name && this.type == other.type;
+      return this.name == other.name &&
+          this.type == other.type &&
+          this.constraints == other.constraints;
     }
     return false;
   }
 
   @override
-  int get hashCode => hashValues(name, type);
+  int get hashCode => hashValues(name, type, constraints);
 
   static Column fromJson(Object? _map) {
     final Map<String, dynamic> map;
@@ -213,6 +237,9 @@ class Column {
     return Column(
       name: map['name'] as String,
       type: ColumnType.fromJson(map['type']),
+      constraints: (map['constraints'] as List)
+          .map((e) => Constraint.fromJson(e))
+          .toList(),
     );
   }
 
@@ -220,27 +247,29 @@ class Column {
     return {
       'name': name,
       'type': type?.toJson(),
+      'constraints': constraints?.map((e) => e.toJson()).toList(),
     };
   }
 }
 
-final columnType = ((stringIgnoreCase('TEXT') |
-        stringIgnoreCase('NUMERIC') |
-        stringIgnoreCase('INTEGER') |
-        stringIgnoreCase('REAL') |
-        stringIgnoreCase('BLOB')))
+final columnType = ((stringIgnoreCase('TEXT').map((_) => ColumnType.text) |
+            stringIgnoreCase('NUMERIC').map((_) => ColumnType.numeric) |
+            stringIgnoreCase('INTEGER').map((_) => ColumnType.integer) |
+            stringIgnoreCase('REAL').map((_) => ColumnType.real) |
+            stringIgnoreCase('BLOB').map((_) => ColumnType.blob))
+        .cast<ColumnType>())
     .trim();
 
 class ColumnType {
   final String _inner;
 
-  const ColumnType(this._inner);
+  const ColumnType._(this._inner);
 
-  static const text = ColumnType('text');
-  static const numeric = ColumnType('numeric');
-  static const integer = ColumnType('integer');
-  static const real = ColumnType('real');
-  static const blob = ColumnType('blob');
+  static const text = ColumnType._('text');
+  static const numeric = ColumnType._('numeric');
+  static const integer = ColumnType._('integer');
+  static const real = ColumnType._('real');
+  static const blob = ColumnType._('blob');
 
   static const values = [
     ColumnType.text,
@@ -255,8 +284,7 @@ class ColumnType {
       throw Error();
     }
     for (final v in values) {
-      // ignore: unrelated_type_equality_checks
-      if (json == v) {
+      if (json.toString() == v._inner) {
         return v;
       }
     }
@@ -274,7 +302,9 @@ class ColumnType {
 
   @override
   bool operator ==(Object other) {
-    return other.toString() == _inner;
+    return other is ColumnType &&
+        other.runtimeType == runtimeType &&
+        other._inner == _inner;
   }
 
   @override
@@ -342,23 +372,62 @@ final constraint = (stringIgnoreCase('CONSTRAINT').trim() &
         identifier.trim() &
         ((stringIgnoreCase('PRIMARY').trim() &
                         stringIgnoreCase('KEY').trim() &
-                        (stringIgnoreCase('ASC') | stringIgnoreCase('DESC'))
+                        (stringIgnoreCase('ASC')
+                                    .map((_) => PrimaryKeyOrder.asc) |
+                                stringIgnoreCase('DESC')
+                                    .map((_) => PrimaryKeyOrder.desc))
+                            .cast<PrimaryKeyOrder>()
                             .trim()
                             .optional() &
                         conflictClause.trim())
-                    .trim() |
+                    .map((l) {
+                      return PrimaryKey(
+                        order: l[2] as PrimaryKeyOrder?,
+                        clause: l[3] as ConflictClause,
+                      );
+                    })
+                    .trim()
+                    .map((v) => ConstraintValue.primaryKey(value: v)) |
                 (stringIgnoreCase('NOT').trim() &
                         stringIgnoreCase('NULL').trim() &
                         conflictClause.trim())
-                    .trim() |
+                    .map((l) {
+                      return NotNull(
+                        clause: l[2] as ConflictClause,
+                      );
+                    })
+                    .trim()
+                    .map((v) => ConstraintValue.notNull(value: v)) |
                 (stringIgnoreCase('UNIQUE').trim() & conflictClause.trim())
-                    .trim() |
-                stringIgnoreCase('CHECK').trim() |
+                    .map((l) {
+                      return Unique(
+                        clause: l[1] as ConflictClause,
+                      );
+                    })
+                    .trim()
+                    .map((v) => ConstraintValue.unique(value: v)) |
+                stringIgnoreCase('CHECK')
+                    .trim()
+                    .map((v) => ConstraintValue.check(value: v)) |
                 (stringIgnoreCase('DEFAULT').trim() & expression.trim())
-                    .trim() |
-                foreignKey.trim())
+                    .map((l) {
+                      return DefaultValue(
+                        value: l[1] as Expression,
+                      );
+                    })
+                    .trim()
+                    .map((v) => ConstraintValue.defaultValue(value: v)) |
+                foreignKey
+                    .trim()
+                    .map((v) => ConstraintValue.foreignKey(value: v)))
+            .cast<ConstraintValue>()
             .trim())
-    .trim();
+    .map((l) {
+  return Constraint(
+    name: l[1] as String,
+    value: l[2] as ConstraintValue,
+  );
+}).trim();
 
 class Constraint {
   final String name;
@@ -584,14 +653,14 @@ abstract class ConstraintValue {
 class TypeConstraintValue {
   final String _inner;
 
-  const TypeConstraintValue(this._inner);
+  const TypeConstraintValue._(this._inner);
 
-  static const primaryKey = TypeConstraintValue('primaryKey');
-  static const notNull = TypeConstraintValue('notNull');
-  static const unique = TypeConstraintValue('unique');
-  static const check = TypeConstraintValue('check');
-  static const defaultValue = TypeConstraintValue('defaultValue');
-  static const foreignKey = TypeConstraintValue('foreignKey');
+  static const primaryKey = TypeConstraintValue._('primaryKey');
+  static const notNull = TypeConstraintValue._('notNull');
+  static const unique = TypeConstraintValue._('unique');
+  static const check = TypeConstraintValue._('check');
+  static const defaultValue = TypeConstraintValue._('defaultValue');
+  static const foreignKey = TypeConstraintValue._('foreignKey');
 
   static const values = [
     TypeConstraintValue.primaryKey,
@@ -607,8 +676,7 @@ class TypeConstraintValue {
       throw Error();
     }
     for (final v in values) {
-      // ignore: unrelated_type_equality_checks
-      if (json == v) {
+      if (json.toString() == v._inner) {
         return v;
       }
     }
@@ -626,7 +694,9 @@ class TypeConstraintValue {
 
   @override
   bool operator ==(Object other) {
-    return other.toString() == _inner;
+    return other is TypeConstraintValue &&
+        other.runtimeType == runtimeType &&
+        other._inner == _inner;
   }
 
   @override
@@ -1073,10 +1143,10 @@ class PrimaryKey {
 class PrimaryKeyOrder {
   final String _inner;
 
-  const PrimaryKeyOrder(this._inner);
+  const PrimaryKeyOrder._(this._inner);
 
-  static const asc = PrimaryKeyOrder('asc');
-  static const desc = PrimaryKeyOrder('desc');
+  static const asc = PrimaryKeyOrder._('asc');
+  static const desc = PrimaryKeyOrder._('desc');
 
   static const values = [
     PrimaryKeyOrder.asc,
@@ -1088,8 +1158,7 @@ class PrimaryKeyOrder {
       throw Error();
     }
     for (final v in values) {
-      // ignore: unrelated_type_equality_checks
-      if (json == v) {
+      if (json.toString() == v._inner) {
         return v;
       }
     }
@@ -1107,7 +1176,9 @@ class PrimaryKeyOrder {
 
   @override
   bool operator ==(Object other) {
-    return other.toString() == _inner;
+    return other is PrimaryKeyOrder &&
+        other.runtimeType == runtimeType &&
+        other._inner == _inner;
   }
 
   @override
@@ -1293,12 +1364,28 @@ class DefaultValue {
 
 final conflictClause = (stringIgnoreCase('ON').trim() &
         stringIgnoreCase('CONFLICT').trim() &
-        (stringIgnoreCase('ROLLBACK').trim() |
-                stringIgnoreCase('ABORT').trim() |
-                stringIgnoreCase('FAIL').trim() |
-                stringIgnoreCase('IGNORE').trim() |
-                stringIgnoreCase('REPLACE').trim())
+        (stringIgnoreCase('ROLLBACK')
+                    .trim()
+                    .map((_) => ConflictClauseValue.rollback) |
+                stringIgnoreCase('ABORT')
+                    .trim()
+                    .map((_) => ConflictClauseValue.abort) |
+                stringIgnoreCase('FAIL')
+                    .trim()
+                    .map((_) => ConflictClauseValue.fail) |
+                stringIgnoreCase('IGNORE')
+                    .trim()
+                    .map((_) => ConflictClauseValue.ignore) |
+                stringIgnoreCase('REPLACE')
+                    .trim()
+                    .map((_) => ConflictClauseValue.replace))
+            .cast<ConflictClauseValue>()
             .trim())
+    .map((l) {
+      return ConflictClause(
+        value: l[2] as ConflictClauseValue,
+      );
+    })
     .trim()
     .optional();
 
@@ -1353,13 +1440,13 @@ class ConflictClause {
 class ConflictClauseValue {
   final String _inner;
 
-  const ConflictClauseValue(this._inner);
+  const ConflictClauseValue._(this._inner);
 
-  static const rollback = ConflictClauseValue('rollback');
-  static const abort = ConflictClauseValue('abort');
-  static const fail = ConflictClauseValue('fail');
-  static const ignore = ConflictClauseValue('ignore');
-  static const replace = ConflictClauseValue('replace');
+  static const rollback = ConflictClauseValue._('rollback');
+  static const abort = ConflictClauseValue._('abort');
+  static const fail = ConflictClauseValue._('fail');
+  static const ignore = ConflictClauseValue._('ignore');
+  static const replace = ConflictClauseValue._('replace');
 
   static const values = [
     ConflictClauseValue.rollback,
@@ -1374,8 +1461,7 @@ class ConflictClauseValue {
       throw Error();
     }
     for (final v in values) {
-      // ignore: unrelated_type_equality_checks
-      if (json == v) {
+      if (json.toString() == v._inner) {
         return v;
       }
     }
@@ -1393,7 +1479,9 @@ class ConflictClauseValue {
 
   @override
   bool operator ==(Object other) {
-    return other.toString() == _inner;
+    return other is ConflictClauseValue &&
+        other.runtimeType == runtimeType &&
+        other._inner == _inner;
   }
 
   @override
@@ -1462,12 +1550,18 @@ final foreignKey = (stringIgnoreCase('REFERENCES').trim() &
         stringIgnoreCase('(').trim() &
         identifier
             .trim()
-            .separatedBy(string(',').trim(),
+            .separatedBy(char(',').trim(),
                 includeSeparators: false, optionalSeparatorAtEnd: true)
             .trim() &
         stringIgnoreCase(')').trim() &
         foreignKeyChangeClause.trim().repeat(0, 2))
-    .trim();
+    .map((l) {
+  return ForeignKey(
+    tableName: l[1] as String,
+    columnNames: l[3] as List<String>,
+    changeClauses: l[5] as List<ForeignKeyChangeClause>?,
+  );
+}).trim();
 
 class ForeignKey {
   final String tableName;
@@ -1535,20 +1629,48 @@ class ForeignKey {
 }
 
 final foreignKeyChangeClause = (stringIgnoreCase('ON').trim() &
-        (stringIgnoreCase('DELETE').trim() | stringIgnoreCase('UPDATE').trim())
+        (stringIgnoreCase('DELETE')
+                    .trim()
+                    .map((_) => ForeignKeyChangeClauseType.delete) |
+                stringIgnoreCase('UPDATE')
+                    .trim()
+                    .map((_) => ForeignKeyChangeClauseType.update))
+            .cast<ForeignKeyChangeClauseType>()
             .trim() &
         ((stringIgnoreCase('SET').trim() & stringIgnoreCase('NULL').trim())
-                    .trim() |
+                    .map((l) {
+                      return SetNull();
+                    })
+                    .trim()
+                    .map((v) => ForeignKeyChangeClauseValue.setNull(value: v)) |
                 (stringIgnoreCase('SET').trim() &
                         stringIgnoreCase('DEFAULT').trim())
-                    .trim() |
-                stringIgnoreCase('CASCADE').trim() |
-                stringIgnoreCase('RESTRICT').trim() |
+                    .map((l) {
+                      return SetDefault();
+                    })
+                    .trim()
+                    .map((v) =>
+                        ForeignKeyChangeClauseValue.setDefault(value: v)) |
+                stringIgnoreCase('CASCADE')
+                    .trim()
+                    .map((v) => ForeignKeyChangeClauseValue.cascade(value: v)) |
+                stringIgnoreCase('RESTRICT').trim().map(
+                    (v) => ForeignKeyChangeClauseValue.restrict(value: v)) |
                 (stringIgnoreCase('NO').trim() &
                         stringIgnoreCase('ACTION').trim())
-                    .trim())
+                    .map((l) {
+                      return NoAction();
+                    })
+                    .trim()
+                    .map((v) => ForeignKeyChangeClauseValue.noAction(value: v)))
+            .cast<ForeignKeyChangeClauseValue>()
             .trim())
-    .trim();
+    .map((l) {
+  return ForeignKeyChangeClause(
+    type: l[1] as ForeignKeyChangeClauseType,
+    value: l[2] as ForeignKeyChangeClauseValue,
+  );
+}).trim();
 
 class ForeignKeyChangeClause {
   final ForeignKeyChangeClauseType type;
@@ -1607,10 +1729,10 @@ class ForeignKeyChangeClause {
 class ForeignKeyChangeClauseType {
   final String _inner;
 
-  const ForeignKeyChangeClauseType(this._inner);
+  const ForeignKeyChangeClauseType._(this._inner);
 
-  static const delete = ForeignKeyChangeClauseType('delete');
-  static const update = ForeignKeyChangeClauseType('update');
+  static const delete = ForeignKeyChangeClauseType._('delete');
+  static const update = ForeignKeyChangeClauseType._('update');
 
   static const values = [
     ForeignKeyChangeClauseType.delete,
@@ -1622,8 +1744,7 @@ class ForeignKeyChangeClauseType {
       throw Error();
     }
     for (final v in values) {
-      // ignore: unrelated_type_equality_checks
-      if (json == v) {
+      if (json.toString() == v._inner) {
         return v;
       }
     }
@@ -1641,7 +1762,9 @@ class ForeignKeyChangeClauseType {
 
   @override
   bool operator ==(Object other) {
-    return other.toString() == _inner;
+    return other is ForeignKeyChangeClauseType &&
+        other.runtimeType == runtimeType &&
+        other._inner == _inner;
   }
 
   @override
@@ -1834,13 +1957,13 @@ abstract class ForeignKeyChangeClauseValue {
 class TypeForeignKeyChangeClauseValue {
   final String _inner;
 
-  const TypeForeignKeyChangeClauseValue(this._inner);
+  const TypeForeignKeyChangeClauseValue._(this._inner);
 
-  static const setNull = TypeForeignKeyChangeClauseValue('setNull');
-  static const setDefault = TypeForeignKeyChangeClauseValue('setDefault');
-  static const cascade = TypeForeignKeyChangeClauseValue('cascade');
-  static const restrict = TypeForeignKeyChangeClauseValue('restrict');
-  static const noAction = TypeForeignKeyChangeClauseValue('noAction');
+  static const setNull = TypeForeignKeyChangeClauseValue._('setNull');
+  static const setDefault = TypeForeignKeyChangeClauseValue._('setDefault');
+  static const cascade = TypeForeignKeyChangeClauseValue._('cascade');
+  static const restrict = TypeForeignKeyChangeClauseValue._('restrict');
+  static const noAction = TypeForeignKeyChangeClauseValue._('noAction');
 
   static const values = [
     TypeForeignKeyChangeClauseValue.setNull,
@@ -1855,8 +1978,7 @@ class TypeForeignKeyChangeClauseValue {
       throw Error();
     }
     for (final v in values) {
-      // ignore: unrelated_type_equality_checks
-      if (json == v) {
+      if (json.toString() == v._inner) {
         return v;
       }
     }
@@ -1874,7 +1996,9 @@ class TypeForeignKeyChangeClauseValue {
 
   @override
   bool operator ==(Object other) {
-    return other.toString() == _inner;
+    return other is TypeForeignKeyChangeClauseValue &&
+        other.runtimeType == runtimeType &&
+        other._inner == _inner;
   }
 
   @override
@@ -2316,10 +2440,31 @@ class NoAction {
   }
 }
 
-final expression = ((doubleParser.trim() |
-            (string('"').trim() & any.neg().trim() & string('"').trim()).trim())
-        .trim())
-    .trim();
+final expression =
+    ((doubleParser.trim().map((v) => Expression.number(value: v)) |
+                (char("'") & innerStrExpression & char("'"))
+                    .map((l) {
+                      return Str(
+                        value: l[1] as String,
+                      );
+                    })
+                    .trim()
+                    .map((v) => Expression.str(value: v)) |
+                string('NULL').trim().map((v) => Expression.null_(value: v)) |
+                string('TRUE').trim().map((v) => Expression.true_(value: v)) |
+                string('FALSE').trim().map((v) => Expression.false_(value: v)) |
+                string('CURRENT_TIME')
+                    .trim()
+                    .map((v) => Expression.currentTime(value: v)) |
+                string('CURRENT_DATE')
+                    .trim()
+                    .map((v) => Expression.currentDate(value: v)) |
+                string('CURRENT_TIMESTAMP')
+                    .trim()
+                    .map((v) => Expression.currentTimestamp(value: v)))
+            .cast<Expression>()
+            .trim())
+        .trim();
 
 abstract class Expression {
   const Expression._();
@@ -2330,18 +2475,54 @@ abstract class Expression {
   const factory Expression.str({
     required Str value,
   }) = ExpressionStr;
+  const factory Expression.null_({
+    required String value,
+  }) = ExpressionNull;
+  const factory Expression.true_({
+    required String value,
+  }) = ExpressionTrue;
+  const factory Expression.false_({
+    required String value,
+  }) = ExpressionFalse;
+  const factory Expression.currentTime({
+    required String value,
+  }) = ExpressionCurrentTime;
+  const factory Expression.currentDate({
+    required String value,
+  }) = ExpressionCurrentDate;
+  const factory Expression.currentTimestamp({
+    required String value,
+  }) = ExpressionCurrentTimestamp;
 
   Object get value;
 
   _T when<_T>({
     required _T Function(double value) number,
     required _T Function(Str value) str,
+    required _T Function(String value) null_,
+    required _T Function(String value) true_,
+    required _T Function(String value) false_,
+    required _T Function(String value) currentTime,
+    required _T Function(String value) currentDate,
+    required _T Function(String value) currentTimestamp,
   }) {
     final v = this;
     if (v is ExpressionNumber) {
       return number(v.value);
     } else if (v is ExpressionStr) {
       return str(v.value);
+    } else if (v is ExpressionNull) {
+      return null_(v.value);
+    } else if (v is ExpressionTrue) {
+      return true_(v.value);
+    } else if (v is ExpressionFalse) {
+      return false_(v.value);
+    } else if (v is ExpressionCurrentTime) {
+      return currentTime(v.value);
+    } else if (v is ExpressionCurrentDate) {
+      return currentDate(v.value);
+    } else if (v is ExpressionCurrentTimestamp) {
+      return currentTimestamp(v.value);
     }
     throw Exception();
   }
@@ -2350,12 +2531,32 @@ abstract class Expression {
     required _T Function() orElse,
     _T Function(double value)? number,
     _T Function(Str value)? str,
+    _T Function(String value)? null_,
+    _T Function(String value)? true_,
+    _T Function(String value)? false_,
+    _T Function(String value)? currentTime,
+    _T Function(String value)? currentDate,
+    _T Function(String value)? currentTimestamp,
   }) {
     final v = this;
     if (v is ExpressionNumber) {
       return number != null ? number(v.value) : orElse.call();
     } else if (v is ExpressionStr) {
       return str != null ? str(v.value) : orElse.call();
+    } else if (v is ExpressionNull) {
+      return null_ != null ? null_(v.value) : orElse.call();
+    } else if (v is ExpressionTrue) {
+      return true_ != null ? true_(v.value) : orElse.call();
+    } else if (v is ExpressionFalse) {
+      return false_ != null ? false_(v.value) : orElse.call();
+    } else if (v is ExpressionCurrentTime) {
+      return currentTime != null ? currentTime(v.value) : orElse.call();
+    } else if (v is ExpressionCurrentDate) {
+      return currentDate != null ? currentDate(v.value) : orElse.call();
+    } else if (v is ExpressionCurrentTimestamp) {
+      return currentTimestamp != null
+          ? currentTimestamp(v.value)
+          : orElse.call();
     }
     throw Exception();
   }
@@ -2363,12 +2564,30 @@ abstract class Expression {
   _T map<_T>({
     required _T Function(ExpressionNumber value) number,
     required _T Function(ExpressionStr value) str,
+    required _T Function(ExpressionNull value) null_,
+    required _T Function(ExpressionTrue value) true_,
+    required _T Function(ExpressionFalse value) false_,
+    required _T Function(ExpressionCurrentTime value) currentTime,
+    required _T Function(ExpressionCurrentDate value) currentDate,
+    required _T Function(ExpressionCurrentTimestamp value) currentTimestamp,
   }) {
     final v = this;
     if (v is ExpressionNumber) {
       return number(v);
     } else if (v is ExpressionStr) {
       return str(v);
+    } else if (v is ExpressionNull) {
+      return null_(v);
+    } else if (v is ExpressionTrue) {
+      return true_(v);
+    } else if (v is ExpressionFalse) {
+      return false_(v);
+    } else if (v is ExpressionCurrentTime) {
+      return currentTime(v);
+    } else if (v is ExpressionCurrentDate) {
+      return currentDate(v);
+    } else if (v is ExpressionCurrentTimestamp) {
+      return currentTimestamp(v);
     }
     throw Exception();
   }
@@ -2377,18 +2596,42 @@ abstract class Expression {
     required _T Function() orElse,
     _T Function(ExpressionNumber value)? number,
     _T Function(ExpressionStr value)? str,
+    _T Function(ExpressionNull value)? null_,
+    _T Function(ExpressionTrue value)? true_,
+    _T Function(ExpressionFalse value)? false_,
+    _T Function(ExpressionCurrentTime value)? currentTime,
+    _T Function(ExpressionCurrentDate value)? currentDate,
+    _T Function(ExpressionCurrentTimestamp value)? currentTimestamp,
   }) {
     final v = this;
     if (v is ExpressionNumber) {
       return number != null ? number(v) : orElse.call();
     } else if (v is ExpressionStr) {
       return str != null ? str(v) : orElse.call();
+    } else if (v is ExpressionNull) {
+      return null_ != null ? null_(v) : orElse.call();
+    } else if (v is ExpressionTrue) {
+      return true_ != null ? true_(v) : orElse.call();
+    } else if (v is ExpressionFalse) {
+      return false_ != null ? false_(v) : orElse.call();
+    } else if (v is ExpressionCurrentTime) {
+      return currentTime != null ? currentTime(v) : orElse.call();
+    } else if (v is ExpressionCurrentDate) {
+      return currentDate != null ? currentDate(v) : orElse.call();
+    } else if (v is ExpressionCurrentTimestamp) {
+      return currentTimestamp != null ? currentTimestamp(v) : orElse.call();
     }
     throw Exception();
   }
 
   bool get isNumber => this is ExpressionNumber;
   bool get isStr => this is ExpressionStr;
+  bool get isNull => this is ExpressionNull;
+  bool get isTrue => this is ExpressionTrue;
+  bool get isFalse => this is ExpressionFalse;
+  bool get isCurrentTime => this is ExpressionCurrentTime;
+  bool get isCurrentDate => this is ExpressionCurrentDate;
+  bool get isCurrentTimestamp => this is ExpressionCurrentTimestamp;
 
   TypeExpression get typeEnum;
 
@@ -2407,6 +2650,18 @@ abstract class Expression {
         return ExpressionNumber.fromJson(map);
       case 'str':
         return ExpressionStr.fromJson(map);
+      case 'null':
+        return ExpressionNull.fromJson(map);
+      case 'true':
+        return ExpressionTrue.fromJson(map);
+      case 'false':
+        return ExpressionFalse.fromJson(map);
+      case 'currentTime':
+        return ExpressionCurrentTime.fromJson(map);
+      case 'currentDate':
+        return ExpressionCurrentDate.fromJson(map);
+      case 'currentTimestamp':
+        return ExpressionCurrentTimestamp.fromJson(map);
       default:
         throw Exception('Invalid discriminator for Expression.fromJson '
             '${map["runtimeType"]}. Input map: $map');
@@ -2419,14 +2674,26 @@ abstract class Expression {
 class TypeExpression {
   final String _inner;
 
-  const TypeExpression(this._inner);
+  const TypeExpression._(this._inner);
 
-  static const number = TypeExpression('number');
-  static const str = TypeExpression('str');
+  static const number = TypeExpression._('number');
+  static const str = TypeExpression._('str');
+  static const null_ = TypeExpression._('null_');
+  static const true_ = TypeExpression._('true_');
+  static const false_ = TypeExpression._('false_');
+  static const currentTime = TypeExpression._('currentTime');
+  static const currentDate = TypeExpression._('currentDate');
+  static const currentTimestamp = TypeExpression._('currentTimestamp');
 
   static const values = [
     TypeExpression.number,
     TypeExpression.str,
+    TypeExpression.null_,
+    TypeExpression.true_,
+    TypeExpression.false_,
+    TypeExpression.currentTime,
+    TypeExpression.currentDate,
+    TypeExpression.currentTimestamp,
   ];
 
   static TypeExpression fromJson(Object? json) {
@@ -2434,8 +2701,7 @@ class TypeExpression {
       throw Error();
     }
     for (final v in values) {
-      // ignore: unrelated_type_equality_checks
-      if (json == v) {
+      if (json.toString() == v._inner) {
         return v;
       }
     }
@@ -2453,7 +2719,9 @@ class TypeExpression {
 
   @override
   bool operator ==(Object other) {
-    return other.toString() == _inner;
+    return other is TypeExpression &&
+        other.runtimeType == runtimeType &&
+        other._inner == _inner;
   }
 
   @override
@@ -2461,16 +2729,40 @@ class TypeExpression {
 
   bool get isNumber => this == TypeExpression.number;
   bool get isStr => this == TypeExpression.str;
+  bool get isNull_ => this == TypeExpression.null_;
+  bool get isTrue_ => this == TypeExpression.true_;
+  bool get isFalse_ => this == TypeExpression.false_;
+  bool get isCurrentTime => this == TypeExpression.currentTime;
+  bool get isCurrentDate => this == TypeExpression.currentDate;
+  bool get isCurrentTimestamp => this == TypeExpression.currentTimestamp;
 
   _T when<_T>({
     required _T Function() number,
     required _T Function() str,
+    required _T Function() null_,
+    required _T Function() true_,
+    required _T Function() false_,
+    required _T Function() currentTime,
+    required _T Function() currentDate,
+    required _T Function() currentTimestamp,
   }) {
     switch (this._inner) {
       case 'number':
         return number();
       case 'str':
         return str();
+      case 'null_':
+        return null_();
+      case 'true_':
+        return true_();
+      case 'false_':
+        return false_();
+      case 'currentTime':
+        return currentTime();
+      case 'currentDate':
+        return currentDate();
+      case 'currentTimestamp':
+        return currentTimestamp();
     }
     throw Error();
   }
@@ -2478,6 +2770,12 @@ class TypeExpression {
   _T maybeWhen<_T>({
     _T Function()? number,
     _T Function()? str,
+    _T Function()? null_,
+    _T Function()? true_,
+    _T Function()? false_,
+    _T Function()? currentTime,
+    _T Function()? currentDate,
+    _T Function()? currentTimestamp,
     required _T Function() orElse,
   }) {
     _T Function()? c;
@@ -2487,6 +2785,24 @@ class TypeExpression {
         break;
       case 'str':
         c = str;
+        break;
+      case 'null_':
+        c = null_;
+        break;
+      case 'true_':
+        c = true_;
+        break;
+      case 'false_':
+        c = false_;
+        break;
+      case 'currentTime':
+        c = currentTime;
+        break;
+      case 'currentDate':
+        c = currentDate;
+        break;
+      case 'currentTimestamp':
+        c = currentTimestamp;
         break;
     }
     return (c ?? orElse).call();
@@ -2599,6 +2915,324 @@ class ExpressionStr extends Expression {
   }
 }
 
+class ExpressionNull extends Expression {
+  final String value;
+
+  const ExpressionNull({
+    required this.value,
+  }) : super._();
+
+  @override
+  TypeExpression get typeEnum => TypeExpression.null_;
+
+  ExpressionNull copyWith({
+    String? value,
+  }) {
+    return ExpressionNull(
+      value: value ?? this.value,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is ExpressionNull) {
+      return this.value == other.value;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
+
+  static ExpressionNull fromJson(Object? _map) {
+    final Map<String, dynamic> map;
+    if (_map is ExpressionNull) {
+      return _map;
+    } else if (_map is String) {
+      map = jsonDecode(_map) as Map<String, dynamic>;
+    } else {
+      map = (_map! as Map).cast();
+    }
+
+    return ExpressionNull(
+      value: map['value'] as String,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'runtimeType': 'null',
+      'value': value,
+    };
+  }
+}
+
+class ExpressionTrue extends Expression {
+  final String value;
+
+  const ExpressionTrue({
+    required this.value,
+  }) : super._();
+
+  @override
+  TypeExpression get typeEnum => TypeExpression.true_;
+
+  ExpressionTrue copyWith({
+    String? value,
+  }) {
+    return ExpressionTrue(
+      value: value ?? this.value,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is ExpressionTrue) {
+      return this.value == other.value;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
+
+  static ExpressionTrue fromJson(Object? _map) {
+    final Map<String, dynamic> map;
+    if (_map is ExpressionTrue) {
+      return _map;
+    } else if (_map is String) {
+      map = jsonDecode(_map) as Map<String, dynamic>;
+    } else {
+      map = (_map! as Map).cast();
+    }
+
+    return ExpressionTrue(
+      value: map['value'] as String,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'runtimeType': 'true',
+      'value': value,
+    };
+  }
+}
+
+class ExpressionFalse extends Expression {
+  final String value;
+
+  const ExpressionFalse({
+    required this.value,
+  }) : super._();
+
+  @override
+  TypeExpression get typeEnum => TypeExpression.false_;
+
+  ExpressionFalse copyWith({
+    String? value,
+  }) {
+    return ExpressionFalse(
+      value: value ?? this.value,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is ExpressionFalse) {
+      return this.value == other.value;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
+
+  static ExpressionFalse fromJson(Object? _map) {
+    final Map<String, dynamic> map;
+    if (_map is ExpressionFalse) {
+      return _map;
+    } else if (_map is String) {
+      map = jsonDecode(_map) as Map<String, dynamic>;
+    } else {
+      map = (_map! as Map).cast();
+    }
+
+    return ExpressionFalse(
+      value: map['value'] as String,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'runtimeType': 'false',
+      'value': value,
+    };
+  }
+}
+
+class ExpressionCurrentTime extends Expression {
+  final String value;
+
+  const ExpressionCurrentTime({
+    required this.value,
+  }) : super._();
+
+  @override
+  TypeExpression get typeEnum => TypeExpression.currentTime;
+
+  ExpressionCurrentTime copyWith({
+    String? value,
+  }) {
+    return ExpressionCurrentTime(
+      value: value ?? this.value,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is ExpressionCurrentTime) {
+      return this.value == other.value;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
+
+  static ExpressionCurrentTime fromJson(Object? _map) {
+    final Map<String, dynamic> map;
+    if (_map is ExpressionCurrentTime) {
+      return _map;
+    } else if (_map is String) {
+      map = jsonDecode(_map) as Map<String, dynamic>;
+    } else {
+      map = (_map! as Map).cast();
+    }
+
+    return ExpressionCurrentTime(
+      value: map['value'] as String,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'runtimeType': 'currentTime',
+      'value': value,
+    };
+  }
+}
+
+class ExpressionCurrentDate extends Expression {
+  final String value;
+
+  const ExpressionCurrentDate({
+    required this.value,
+  }) : super._();
+
+  @override
+  TypeExpression get typeEnum => TypeExpression.currentDate;
+
+  ExpressionCurrentDate copyWith({
+    String? value,
+  }) {
+    return ExpressionCurrentDate(
+      value: value ?? this.value,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is ExpressionCurrentDate) {
+      return this.value == other.value;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
+
+  static ExpressionCurrentDate fromJson(Object? _map) {
+    final Map<String, dynamic> map;
+    if (_map is ExpressionCurrentDate) {
+      return _map;
+    } else if (_map is String) {
+      map = jsonDecode(_map) as Map<String, dynamic>;
+    } else {
+      map = (_map! as Map).cast();
+    }
+
+    return ExpressionCurrentDate(
+      value: map['value'] as String,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'runtimeType': 'currentDate',
+      'value': value,
+    };
+  }
+}
+
+class ExpressionCurrentTimestamp extends Expression {
+  final String value;
+
+  const ExpressionCurrentTimestamp({
+    required this.value,
+  }) : super._();
+
+  @override
+  TypeExpression get typeEnum => TypeExpression.currentTimestamp;
+
+  ExpressionCurrentTimestamp copyWith({
+    String? value,
+  }) {
+    return ExpressionCurrentTimestamp(
+      value: value ?? this.value,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is ExpressionCurrentTimestamp) {
+      return this.value == other.value;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
+
+  static ExpressionCurrentTimestamp fromJson(Object? _map) {
+    final Map<String, dynamic> map;
+    if (_map is ExpressionCurrentTimestamp) {
+      return _map;
+    } else if (_map is String) {
+      map = jsonDecode(_map) as Map<String, dynamic>;
+    } else {
+      map = (_map! as Map).cast();
+    }
+
+    return ExpressionCurrentTimestamp(
+      value: map['value'] as String,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'runtimeType': 'currentTimestamp',
+      'value': value,
+    };
+  }
+}
+
 class Str {
   final String value;
 
@@ -2647,4 +3281,4 @@ class Str {
   }
 }
 
-final any = (string('"').neg().trim().star()).flatten().trim();
+final innerStrExpression = (char("'").neg().star()).flatten().trim();

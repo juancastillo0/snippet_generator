@@ -271,6 +271,7 @@ class ParserTokenNotifier {
   }) {
     final _inner = token.value.when(
         and: (list, flatten) {
+          final String _mapCode;
           if (!flatten) {
             final type = TypeConfig(
               isDataValue: true,
@@ -281,10 +282,12 @@ class ParserTokenNotifier {
             _class.typeConfig = type;
             type.signatureNotifier.value = token.name.toClassName();
 
+            final _props = <PropertyField?>[];
             if (list.length == 1) {
             } else {
               for (final innerToken in list) {
                 if (innerToken.name.isEmpty) {
+                  _props.add(null);
                   continue;
                 }
                 final prop = _class.addProperty();
@@ -298,15 +301,27 @@ class ParserTokenNotifier {
                 prop.typeNotifier.value = innerToken.repeat.canBeMany
                     ? 'List<$_type>${_optional ? "?" : ""}'
                     : '$_type${_optional ? "?" : ""}';
+                _props.add(prop);
               }
               context.add(type);
             }
+
+            _mapCode = list.length == 1
+                ? ''
+                // ignore: leading_newlines_in_multiline_strings
+                : '''.map((l) {
+                return ${type.name}(
+                  ${_props.mapIndex((p, i) => p == null ? '' : '${p.name}: l[$i] as ${p.type},').join()}
+                );
+              })''';
+          } else {
+            _mapCode = '.flatten()';
           }
           final _prev = context.withinFlatten;
           context.withinFlatten = _prev || flatten;
           final code = '(' +
               list.map((e) => _expr(context, e, parent: token)).join(' & ') +
-              ')${flatten ? ".flatten()" : ""}';
+              ')$_mapCode';
           if (!_prev && flatten) {
             context.withinFlatten = false;
           }
@@ -320,8 +335,10 @@ class ParserTokenNotifier {
               orElse: () => false,
             ),
           );
+          final TypeConfig type;
+          final _afterCode = <String>[];
           if (allStrings) {
-            final type = TypeConfig(
+            type = TypeConfig(
               isSerializable: true,
               isEnum: true,
             );
@@ -341,11 +358,16 @@ class ParserTokenNotifier {
               if (_class.name.toUpperCase() == _class.name) {
                 _class.nameNotifier.value = _class.name.toLowerCase();
               }
+              _afterCode.add(
+                context.withinFlatten
+                    ? ''
+                    : '.map((_) => ${type.signature}.${_class.name.asVariableName()})',
+              );
             }
 
             context.add(type);
           } else {
-            final type = TypeConfig(
+            type = TypeConfig(
               isSerializable: true,
               isDataValue: true,
               isSumType: true,
@@ -405,13 +427,23 @@ class ParserTokenNotifier {
               prop.typeNotifier.value = innerToken.repeat.canBeMany
                   ? 'List<$_type>'
                   : '$_type${innerToken.repeat.isOptionalSingle ? "?" : ""}';
+
+              _afterCode.add(
+                context.withinFlatten
+                    ? ''
+                    : '.map((v) => ${type.signature}.${_class.name.asVariableName()}(value: v))',
+              );
             }
 
             context.add(type);
           }
           return '(' +
-              list.map((e) => _expr(context, e, parent: token)).join(' | ') +
-              ')';
+              list
+                  .mapIndex(
+                    (e, i) => _expr(context, e, parent: token) + _afterCode[i],
+                  )
+                  .join(' | ') +
+              ')${context.withinFlatten ? '' : '.cast<${type.signature}>()'}';
         },
         string: (string, isPattern, caseSensitive) {
           final _c = string.contains("'") ? '"' : "'";
