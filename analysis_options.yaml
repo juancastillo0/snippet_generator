@@ -8,6 +8,7 @@ linter:
     prefer_constructors_over_static_methods: false
     unnecessary_this: false
     prefer_interpolation_to_compose_strings: false
+    prefer_if_elements_to_conditional_expressions: false
 
     type_annotate_public_apis: true
     avoid_redundant_argument_values: false
@@ -28,3 +29,4 @@ analyzer:
     - extension-methods
   errors:
     missing_return: error
+    null_check_on_nullable_type_parameter: warning
