@@ -298,6 +298,9 @@ class ClassConfig
   TypeConfig get typeConfig {
     return (_typeConfig ??= Globals.get<RootStore>().types[typeConfigKey])!;
   }
+  set typeConfig(TypeConfig c) {
+    _typeConfig = c;
+  }
 
   final _deepListenable = AppNotifier<Listenable?>(null);
   Listenable? get deepListenable => _deepListenable.value;
@@ -430,6 +433,9 @@ class PropertyField
         .values
         .expand((e) => e.classes)
         .firstWhereOrNull((e) => e.key == classConfigKey);
+  }
+  set classConfig(ClassConfig? c) {
+    _classConfig = c;
   }
 
   PropertyField({

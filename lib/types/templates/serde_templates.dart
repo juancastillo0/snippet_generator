@@ -25,7 +25,7 @@ String _parseJsonTypeFromJson(
         } else {
           final _genericIds = v.genericIds.join(',');
           final genericIds = _genericIds.isNotEmpty ? '<$_genericIds>' : '';
-          return '${v.raw}.fromJson$genericIds($getter as Map<String, dynamic>)';
+          return '${v.raw}.fromJson$genericIds($getter)'; // Map<String, dynamic>
         }
       } else {
         return '$getter as ${v.raw}';
@@ -60,14 +60,14 @@ String _parseJsonTypeToJson(
       return "$getter.map((key, value) => MapEntry(${_parseJsonTypeToJson('key', m.genericType?.left, generics)}, ${_parseJsonTypeToJson('value', m.genericType?.right, generics)}))";
     },
     collectionParser: (c) {
-      return "$getter.map((e) => ${_parseJsonTypeToJson('e', c.genericType, generics)}).toList()";
+      return "$getter${c.nullable ? '?' : ''}.map((e) => ${_parseJsonTypeToJson('e', c.genericType, generics)}).toList()";
     },
     primitiveParser: (v) {
       if (v.type.isCustom) {
         if (generics.any((g) => g.id == v.raw)) {
           return 'Serializers.toJson<${v.raw}>($getter)'; //"($getter as dynamic).toJson()";
         } else {
-          return '$getter.toJson()';
+          return '$getter${v.nullable ? "?" : ""}.toJson()';
         }
       } else {
         return getter;
@@ -79,7 +79,7 @@ String _parseJsonTypeToJson(
 String parseFieldToJson(PropertyField e) {
   final result = e.parsedType;
   if (result.isFailure) {
-    return "${e.name}'.toJson()";
+    return '${e.name}.toJson()';
   }
   final parsedResult = e.classConfig!.typeConfig.signatureParserNotifier.value;
   // TODO: can parsedResult fail?

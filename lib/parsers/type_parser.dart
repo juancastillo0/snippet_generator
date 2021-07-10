@@ -44,28 +44,33 @@ extension CollectionTypeExtension on CollectionType {
 }
 
 class CollectionParser extends JsonTypeParser {
-  const CollectionParser(this.collectionType, this.genericType);
+  const CollectionParser(
+    this.collectionType,
+    this.genericType, {
+    required this.nullable,
+  });
   final CollectionType collectionType;
   final JsonTypeParser? genericType;
+  final bool nullable;
 
   static CollectionParser _collect(dynamic parserOutput) {
-    if (parserOutput is String) {
+    if (parserOutput is List) {
       return CollectionParser(
-          parserOutput == 'List' ? CollectionType.List : CollectionType.Set,
-          null);
-    } else if (parserOutput is List) {
-      return CollectionParser(
-          parserOutput[0] == 'List' ? CollectionType.List : CollectionType.Set,
-          parserOutput[1] as JsonTypeParser);
+        parserOutput[0] == 'List' ? CollectionType.List : CollectionType.Set,
+        parserOutput[1] as JsonTypeParser?,
+        nullable: parserOutput[2] != null,
+      );
     }
     throw '';
   }
 
-  static final listParser =
-      (string('List').trim() & singleGeneric(JsonTypeParser.parser).optional())
-          .map(_collect);
-  static final setParser = (string('Set').trim() |
-          string('Set').trim() & singleGeneric(JsonTypeParser.parser))
+  static final listParser = (string('List').trim() &
+          singleGeneric(JsonTypeParser.parser).optional() &
+          char('?').trim().optional())
+      .map(_collect);
+  static final setParser = (string('Set').trim() &
+          singleGeneric(JsonTypeParser.parser).optional() &
+          char('?').trim().optional())
       .end()
       .map(_collect);
 }
@@ -87,44 +92,54 @@ class MapParser extends JsonTypeParser {
 }
 
 class PrimitiveParser extends JsonTypeParser {
-  const PrimitiveParser(this.type, this.raw,
-      [this.genericIds = const <String>[]]);
+  const PrimitiveParser(
+    this.type,
+    this.raw, {
+    this.genericIds = const <String>[],
+    required this.nullable,
+  });
   final PrimitiveJson type;
   final String raw;
   final List<String> genericIds;
+  final bool nullable;
 
-  static PrimitiveParser _collect(dynamic raw) {
+  static PrimitiveParser _collect(dynamic _raw) {
+    final raw = (_raw as List).first;
+    final nullable = _raw.last != null;
     if (raw is String) {
       final type = parsePrimitiveJson(raw);
-      return PrimitiveParser(type, raw);
+      return PrimitiveParser(type, raw, nullable: nullable);
     } else if (raw is List) {
       final rawString = raw[0] as String;
       final type = parsePrimitiveJson(rawString);
       return type.when(
         custom: () => PrimitiveParser(
-            type,
-            rawString,
-            raw[1] != null
-                ? (raw[1] as List).map((e) => e as String).toList()
-                : const <String>[]),
-        orElse: () => PrimitiveParser(type, rawString),
+          type,
+          rawString,
+          genericIds: raw[1] != null
+              ? (raw[1] as List).map((e) => e as String).toList()
+              : const <String>[],
+          nullable: nullable,
+        ),
+        orElse: () => PrimitiveParser(type, rawString, nullable: nullable),
       )!;
     }
     throw '';
   }
 
-  static final parser = (string('int') |
-          string('double') |
-          string('num') |
-          string('String') |
-          string('bool') |
-          (identifier &
-              (char('<') &
-                      identifier.separatedBy(char(','),
-                          includeSeparators: false) &
-                      char('>'))
-                  .pick(1)
-                  .optional()))
+  static final parser = ((string('int') |
+              string('double') |
+              string('num') |
+              string('String') |
+              string('bool') |
+              (identifier &
+                  (char('<') &
+                          identifier.separatedBy(char(','),
+                              includeSeparators: false) &
+                          char('>'))
+                      .pick(1)
+                      .optional())) &
+          char('?').trim().optional())
       .map(_collect);
 }
 
