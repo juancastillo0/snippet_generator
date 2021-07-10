@@ -81,7 +81,7 @@ class Table {
     return Table(
       name: map['name'] as String,
       columns: (map['columns'] as List).map((e) => Column.fromJson(e)).toList(),
-      temp: TableTemp.fromJson(map['temp']),
+      temp: map['temp'] == null ? null : TableTemp.fromJson(map['temp']),
     );
   }
 
@@ -236,9 +236,9 @@ class Column {
 
     return Column(
       name: map['name'] as String,
-      type: ColumnType.fromJson(map['type']),
-      constraints: (map['constraints'] as List)
-          .map((e) => Constraint.fromJson(e))
+      type: map['type'] == null ? null : ColumnType.fromJson(map['type']),
+      constraints: (map['constraints'] as List?)
+          ?.map((e) => Constraint.fromJson(e))
           .toList(),
     );
   }
@@ -1128,7 +1128,8 @@ class PrimaryKey {
 
     return PrimaryKey(
       clause: ConflictClause.fromJson(map['clause']),
-      order: PrimaryKeyOrder.fromJson(map['order']),
+      order:
+          map['order'] == null ? null : PrimaryKeyOrder.fromJson(map['order']),
     );
   }
 
@@ -1613,8 +1614,8 @@ class ForeignKey {
       tableName: map['tableName'] as String,
       columnNames:
           (map['columnNames'] as List).map((e) => e as String).toList(),
-      changeClauses: (map['changeClauses'] as List)
-          .map((e) => ForeignKeyChangeClause.fromJson(e))
+      changeClauses: (map['changeClauses'] as List?)
+          ?.map((e) => ForeignKeyChangeClause.fromJson(e))
           .toList(),
     );
   }

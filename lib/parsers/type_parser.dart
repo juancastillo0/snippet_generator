@@ -76,18 +76,20 @@ class CollectionParser extends JsonTypeParser {
 }
 
 class MapParser extends JsonTypeParser {
-  const MapParser(this.genericType);
+  const MapParser(this.genericType, {required this.nullable});
   final DoubleGeneric<PrimitiveParser, JsonTypeParser>? genericType;
+  final bool nullable;
 
   static final parser = (string('Map').trim() &
           DoubleGeneric.parser(
             PrimitiveParser.parser,
             JsonTypeParser._parser,
-          ).optional())
+          ).optional() & char('?').trim().optional())
       .map(_collect);
 
   static MapParser _collect(List<dynamic> parserOutput) => MapParser(
         parserOutput[1] as DoubleGeneric<PrimitiveParser, JsonTypeParser>?,
+        nullable: parserOutput[2] != null,
       );
 }
 

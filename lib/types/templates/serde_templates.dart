@@ -13,10 +13,15 @@ String _parseJsonTypeFromJson(
   }
   return t.when<String>(
     mapParser: (m) {
-      return "($getter as Map).map((key, value) => MapEntry(${_parseJsonTypeFromJson('key', m.genericType?.left, generics)}, ${_parseJsonTypeFromJson('value', m.genericType?.right, generics)}))";
+      final _nullable = m.nullable ? '?' : '';
+      return "($getter as Map$_nullable)$_nullable.map((key, value) => MapEntry("
+          "${_parseJsonTypeFromJson('key', m.genericType?.left, generics)}, "
+          "${_parseJsonTypeFromJson('value', m.genericType?.right, generics)}))";
     },
     collectionParser: (c) {
-      return "($getter as List).map((e) => ${_parseJsonTypeFromJson('e', c.genericType, generics)}).to${c.collectionType.toEnumString()}()";
+      final _nullable = c.nullable ? '?' : '';
+      return "($getter as List$_nullable)$_nullable.map((e) => "
+          "${_parseJsonTypeFromJson('e', c.genericType, generics)}).to${c.collectionType.toEnumString()}()";
     },
     primitiveParser: (v) {
       if (v.type.isCustom) {
@@ -25,7 +30,9 @@ String _parseJsonTypeFromJson(
         } else {
           final _genericIds = v.genericIds.join(',');
           final genericIds = _genericIds.isNotEmpty ? '<$_genericIds>' : '';
-          return '${v.raw}.fromJson$genericIds($getter)'; // Map<String, dynamic>
+
+          return (v.nullable ? '$getter == null ? null : ' : '') +
+              '${v.raw}.fromJson$genericIds($getter)';
         }
       } else {
         return '$getter as ${v.raw}';
@@ -57,7 +64,7 @@ String _parseJsonTypeToJson(
   }
   return t.when<String>(
     mapParser: (m) {
-      return "$getter.map((key, value) => MapEntry(${_parseJsonTypeToJson('key', m.genericType?.left, generics)}, ${_parseJsonTypeToJson('value', m.genericType?.right, generics)}))";
+      return "$getter${m.nullable ? '?' : ''}.map((key, value) => MapEntry(${_parseJsonTypeToJson('key', m.genericType?.left, generics)}, ${_parseJsonTypeToJson('value', m.genericType?.right, generics)}))";
     },
     collectionParser: (c) {
       return "$getter${c.nullable ? '?' : ''}.map((e) => ${_parseJsonTypeToJson('e', c.genericType, generics)}).toList()";
