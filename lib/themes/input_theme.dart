@@ -20,9 +20,9 @@ class InputDecorationThemeNotifier with PropsSerializable {
             AppNotifier<TextStyle?>(value.errorStyle, name: 'errorStyle'),
         errorMaxLinesNotifier =
             AppNotifier<int?>(value.errorMaxLines, name: 'errorMaxLines'),
-        hasFloatingPlaceholderNotifier = AppNotifier<bool>(
-            value.hasFloatingPlaceholder,
-            name: 'hasFloatingPlaceholder'),
+        // hasFloatingPlaceholderNotifier = AppNotifier<bool>(
+        //     value.hasFloatingPlaceholder,
+        //     name: 'hasFloatingPlaceholder'),
         floatingLabelBehaviorNotifier = AppNotifier<FloatingLabelBehavior>(
             value.floatingLabelBehavior,
             name: 'floatingLabelBehavior'),
@@ -72,7 +72,7 @@ class InputDecorationThemeNotifier with PropsSerializable {
       hintStyle: hintStyleNotifier.value,
       errorStyle: errorStyleNotifier.value,
       errorMaxLines: errorMaxLinesNotifier.value,
-      hasFloatingPlaceholder: hasFloatingPlaceholderNotifier.value,
+      // hasFloatingPlaceholder: hasFloatingPlaceholderNotifier.value,
       floatingLabelBehavior: floatingLabelBehaviorNotifier.value,
       isDense: isDenseNotifier.value,
       contentPadding: contentPaddingNotifier.value,
@@ -112,10 +112,10 @@ class InputDecorationThemeNotifier with PropsSerializable {
   final AppNotifier<int?> errorMaxLinesNotifier;
   set errorMaxLines(int? _v) => errorMaxLinesNotifier.value = _v;
   int? get errorMaxLines => errorMaxLinesNotifier.value;
-  final AppNotifier<bool> hasFloatingPlaceholderNotifier;
-  set hasFloatingPlaceholder(bool _v) =>
-      hasFloatingPlaceholderNotifier.value = _v;
-  bool get hasFloatingPlaceholder => hasFloatingPlaceholderNotifier.value;
+  // final AppNotifier<bool> hasFloatingPlaceholderNotifier;
+  // set hasFloatingPlaceholder(bool _v) =>
+  //     hasFloatingPlaceholderNotifier.value = _v;
+  // bool get hasFloatingPlaceholder => hasFloatingPlaceholderNotifier.value;
   final AppNotifier<FloatingLabelBehavior> floatingLabelBehaviorNotifier;
   set floatingLabelBehavior(FloatingLabelBehavior _v) =>
       floatingLabelBehaviorNotifier.value = _v;
@@ -182,7 +182,7 @@ class InputDecorationThemeNotifier with PropsSerializable {
         hintStyleNotifier,
         errorStyleNotifier,
         errorMaxLinesNotifier,
-        hasFloatingPlaceholderNotifier,
+        // hasFloatingPlaceholderNotifier,
         floatingLabelBehaviorNotifier,
         isDenseNotifier,
         contentPaddingNotifier,

@@ -38,10 +38,10 @@ class Message {
   });
 
   String insertShallowSql() {
-    return """
+    return '''
 INSERT INTO message(num_id,code_message,user_code,room_code,room_code_section,text,sender_name,type_message_code,read,created_at)
 VALUES ($numId,$codeMessage,$userCode,$roomCode,$roomCodeSection,$text,$senderName,$typeMessageCode,$read,$createdAt);
-""";
+''';
   }
 
   Future<SqlQueryResult> insertShallow(TableConnection conn) {
@@ -133,19 +133,19 @@ ${limit == null ? '' : 'LIMIT ${limit.rowCount} ${limit.offset == null ? "" : "O
     }
 
     return Message(
-      numId: map["numId"] as int,
-      codeMessage: map["codeMessage"] as String,
-      userCode: map["userCode"] as List<int>,
-      roomCode: map["roomCode"] as String,
-      roomCodeSection: map["roomCodeSection"] as int,
-      text: map["text"] as String,
-      senderName: map["senderName"] as String?,
-      typeMessageCode: map["typeMessageCode"] as String,
-      read: map["read"] as int,
-      createdAt: map["createdAt"] as DateTime,
-      refRoom: Room.listFromJson(map["refRoom"]),
-      refUser: User.listFromJson(map["refUser"]),
-      refTypeMessage: TypeMessage.listFromJson(map["refTypeMessage"]),
+      numId: map['numId'] as int,
+      codeMessage: map['codeMessage'] as String,
+      userCode: map['userCode'] as List<int>,
+      roomCode: map['roomCode'] as String,
+      roomCodeSection: map['roomCodeSection'] as int,
+      text: map['text'] as String,
+      senderName: map['senderName'] as String?,
+      typeMessageCode: map['typeMessageCode'] as String,
+      read: map['read'] as int,
+      createdAt: map['createdAt'] as DateTime,
+      refRoom: Room.listFromJson(map['refRoom']),
+      refUser: User.listFromJson(map['refUser']),
+      refTypeMessage: TypeMessage.listFromJson(map['refTypeMessage']),
     );
   }
 
@@ -156,16 +156,16 @@ ${limit == null ? '' : 'LIMIT ${limit.rowCount} ${limit.offset == null ? "" : "O
       return (json as Iterable).map((e) => Message.fromJson(e)).toList();
     } else if (json is Map) {
       final _jsonMap = json.cast<String, List>();
-      final numId = _jsonMap["numId"];
-      final codeMessage = _jsonMap["codeMessage"];
-      final userCode = _jsonMap["userCode"];
-      final roomCode = _jsonMap["roomCode"];
-      final roomCodeSection = _jsonMap["roomCodeSection"];
-      final text = _jsonMap["text"];
-      final senderName = _jsonMap["senderName"];
-      final typeMessageCode = _jsonMap["typeMessageCode"];
-      final read = _jsonMap["read"];
-      final createdAt = _jsonMap["createdAt"];
+      final numId = _jsonMap['numId'];
+      final codeMessage = _jsonMap['codeMessage'];
+      final userCode = _jsonMap['userCode'];
+      final roomCode = _jsonMap['roomCode'];
+      final roomCodeSection = _jsonMap['roomCodeSection'];
+      final text = _jsonMap['text'];
+      final senderName = _jsonMap['senderName'];
+      final typeMessageCode = _jsonMap['typeMessageCode'];
+      final read = _jsonMap['read'];
+      final createdAt = _jsonMap['createdAt'];
       final refRoom = _jsonMap['refRoom'];
       final refUser = _jsonMap['refUser'];
       final refTypeMessage = _jsonMap['refTypeMessage'];
@@ -258,10 +258,10 @@ class User {
   });
 
   String insertShallowSql() {
-    return """
+    return '''
 INSERT INTO user(code_user,created_at)
 VALUES ($codeUser,$createdAt);
-""";
+''';
   }
 
   Future<SqlQueryResult> insertShallow(TableConnection conn) {
@@ -328,8 +328,8 @@ ${limit == null ? '' : 'LIMIT ${limit.rowCount} ${limit.offset == null ? "" : "O
     }
 
     return User(
-      codeUser: map["codeUser"] as List<int>,
-      createdAt: map["createdAt"] as DateTime,
+      codeUser: map['codeUser'] as List<int>,
+      createdAt: map['createdAt'] as DateTime,
     );
   }
 
@@ -340,8 +340,8 @@ ${limit == null ? '' : 'LIMIT ${limit.rowCount} ${limit.offset == null ? "" : "O
       return (json as Iterable).map((e) => User.fromJson(e)).toList();
     } else if (json is Map) {
       final _jsonMap = json.cast<String, List>();
-      final codeUser = _jsonMap["codeUser"];
-      final createdAt = _jsonMap["createdAt"];
+      final codeUser = _jsonMap['codeUser'];
+      final createdAt = _jsonMap['createdAt'];
 
       return Iterable.generate(
         (codeUser?.length ?? createdAt?.length)!,
@@ -387,10 +387,10 @@ class Room {
   });
 
   String insertShallowSql() {
-    return """
+    return '''
 INSERT INTO room(code_room,section,created_at)
 VALUES ($codeRoom,$section,$createdAt);
-""";
+''';
   }
 
   Future<SqlQueryResult> insertShallow(TableConnection conn) {
@@ -458,9 +458,9 @@ ${limit == null ? '' : 'LIMIT ${limit.rowCount} ${limit.offset == null ? "" : "O
     }
 
     return Room(
-      codeRoom: map["codeRoom"] as String,
-      section: map["section"] as int,
-      createdAt: map["createdAt"] as DateTime,
+      codeRoom: map['codeRoom'] as String,
+      section: map['section'] as int,
+      createdAt: map['createdAt'] as DateTime,
     );
   }
 
@@ -471,9 +471,9 @@ ${limit == null ? '' : 'LIMIT ${limit.rowCount} ${limit.offset == null ? "" : "O
       return (json as Iterable).map((e) => Room.fromJson(e)).toList();
     } else if (json is Map) {
       final _jsonMap = json.cast<String, List>();
-      final codeRoom = _jsonMap["codeRoom"];
-      final section = _jsonMap["section"];
-      final createdAt = _jsonMap["createdAt"];
+      final codeRoom = _jsonMap['codeRoom'];
+      final section = _jsonMap['section'];
+      final createdAt = _jsonMap['createdAt'];
 
       return Iterable.generate(
         (codeRoom?.length ?? section?.length ?? createdAt?.length)!,
@@ -521,10 +521,10 @@ class TypeMessage {
   });
 
   String insertShallowSql() {
-    return """
+    return '''
 INSERT INTO type_message(code_type,created_at)
 VALUES ($codeType,$createdAt);
-""";
+''';
   }
 
   Future<SqlQueryResult> insertShallow(TableConnection conn) {
@@ -591,8 +591,8 @@ ${limit == null ? '' : 'LIMIT ${limit.rowCount} ${limit.offset == null ? "" : "O
     }
 
     return TypeMessage(
-      codeType: map["codeType"] as String,
-      createdAt: map["createdAt"] as DateTime,
+      codeType: map['codeType'] as String,
+      createdAt: map['createdAt'] as DateTime,
     );
   }
 
@@ -603,8 +603,8 @@ ${limit == null ? '' : 'LIMIT ${limit.rowCount} ${limit.offset == null ? "" : "O
       return (json as Iterable).map((e) => TypeMessage.fromJson(e)).toList();
     } else if (json is Map) {
       final _jsonMap = json.cast<String, List>();
-      final codeType = _jsonMap["codeType"];
-      final createdAt = _jsonMap["createdAt"];
+      final codeType = _jsonMap['codeType'];
+      final createdAt = _jsonMap['createdAt'];
 
       return Iterable.generate(
         (codeType?.length ?? createdAt?.length)!,
