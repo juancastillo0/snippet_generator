@@ -37,6 +37,11 @@ class Table {
   final String name;
   final List<Column> columns;
 
+  @override
+  String toString() {
+    return 'CREATE ${temp == null ? "" : "${temp!}"} TABLE ${name} ( ${columns.join(',')} ) ; ';
+  }
+
   const Table({
     required this.name,
     required this.columns,
@@ -192,6 +197,11 @@ class Column {
   final String name;
   final ColumnType? type;
   final List<Constraint>? constraints;
+
+  @override
+  String toString() {
+    return '${name} ${type == null ? "" : "${type!}"} ${constraints == null ? "" : "${constraints!.join(" ")}"} ';
+  }
 
   const Column({
     required this.name,
@@ -433,6 +443,11 @@ class Constraint {
   final String name;
   final ConstraintValue value;
 
+  @override
+  String toString() {
+    return 'CONSTRAINT ${name} ${value} ';
+  }
+
   const Constraint({
     required this.name,
     required this.value,
@@ -485,6 +500,11 @@ class Constraint {
 
 abstract class ConstraintValue {
   const ConstraintValue._();
+
+  @override
+  String toString() {
+    return value.toString();
+  }
 
   const factory ConstraintValue.primaryKey({
     required PrimaryKey value,
@@ -1090,6 +1110,11 @@ class PrimaryKey {
   final PrimaryKeyOrder? order;
   final ConflictClause clause;
 
+  @override
+  String toString() {
+    return 'PRIMARY KEY ${order == null ? "" : "${order!}"} ${clause} ';
+  }
+
   const PrimaryKey({
     required this.clause,
     this.order,
@@ -1222,6 +1247,11 @@ class PrimaryKeyOrder {
 class NotNull {
   final ConflictClause clause;
 
+  @override
+  String toString() {
+    return 'NOT NULL ${clause} ';
+  }
+
   const NotNull({
     required this.clause,
   });
@@ -1270,6 +1300,11 @@ class NotNull {
 class Unique {
   final ConflictClause clause;
 
+  @override
+  String toString() {
+    return 'UNIQUE ${clause} ';
+  }
+
   const Unique({
     required this.clause,
   });
@@ -1317,6 +1352,11 @@ class Unique {
 
 class DefaultValue {
   final Expression value;
+
+  @override
+  String toString() {
+    return 'DEFAULT ${value} ';
+  }
 
   const DefaultValue({
     required this.value,
@@ -1392,6 +1432,11 @@ final conflictClause = (stringIgnoreCase('ON').trim() &
 
 class ConflictClause {
   final ConflictClauseValue value;
+
+  @override
+  String toString() {
+    return 'ON CONFLICT ${value} ';
+  }
 
   const ConflictClause({
     required this.value,
@@ -1569,6 +1614,11 @@ class ForeignKey {
   final List<String> columnNames;
   final List<ForeignKeyChangeClause>? changeClauses;
 
+  @override
+  String toString() {
+    return 'REFERENCES ${tableName} ( ${columnNames.join(',')} ) ${changeClauses == null ? "" : "${changeClauses!.join(" ")}"} ';
+  }
+
   const ForeignKey({
     required this.tableName,
     required this.columnNames,
@@ -1676,6 +1726,11 @@ final foreignKeyChangeClause = (stringIgnoreCase('ON').trim() &
 class ForeignKeyChangeClause {
   final ForeignKeyChangeClauseType type;
   final ForeignKeyChangeClauseValue value;
+
+  @override
+  String toString() {
+    return 'ON ${type} ${value} ';
+  }
 
   const ForeignKeyChangeClause({
     required this.type,
@@ -1807,6 +1862,11 @@ class ForeignKeyChangeClauseType {
 
 abstract class ForeignKeyChangeClauseValue {
   const ForeignKeyChangeClauseValue._();
+
+  @override
+  String toString() {
+    return value.toString();
+  }
 
   const factory ForeignKeyChangeClauseValue.setNull({
     required SetNull value,
@@ -2334,6 +2394,11 @@ class ForeignKeyChangeClauseNoAction extends ForeignKeyChangeClauseValue {
 }
 
 class SetNull {
+  @override
+  String toString() {
+    return 'SET NULL ';
+  }
+
   const SetNull();
 
   SetNull copyWith() {
@@ -2370,6 +2435,11 @@ class SetNull {
 }
 
 class SetDefault {
+  @override
+  String toString() {
+    return 'SET DEFAULT ';
+  }
+
   const SetDefault();
 
   SetDefault copyWith() {
@@ -2406,6 +2476,11 @@ class SetDefault {
 }
 
 class NoAction {
+  @override
+  String toString() {
+    return 'NO ACTION ';
+  }
+
   const NoAction();
 
   NoAction copyWith() {
@@ -2469,6 +2544,11 @@ final expression =
 
 abstract class Expression {
   const Expression._();
+
+  @override
+  String toString() {
+    return value.toString();
+  }
 
   const factory Expression.number({
     required double value,
@@ -3236,6 +3316,11 @@ class ExpressionCurrentTimestamp extends Expression {
 
 class Str {
   final String value;
+
+  @override
+  String toString() {
+    return '\'${value}\'';
+  }
 
   const Str({
     required this.value,

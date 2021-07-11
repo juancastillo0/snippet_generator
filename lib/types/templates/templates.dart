@@ -55,6 +55,8 @@ ${typeConfig.isDataValue && !typeConfig.isSumType ? "import 'dart:ui';" : ""}
 class $signature {
   ${properties.map((p) => 'final ${p.type} ${p.name};').join('\n  ')}
 
+  ${!typeConfig.isSumType ? typeConfig.advancedConfig.customCode : ''}
+
   ${typeConfig.templates._const} $_classConstructor(${_templateClassParams()})${typeConfig.isSumType ? ": super._()" : ""};
 
   ${typeConfig.isSumType && typeConfig.sumTypeConfig.enumDiscriminant.value ? "@override\nType${typeConfig.name} get typeEnum => Type${typeConfig.name}.${name.asVariableName()};" : ""}

@@ -278,6 +278,8 @@ class ParserTokenNotifier {
               isSerializable: true,
             );
             type.addVariant();
+
+            final _toStr = <String>[];
             final _class = type.classes.first;
             _class.typeConfig = type;
             type.signatureNotifier.value = token.name.toClassName();
@@ -288,6 +290,12 @@ class ParserTokenNotifier {
               for (final innerToken in list) {
                 if (innerToken.name.isEmpty) {
                   _props.add(null);
+                  if (innerToken.value.isString) {
+                    _toStr.add((innerToken.value as TokenValueString).value);
+                    if (innerToken.trim) {
+                      _toStr.add(' ');
+                    }
+                  }
                   continue;
                 }
                 final prop = _class.addProperty();
@@ -302,9 +310,32 @@ class ParserTokenNotifier {
                     ? 'List<$_type>${_optional ? "?" : ""}'
                     : '$_type${_optional ? "?" : ""}';
                 _props.add(prop);
+
+                final _g = _optional
+                    ? '${prop.nameNotifier.value}!'
+                    : prop.nameNotifier.value;
+                final v = innerToken.value;
+                final s = innerToken.repeat.canBeMany
+                    ? '\${$_g.join(" ")}'
+                    : v is TokenValueSeparated &&
+                            v.separator.value is TokenValueString
+                        ? "\${$_g.join('${(v.separator.value as TokenValueString).value}')}"
+                        : '\${$_g}';
+                _toStr.add(_optional
+                    ? '\${${prop.nameNotifier.value} == null ? "" : "$s"}'
+                    : s);
+                if (innerToken.trim) {
+                  _toStr.add(' ');
+                }
               }
               context.add(type);
             }
+            type.advancedConfig.customCodeNotifier.value = """
+@override
+String toString() {
+  return '${_toStr.map((e) => e == "'" ? "\\'" : e).join()}';
+}
+""";
 
             _mapCode = list.length == 1
                 ? ''
@@ -434,6 +465,12 @@ class ParserTokenNotifier {
                     : '.map((v) => ${type.signature}.${_class.name.asVariableName()}(value: v))',
               );
             }
+            type.advancedConfig.customCodeNotifier.value = '''
+@override 
+String toString() {
+  return value.toString();
+}
+''';
 
             context.add(type);
           }
