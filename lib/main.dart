@@ -44,7 +44,7 @@ Future<void> main() async {
 
   final rootStore = RootStore();
   Globals.add(rootStore);
-  rootStore.loadHive();
+  await rootStore.loadHive();
   runApp(const MyApp());
 }
 

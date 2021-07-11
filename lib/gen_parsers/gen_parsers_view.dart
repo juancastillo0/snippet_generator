@@ -8,8 +8,10 @@ import 'package:snippet_generator/gen_parsers/widgets/token_value_view.dart';
 import 'package:snippet_generator/types/views/code_generated.dart';
 import 'package:snippet_generator/widgets/code_text_field.dart';
 import 'package:snippet_generator/widgets/globals.dart';
+import 'package:snippet_generator/widgets/horizontal_item_list.dart';
 import 'package:snippet_generator/widgets/portal/portal_utils.dart';
 import 'package:snippet_generator/widgets/resizable_scrollable/resizable.dart';
+import 'package:snippet_generator/widgets/small_icon_button.dart';
 
 class GenerateParserTabView extends HookWidget {
   const GenerateParserTabView({Key? key}) : super(key: key);
@@ -17,13 +19,66 @@ class GenerateParserTabView extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final store = useParserStore();
+    final selectedParser = useSelectedParser();
 
     return Observer(
       builder: (context) {
         return Padding(
-          padding: const EdgeInsets.all(18.0),
+          padding: const EdgeInsets.only(
+            left: 10.0,
+            right: 10.0,
+            bottom: 6.0,
+          ),
           child: Column(
             children: [
+              HookBuilder(builder: (context) {
+                useListenable(store.items);
+                return Row(
+                  children: [
+                    TextButton.icon(
+                      onPressed: () {
+                        store.addValue();
+                      },
+                      label: const Text('ADD'),
+                      icon: const Icon(Icons.add),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: HorizontalItemList<GenerateParserItem>(
+                        buildItem: (v) {
+                          return Row(
+                            children: [
+                              SizedBox(
+                                width: 80,
+                                child: TextField(
+                                  controller: v.name.controller,
+                                  onTap: () {
+                                    store.selectedItem.value = v;
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              SmallIconButton(
+                                onPressed: () {
+                                  store.removeItem(v);
+                                },
+                                child: const Icon(
+                                  Icons.close,
+                                ),
+                              )
+                            ],
+                          );
+                        },
+                        items: store.items,
+                        selected: selectedParser,
+                        onSelected: (v, i) {
+                          store.selectedItem.value = v;
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              }),
               Align(
                 alignment: Alignment.topLeft,
                 child: Text(
@@ -44,7 +99,7 @@ class GenerateParserTabView extends HookWidget {
                       flex: 1,
                       horizontal: ResizeHorizontal.right,
                       child: CodeGenerated(
-                        sourceCode: store.generateCode(),
+                        sourceCode: selectedParser.generateCode(),
                       ),
                     ),
                     Expanded(
@@ -78,10 +133,11 @@ class GenerateParserTabView extends HookWidget {
                                     child: CustomDropdownField<
                                         ParserTokenNotifier>(
                                       asString: (t) => t.value.name,
-                                      onChange: (t) => store
+                                      onChange: (t) => selectedParser
                                           .selectedTestTokenKey.value = t.key,
-                                      options: store.tokens.values,
-                                      selected: store.selectedTestToken.value,
+                                      options: selectedParser.tokens.values,
+                                      selected: selectedParser
+                                          .selectedTestToken.value,
                                     ),
                                   ),
                                 ],
@@ -90,12 +146,14 @@ class GenerateParserTabView extends HookWidget {
                                 flex: 4,
                                 vertical: ResizeVertical.bottom,
                                 child: CodeTextField(
-                                  controller: store.parserTestText.controller,
+                                  controller:
+                                      selectedParser.parserTestText.controller,
                                 ),
                               ),
                               Expanded(
                                 child: Text(
-                                  store.parserTestResult.value.toString(),
+                                  selectedParser.parserTestResult.value
+                                      .toString(),
                                 ),
                               ),
                             ],
@@ -121,8 +179,8 @@ class TokenList extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = useParserStore();
-    useListenable(store.tokenKeys);
+    final parser = useSelectedParser();
+    useListenable(parser.tokenKeys);
     const bottomHeight = 50.0;
 
     return LayoutBuilder(
@@ -136,7 +194,7 @@ class TokenList extends HookWidget {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    ...store.tokenKeys.expand(
+                    ...parser.tokenKeys.expand(
                       (tokenKey) sync* {
                         // yield Container(
                         //   height: 1,
@@ -148,7 +206,7 @@ class TokenList extends HookWidget {
                         yield Observer(
                           key: Key(tokenKey),
                           builder: (context) {
-                            final token = store.tokens[tokenKey]!;
+                            final token = parser.tokens[tokenKey]!;
                             return TokenRow(token: token);
                           },
                         );
@@ -165,7 +223,7 @@ class TokenList extends HookWidget {
                 alignment: Alignment.topLeft,
                 child: OutlinedButton(
                   onPressed: () {
-                    store.add();
+                    parser.addToken();
                   },
                   child: const Text('ADD'),
                 ),
@@ -188,7 +246,7 @@ class TokenRow extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = useParserStore();
+    final selectedParser = useSelectedParser();
 
     return FocusTraversalGroup(
       child: Row(
@@ -230,7 +288,7 @@ class TokenRow extends HookWidget {
             splashRadius: 26,
             tooltip: 'Delete',
             onPressed: () {
-              store.remove(token.key);
+              selectedParser.removeToken(token.key);
             },
             icon: const Icon(Icons.delete_rounded),
           )

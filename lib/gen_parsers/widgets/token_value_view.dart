@@ -35,7 +35,7 @@ class TokenValueView extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = useParserStore();
+    final parser = useSelectedParser();
     final tokenValue = token.value;
 
     void onChangedValue(TokenValue value) {
@@ -401,8 +401,8 @@ class TokenValueView extends HookWidget {
                             asString: (t) => t.value.name,
                             onChange: (t) =>
                                 onChangedValue(TokenValue.ref(t.key)),
-                            options: store.tokens.values,
-                            selected: store
+                            options: parser.tokens.values,
+                            selected: parser
                                 .tokens[(tokenValue as TokenValueRef).value],
                           ),
                           string: (v) => TextFormField(

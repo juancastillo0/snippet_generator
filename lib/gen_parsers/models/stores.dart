@@ -1,7 +1,6 @@
-import 'dart:convert';
-
 import 'package:dart_style/dart_style.dart';
 import 'package:file_system_access/src/models/result.dart' as fs;
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobx/mobx.dart';
 import 'package:petitparser/petitparser.dart';
@@ -19,8 +18,8 @@ import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/utils/persistence.dart';
 import 'package:uuid/uuid.dart';
 
-const uuid = Uuid();
-
+const _uuid = Uuid();
+final _formatter = DartFormatter();
 final testPod = Pod.notifier(1);
 
 final parserStoreProvider = Provider<GenerateParserStore>(
@@ -31,10 +30,66 @@ GenerateParserStore useParserStore() {
   return useRootStore().parserStore;
 }
 
+GenerateParserItem useSelectedParser() {
+  final store = useRootStore().parserStore;
+  final selectedItem = store.selectedItem;
+  useListenable(selectedItem);
+  return selectedItem.value!;
+}
+
 class GenerateParserStore {
   late final persistence = GenerateParserStorePersistence(this);
+  final items = ListNotifier<GenerateParserItem>([]);
+  final selectedItem = AppNotifier<GenerateParserItem?>(null);
 
-  final _formatter = DartFormatter();
+  void addValues(Iterable<GenerateParserStoreValue> values) {
+    runInAction(() {
+      for (final value in values) {
+        addValue(value);
+      }
+    });
+  }
+
+  void addValue([GenerateParserStoreValue? value]) {
+    runInAction(() {
+      final item = value != null
+          ? GenerateParserItem.fromValue(value)
+          : GenerateParserItem();
+      items.add(item);
+      selectedItem.value = item;
+    });
+  }
+
+  void removeItem(GenerateParserItem item) {
+    runInAction(() {
+      items.remove(item);
+      if (items.isEmpty) {
+        addValue();
+      } else if (selectedItem.value == item) {
+        selectedItem.value = items.first;
+      }
+    });
+  }
+
+  List<GenerateParserStoreValue> makeValues() {
+    return items.map((i) => i.makeValue()).toList();
+  }
+}
+
+class GenerateParserItem {
+  final String key;
+
+  factory GenerateParserItem({String? key}) {
+    return GenerateParserItem._(key: key)..init();
+  }
+
+  GenerateParserItem._({String? key}) : this.key = key ?? _uuid.v4();
+
+  factory GenerateParserItem.fromValue(GenerateParserStoreValue value) {
+    final v = GenerateParserItem._(key: value.key);
+    v.init(value);
+    return v;
+  }
 
   final tokenKeys = ListNotifier<String>([]);
   final tokens = MapNotifier<String, ParserTokenNotifier>();
@@ -45,44 +100,59 @@ class GenerateParserStore {
       Computed(() => tokens[selectedTestTokenKey.value]!);
 
   final parserTestText = TextNotifier();
+  final name = TextNotifier();
 
   GenerateParserStoreValue makeValue() {
     final _tokens = tokens.values.map((t) => MapEntry(t.key, t.value)).toList();
-    return GenerateParserStoreValue(_tokens);
+    return GenerateParserStoreValue(
+      key,
+      _tokens,
+      name: name.value,
+    );
   }
 
-  void addValue(GenerateParserStoreValue value) {
+  void init([GenerateParserStoreValue? value]) {
     runInAction(() {
-      final incoming = Map.fromEntries(value.tokens.map((e) {
-        final value = ParserTokenNotifier(this, e.key);
-        value.notifier.value = e.value;
-        return MapEntry(e.key, value);
-      }));
-      final additionalKeys = incoming.keys.where(
-        (key) => !tokens.containsKey(key),
-      );
+      if (value != null) {
+        final incoming = Map.fromEntries(value.tokens.map((e) {
+          final value = ParserTokenNotifier(this, e.key);
+          value.notifier.value = e.value;
+          return MapEntry(e.key, value);
+        }));
+        final additionalKeys = incoming.keys.where(
+          (key) => !tokens.containsKey(key),
+        );
 
-      tokenKeys.addAll(additionalKeys);
-      tokens.addAll(incoming);
+        tokenKeys.addAll(additionalKeys);
+        tokens.addAll(incoming);
+      }
+      if (tokenKeys.isEmpty) {
+        addToken();
+      }
+      selectedTestTokenKey.value = tokenKeys.first;
     });
   }
 
-  void add() => runInAction(() {
-        final token = ParserTokenNotifier(this, uuid.v4());
-        tokens[token.key] = token;
-        tokenKeys.add(token.key);
-      });
+  void addToken() {
+    runInAction(() {
+      final token = ParserTokenNotifier(this, _uuid.v4());
+      tokens[token.key] = token;
+      tokenKeys.add(token.key);
+    });
+  }
 
-  void remove(String key) => runInAction(() {
-        tokens.remove(key);
-        tokenKeys.remove(key);
-        if (tokens.isEmpty) {
-          add();
-        }
-        if (key == selectedTestTokenKey.value) {
-          selectedTestTokenKey.value = tokenKeys.first;
-        }
-      });
+  void removeToken(String key) {
+    runInAction(() {
+      tokens.remove(key);
+      tokenKeys.remove(key);
+      if (tokens.isEmpty) {
+        addToken();
+      }
+      if (key == selectedTestTokenKey.value) {
+        selectedTestTokenKey.value = tokenKeys.first;
+      }
+    });
+  }
 
   String generateCode() {
     final Set<PredifinedParser> predifined = {};
@@ -144,21 +214,18 @@ class GenerateParserStorePersistence {
     final parserBox = getBox<GenerateParserStoreValue>();
     await parserBox.clear();
 
-    final value = store.makeValue();
-    final _str = jsonEncode(value.toJson());
-    await parserBox.add(value);
+    final values = store.makeValues();
+    await parserBox.addAll(values);
   }
 
   Future<void> loadHive() async {
     final parserBox = getBox<GenerateParserStoreValue>();
     final values = parserBox.values;
-    if (values.isNotEmpty) {
-      store.addValue(values.first);
+
+    store.addValues(values);
+    if (store.items.isEmpty) {
+      store.addValue();
     }
-    if (store.tokenKeys.isEmpty) {
-      store.add();
-    }
-    store.selectedTestTokenKey.value = store.tokenKeys.first;
   }
 }
 
@@ -198,7 +265,7 @@ class TokenContext {
 
 class ParserTokenNotifier {
   final String key;
-  final GenerateParserStore store;
+  final GenerateParserItem store;
   ParserTokenNotifier(this.store, this.key);
 
   final notifier = AppNotifier(
