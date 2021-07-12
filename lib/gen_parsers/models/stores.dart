@@ -114,6 +114,7 @@ class GenerateParserItem {
   void init([GenerateParserStoreValue? value]) {
     runInAction(() {
       if (value != null) {
+        name.value = value.name;
         final incoming = Map.fromEntries(value.tokens.map((e) {
           final value = ParserTokenNotifier(this, e.key);
           value.notifier.value = e.value;
@@ -183,8 +184,23 @@ ${predifined.map((e) => e.dartDefinition()).whereType<String>().join('\n')}
 ${tokens.values.map((e) {
       final t = e.value;
       final expressionContext = e.expression.value;
-      return 'final ${t.name} = ${expressionContext.expression};\n'
-          '\n$expressionContext';
+      final _type = t.dartType(tokens, parent: null);
+      final exp = e.hasLoop.value
+          ? '''
+SettableParser<$_type>? _${t.name};
+
+Parser<$_type> get ${t.name} {
+  if (_${t.name} != null) {
+    return _${t.name}!;
+  }
+  _${t.name} = undefined();
+  final p = ${expressionContext.expression};
+  _${t.name}!.set(p);
+  return _${t.name}!;
+}
+'''
+          : 'final ${t.name} = ${expressionContext.expression};';
+      return '$exp\n\n$expressionContext';
     }).join('\n\n')}
 
 """;
@@ -320,6 +336,28 @@ class ParserTokenNotifier {
     return token.repeat.apply(result);
   }
 
+  late final hasLoop = Computed(() {
+    final Set<ParserToken> s = {};
+    return _hasLoop(s, value);
+  });
+
+  bool _hasLoop(Set<ParserToken> s, ParserToken t) {
+    if (s.contains(t)) {
+      return true;
+    }
+    s.add(t);
+    return t.value.maybeMap(
+      and: (and) => and.values.any((element) => _hasLoop(s, element)),
+      or: (or) => or.values.any((element) => _hasLoop(s, element)),
+      ref: (ref) =>
+          ref.value == key ||
+          store.tokens.containsKey(ref.value) &&
+              _hasLoop(s, store.tokens[ref.value]!.value),
+      separated: (sep) => _hasLoop(s, sep.item) || _hasLoop(s, sep.separator),
+      orElse: () => false,
+    );
+  }
+
   late final expression = Computed(() {
     final context = TokenContext();
     final expression = _expr(
@@ -352,7 +390,7 @@ class ParserTokenNotifier {
             type.signatureNotifier.value = token.name.toClassName();
 
             final _props = <PropertyField?>[];
-            if (list.length == 1) {
+            if (list.length == 1 && list.first.value.isOr) {
             } else {
               for (final innerToken in list) {
                 if (innerToken.name.isEmpty) {
@@ -404,12 +442,12 @@ String toString() {
 }
 """;
 
-            _mapCode = list.length == 1
+            _mapCode = list.length == 1 && list.first.value.isOr
                 ? ''
                 // ignore: leading_newlines_in_multiline_strings
                 : '''.map((l) {
                 return ${type.name}(
-                  ${_props.mapIndex((p, i) => p == null ? '' : '${p.name}: l[$i] as ${p.type},').join()}
+                  ${_props.mapIndex((p, i) => p == null ? '' : '${p.name}: ${list.length == 1 ? "l" : "l[$i]"} as ${p.type},').join()}
                 );
               })''';
           } else {
@@ -470,7 +508,9 @@ String toString() {
               isDataValue: true,
               isSumType: true,
             );
-            type.sumTypeConfig.prefix.value = parent?.name.toClassName() ?? '';
+            type.sumTypeConfig.prefix.value =
+                parent?.name.toClassName() ?? token.name;
+            type.sumTypeConfig.enumDiscriminant.value = false;
             type.signatureNotifier.value = token.dartType(
               store.tokens,
               parent: parent,
@@ -566,7 +606,7 @@ String toString() {
         ref: (ref) => store.tokens[ref]?.value.name ?? '',
         predifined: (pred) => pred.toDart(),
         separated: (item, separator, includeSeparators, separatorAtEnd) =>
-            '${_expr(context, item, parent: token)}.separatedBy(${_expr(
+            '${_expr(context, item, parent: token)}.separatedBy<${item.dartType(store.tokens, parent: parent)}>(${_expr(
               context,
               separator,
               parent: token,

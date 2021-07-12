@@ -67,6 +67,7 @@ class CollectionParser extends JsonTypeParser {
   static final listParser = (string('List').trim() &
           singleGeneric(JsonTypeParser.parser).optional() &
           char('?').trim().optional())
+      .end()
       .map(_collect);
   static final setParser = (string('Set').trim() &
           singleGeneric(JsonTypeParser.parser).optional() &
@@ -84,7 +85,8 @@ class MapParser extends JsonTypeParser {
           DoubleGeneric.parser(
             PrimitiveParser.parser,
             JsonTypeParser._parser,
-          ).optional() & char('?').trim().optional())
+          ).optional() &
+          char('?').trim().optional())
       .map(_collect);
 
   static MapParser _collect(List<dynamic> parserOutput) => MapParser(
