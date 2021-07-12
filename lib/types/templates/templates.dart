@@ -546,29 +546,29 @@ extension ${name}Extension on $name {
 
   return """
 $_declaration
-  ${variants.map((e) => "bool get is${e.firstToUpperCase()} => this == $name.$e;").join("\n  ")}
+  ${variants.map((e) => "bool get is${e.firstToUpperCase()} => this == $name.${e.asVariableName()};").join("\n  ")}
 
   _T when<_T>({
-    ${variants.map((e) => "$_required _T Function() ${e.firstToLowerCase()},").join("\n    ")}
+    ${variants.map((e) => "$_required _T Function() ${e.asVariableName()},").join("\n    ")}
   }) {
     switch (this._inner) {
       ${variants.map((e) => """
 case '$e':
-        return $e();
+        return ${e.asVariableName()}();
       """).join()}
     }
     ${nullSafe ? 'throw Error();' : 'throw Error();'}
   }
 
   _T maybeWhen<_T>({
-    ${variants.map((e) => "_T Function()$_nullable ${e.firstToLowerCase()},").join("\n    ")}
+    ${variants.map((e) => "_T Function()$_nullable ${e.asVariableName()},").join("\n    ")}
     $_required _T Function() orElse,
   }) {
     _T Function()$_nullable c;
     switch (this._inner) {
       ${variants.map((e) => """
 case '$e':
-        c = $e;
+        c = ${e.asVariableName()};
         break;   
       """).join()}
     }
