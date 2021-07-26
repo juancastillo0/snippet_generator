@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dart_style/dart_style.dart';
 import 'package:file_system_access/src/models/result.dart' as fs;
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -25,6 +27,12 @@ final testPod = Pod.notifier(1);
 final parserStoreProvider = Provider<GenerateParserStore>(
   (ref) => GenerateParserStore(),
 );
+
+extension ButNotParser<T> on Parser<T> {
+  Parser<T> butNot(Parser not) {
+    return this.and().seq(not.end().not()).pick(0).cast();
+  }
+}
 
 GenerateParserStore useParserStore() {
   return useRootStore().parserStore;
@@ -134,11 +142,12 @@ class GenerateParserItem {
     });
   }
 
-  void addToken() {
-    runInAction(() {
+  ParserTokenNotifier addToken() {
+    return runInAction(() {
       final token = ParserTokenNotifier(this, _uuid.v4());
       tokens[token.key] = token;
       tokenKeys.add(token.key);
+      return token;
     });
   }
 
@@ -164,10 +173,17 @@ class GenerateParserItem {
         or: (list) => list.values.forEach(_processToken),
         string: (_) {},
         ref: (_) {},
+        butNot: (b) {
+          _processToken(b.item);
+          _processToken(b.not);
+        },
         predifined: (value) {
           predifined.add(value.value);
         },
-        separated: (_) {},
+        separated: (s) {
+          _processToken(s.item);
+          _processToken(s.separator);
+        },
       );
     }
 
@@ -178,6 +194,12 @@ class GenerateParserItem {
 import 'dart:convert';
 import 'dart:ui';
 import 'package:petitparser/petitparser.dart';
+
+extension ButNotParser<T> on Parser<T> {
+  Parser<T> butNot(Parser not) {
+    return this.and().seq(not.end().not()).pick(0).cast();
+  }
+}
 
 ${predifined.map((e) => e.dartDefinition()).whereType<String>().join('\n')}
 
@@ -231,6 +253,8 @@ class GenerateParserStorePersistence {
     await parserBox.clear();
 
     final values = store.makeValues();
+    final str = jsonEncode(values.map((v) => v.toJson()).toList());
+    
     await parserBox.addAll(values);
   }
 
@@ -294,7 +318,9 @@ class ParserTokenNotifier {
 
   late final parser = Computed<fs.Result<Parser, Object>>(() {
     try {
-      return fs.Ok(_parser(value));
+      final _p = undefined();
+      _p.set(_parser(value));
+      return fs.Ok(_p);
     } catch (e) {
       return fs.Err(e);
     }
@@ -317,6 +343,7 @@ class ParserTokenNotifier {
           return isPattern ? patternIgnoreCase(s) : stringIgnoreCase(s);
         }
       },
+      butNot: (item, not) => _parser(item).butNot(_parser(not)),
       ref: (ref) => store.tokens[ref]?.parser.value.unwrap() ?? any(),
       predifined: (pred) => pred.parser(),
       separated: (item, separator, includeSeparators, separatorAtEnd) =>
@@ -343,7 +370,7 @@ class ParserTokenNotifier {
 
   bool _hasLoop(Set<ParserToken> s, ParserToken t) {
     if (s.contains(t)) {
-      return true;
+      return t == this.value;
     }
     s.add(t);
     return t.value.maybeMap(
@@ -530,7 +557,11 @@ String toString() {
                     : [innerToken.name, innerToken.name.toClassName()],
                 or: (or) => [innerToken.name, innerToken.name.toClassName()],
                 string: (string) => [
-                  string.isPattern ? innerToken.name : string.value,
+                  string.isPattern
+                      ? innerToken.name
+                      : innerToken.name.isNotEmpty
+                          ? innerToken.name
+                          : string.value.asVariableName(),
                   'String'
                 ],
                 predifined: (predifined) =>
@@ -544,6 +575,10 @@ String toString() {
                     _refToken?.value.dartType(store.tokens, parent: token) ?? ''
                   ];
                 },
+                butNot: (butNot) => [
+                  innerToken.name.isEmpty ? butNot.item.name : innerToken.name,
+                  butNot.item.dartType(store.tokens, parent: parent),
+                ],
                 separated: (separated) => [
                   innerToken.name.isEmpty
                       ? separated.item.name
@@ -605,6 +640,8 @@ String toString() {
         },
         ref: (ref) => store.tokens[ref]?.value.name ?? '',
         predifined: (pred) => pred.toDart(),
+        butNot: (item, butNot) => '${_expr(context, item, parent: token)}'
+            '.butNot(${_expr(context, butNot, parent: token)})',
         separated: (item, separator, includeSeparators, separatorAtEnd) =>
             '${_expr(context, item, parent: token)}.separatedBy<${item.dartType(store.tokens, parent: parent)}>(${_expr(
               context,
@@ -640,3 +677,13 @@ extension ClassNameString on String {
     return _value.snakeToCamel(firstUpperCase: true);
   }
 }
+
+
+// name of variant in OR list
+// name unique property in AND
+// name of OR in AND
+// dont trim by default
+// default name for references
+// duplicate names
+// default trim fro top AND (using context) (only for inner items in AND)
+// 
