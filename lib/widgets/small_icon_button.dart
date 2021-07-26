@@ -4,12 +4,14 @@ class SmallIconButton extends StatelessWidget {
   final bool center;
   final void Function()? onPressed;
   final Widget child;
+  final double? splashRadius;
 
   const SmallIconButton({
     Key? key,
     this.center = true,
     required this.child,
     required this.onPressed,
+    this.splashRadius,
   }) : super(key: key);
 
   @override
@@ -19,7 +21,7 @@ class SmallIconButton extends StatelessWidget {
       constraints: const BoxConstraints(),
       alignment: Alignment.center,
       padding: EdgeInsets.zero,
-      splashRadius: 22,
+      splashRadius: splashRadius ?? 22,
       iconSize: 18,
       onPressed: onPressed,
     );

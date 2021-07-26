@@ -3,21 +3,38 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:snippet_generator/globals/option.dart';
 import 'package:snippet_generator/widgets/globals.dart';
+import 'package:snippet_generator/widgets/portal/global_stack.dart';
 import 'package:snippet_generator/widgets/portal/portal_utils.dart';
+
+enum OverlayGesture {
+  tap,
+  secondaryTap,
+}
 
 class CustomOverlayButton extends HookWidget {
   final Widget Function(PortalNotifier) portalBuilder;
   final Widget child;
   final PortalBundler? builder;
   final PortalParams params;
+  final OverlayGesture gesture;
 
   const CustomOverlayButton({
     required this.portalBuilder,
     required this.child,
     this.params = const PortalParams(),
     this.builder,
+    this.gesture = OverlayGesture.tap,
     Key? key,
   }) : super(key: key);
+
+  const CustomOverlayButton.stack({
+    required this.portalBuilder,
+    required this.child,
+    this.params = const PortalParams(),
+    this.gesture = OverlayGesture.tap,
+    Key? key,
+  })  : builder = StackPortal.make,
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +49,21 @@ class CustomOverlayButton extends HookWidget {
     final _portalKey = useMemoized(() => GlobalKey());
     final _childKey = useMemoized(() => GlobalKey());
     final toggle = _portalNotifier.toggle;
+
+    final Widget _inner;
+    switch (gesture) {
+      case OverlayGesture.tap:
+        _inner = TextButton(
+          onPressed: toggle,
+          child: child,
+        );
+        break;
+      case OverlayGesture.secondaryTap:
+        _inner = GestureDetector(
+          onSecondaryTap: toggle,
+          child: child,
+        );
+    }
 
     if (builder != null) {
       return builder!(
@@ -52,10 +84,7 @@ class CustomOverlayButton extends HookWidget {
         ),
         child: KeyedSubtree(
           key: _childKey,
-          child: TextButton(
-            onPressed: toggle,
-            child: child,
-          ),
+          child: _inner,
         ),
       );
     }
@@ -64,10 +93,7 @@ class CustomOverlayButton extends HookWidget {
       show: show.value,
       portal: portalBuilder(_portalNotifier),
       onTapOutside: toggle,
-      child: TextButton(
-        onPressed: toggle,
-        child: child,
-      ),
+      child: _inner,
     );
   }
 }
