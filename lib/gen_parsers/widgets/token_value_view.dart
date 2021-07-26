@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:mobx/mobx.dart';
 import 'package:snippet_generator/fields/button_select_field.dart';
 import 'package:snippet_generator/gen_parsers/gen_parsers_view.dart';
 import 'package:snippet_generator/gen_parsers/models/predifined_parsers.dart';
@@ -23,12 +24,14 @@ class TokenValueView extends HookWidget {
   const TokenValueView({
     Key? key,
     required this.token,
+    required this.parentToken,
     required this.onChanged,
     required this.onDelete,
     this.inCollection = false,
   }) : super(key: key);
 
   final ParserToken token;
+  final ParserToken? parentToken;
   final void Function()? onDelete;
   final void Function(ParserToken) onChanged;
   final bool inCollection;
@@ -45,6 +48,7 @@ class TokenValueView extends HookWidget {
     final _deleteIcon = Padding(
       padding: const EdgeInsets.only(left: 4.0),
       child: SmallIconButton(
+        splashRadius: 16,
         onPressed: () {
           onDelete?.call();
         },
@@ -114,11 +118,12 @@ class TokenValueView extends HookWidget {
             ...tokenValue.values.mapIndex(
               (e, i) => TokenValueView(
                 token: e,
+                parentToken: token,
                 inCollection: true,
                 onDelete: () {
                   final _list = [...tokenValue.values];
                   _list.removeAt(i);
-                  if (_list.length == 1) {
+                  if (_list.length == 1 && parentToken != null) {
                     onChanged(_list.first);
                   } else {
                     onChangedValue(TokenValue.and(
@@ -153,6 +158,7 @@ class TokenValueView extends HookWidget {
               (e, i) => TokenValueView(
                 token: e,
                 inCollection: true,
+                parentToken: token,
                 onDelete: () {
                   final _list = [...tokenValue.values];
                   _list.removeAt(i);
@@ -177,12 +183,48 @@ class TokenValueView extends HookWidget {
             ),
           ],
         ),
+        butNot: (tokenValue) => Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TokenValueView(
+              token: tokenValue.item,
+              parentToken: token,
+              inCollection: true,
+              onDelete: null,
+              onChanged: (v) {
+                onChangedValue(tokenValue.copyWith(item: v));
+              },
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Text(
+                    'But Not',
+                    style: Theme.of(context).textTheme.subtitle1,
+                  ),
+                ),
+              ],
+            ),
+            TokenValueView(
+              token: tokenValue.not,
+              parentToken: token,
+              inCollection: true,
+              onDelete: null,
+              onChanged: (v) {
+                onChangedValue(tokenValue.copyWith(not: v));
+              },
+            )
+          ],
+        ),
         separated: (tokenValue) => Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TokenValueView(
               token: tokenValue.item,
+              parentToken: token,
               inCollection: true,
               onDelete: null,
               onChanged: (v) {
@@ -236,6 +278,7 @@ class TokenValueView extends HookWidget {
             ),
             TokenValueView(
               token: tokenValue.separator,
+              parentToken: token,
               inCollection: true,
               onDelete: null,
               onChanged: (v) {
@@ -246,124 +289,154 @@ class TokenValueView extends HookWidget {
         ),
         orElse: () {
           final typeStr = tokenValue.maybeMap(
-            string: (_) => 'string',
+            string: (s) => s.isPattern ? 'pattern' : 'string',
             ref: (_) => 'reference',
             separated: (_) => 'separated',
             predifined: (p) => p.value.toJson(),
+            butNot: (p) => 'butNot',
             orElse: () => throw Error(),
           );
-          return Container(
+          return Card(
             margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-            width: 240,
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: const BorderRadius.all(Radius.circular(8)),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(8)),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    if (!tokenValue.isString)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4.0),
-                        child: SizedBox(
-                          width: 125,
-                          child: TextFormField(
-                            initialValue: token.name,
-                            onChanged: (value) {
-                              onChanged(token.copyWith(name: value));
-                            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+              width: 250,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (!tokenValue.isString)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: SizedBox(
+                            width: 125,
+                            child: SimpleTextField(
+                              value: token.name,
+                              onChanged: (value) {
+                                onChanged(token.copyWith(name: value));
+                              },
+                            ),
                           ),
                         ),
-                      ),
-                    tokenValue.maybeMap(
-                      string: (tokenValue) => Row(
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text('Pattern'),
-                              Checkbox(
-                                value: tokenValue.isPattern,
-                                onChanged: (_) {
-                                  onChangedValue(
-                                    tokenValue.copyWith(
-                                      isPattern: !tokenValue.isPattern,
-                                    ),
-                                  );
+                      tokenValue.maybeMap(
+                        string: (tokenValue) => Row(
+                          children: [
+                            SizedBox(
+                              width: 100,
+                              child: SimpleTextField(
+                                value: token.name,
+                                onChanged: (value) {
+                                  onChanged(token.copyWith(name: value));
                                 },
                               ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text('Cased'),
-                              Checkbox(
-                                value: tokenValue.caseSensitive,
-                                onChanged: (_) {
-                                  onChangedValue(
-                                    tokenValue.copyWith(
-                                      caseSensitive: !tokenValue.caseSensitive,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
+                            ),
+                            const SizedBox(width: 8),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text('Cased'),
+                                Checkbox(
+                                  value: tokenValue.caseSensitive,
+                                  onChanged: (_) {
+                                    onChangedValue(
+                                      tokenValue.copyWith(
+                                        caseSensitive:
+                                            !tokenValue.caseSensitive,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        predifined: (predifined) => const SizedBox(),
+                        orElse: () => const SizedBox(),
                       ),
-                      predifined: (predifined) => const SizedBox(),
-                      orElse: () => const SizedBox(),
-                    ),
-                    _collectionButtonsRow,
-                    if (onDelete != null) _deleteIcon,
-                  ],
-                ),
-                SizedBox(
-                  height: 35,
-                  child: Row(
-                    children: [
-                      CustomOverlayButton(
-                        builder: StackPortal.make,
-                        params: _portalParams,
-                        portalBuilder: (notif) {
-                          return Column(
-                            children: [
-                              TextButton(
-                                onPressed: () {
-                                  if (!tokenValue.isString) {
-                                    onChangedValue(const TokenValue.string(
-                                      '',
+                      _collectionButtonsRow,
+                      if (onDelete != null) _deleteIcon,
+                    ],
+                  ),
+                  SizedBox(
+                    height: 35,
+                    child: Row(
+                      children: [
+                        CustomOverlayButton(
+                          builder: StackPortal.make,
+                          params: _portalParams,
+                          portalBuilder: (notif) {
+                            return Column(
+                              children: [
+                                TextButton(
+                                  onPressed: () {
+                                    onChangedValue(TokenValue.string(
+                                      tokenValue is TokenValueString
+                                          ? tokenValue.value
+                                          : '',
                                       caseSensitive: true,
                                       isPattern: false,
                                     ));
-                                  }
-                                  notif.hide();
-                                },
-                                child: const Text('string'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  if (!tokenValue.isRef) {
-                                    onChangedValue(const TokenValue.ref(''));
-                                  }
-                                  notif.hide();
-                                },
-                                child: const Text('reference'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  if (!tokenValue.isRef) {
+
+                                    notif.hide();
+                                  },
+                                  child: const Text('string'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    onChangedValue(TokenValue.string(
+                                      tokenValue is TokenValueString
+                                          ? tokenValue.value
+                                          : '',
+                                      caseSensitive: true,
+                                      isPattern: true,
+                                    ));
+
+                                    notif.hide();
+                                  },
+                                  child: const Text('pattern'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    if (!tokenValue.isRef) {
+                                      onChangedValue(const TokenValue.ref(''));
+                                    }
+                                    notif.hide();
+                                  },
+                                  child: const Text('reference'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    if (!tokenValue.isRef) {
+                                      onChangedValue(
+                                        const TokenValue.separated(
+                                          item: ParserToken.def(),
+                                          includeSeparators: false,
+                                          optionalSeparatorAtEnd: true,
+                                          separator: ParserToken.def(
+                                            value: TokenValue.string(
+                                              ',',
+                                              isPattern: false,
+                                              caseSensitive: true,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                    notif.hide();
+                                  },
+                                  child: const Text('separated'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
                                     onChangedValue(
-                                      const TokenValue.separated(
-                                        item: ParserToken.def(),
-                                        includeSeparators: false,
-                                        optionalSeparatorAtEnd: true,
-                                        separator: ParserToken.def(
+                                      TokenValue.butNot(
+                                        item: token,
+                                        not: const ParserToken.def(
                                           value: TokenValue.string(
                                             ',',
                                             isPattern: false,
@@ -372,62 +445,62 @@ class TokenValueView extends HookWidget {
                                         ),
                                       ),
                                     );
-                                  }
-                                  notif.hide();
-                                },
-                                child: const Text('separated'),
-                              ),
-                              ...PredifinedParser.values.map(
-                                (v) => TextButton(
-                                  onPressed: () {
-                                    onChangedValue(TokenValue.predifined(v));
                                     notif.hide();
                                   },
-                                  child: Text(v.toJson()),
+                                  child: const Text('butNot'),
                                 ),
-                              ),
-                            ],
-                          );
-                        },
-                        child: SizedBox(
-                          width: 110,
-                          child: Center(child: Text('Type: $typeStr')),
-                        ),
-                      ),
-                      Expanded(
-                        child: tokenValue.maybeMap(
-                          ref: (ref) =>
-                              CustomDropdownField<ParserTokenNotifier>(
-                            asString: (t) => t.value.name,
-                            onChange: (t) =>
-                                onChangedValue(TokenValue.ref(t.key)),
-                            options: parser.tokens.values,
-                            selected: parser
-                                .tokens[(tokenValue as TokenValueRef).value],
+                                ...PredifinedParser.values.map(
+                                  (v) => TextButton(
+                                    onPressed: () {
+                                      onChangedValue(TokenValue.predifined(v));
+                                      notif.hide();
+                                    },
+                                    child: Text(v.toJson()),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                          child: SizedBox(
+                            width: 110,
+                            child: Center(child: Text('Type: $typeStr')),
                           ),
-                          string: (v) => TextFormField(
-                            initialValue: v.value,
-                            onChanged: (value) {
-                              onChangedValue(TokenValue.string(
-                                value,
-                                isPattern: v.isPattern,
-                                caseSensitive: v.caseSensitive,
-                              ));
-                            },
-                          ),
-                          predifined: (predifined) => const SizedBox(),
-                          orElse: () => throw Error(),
                         ),
-                      ),
-                    ],
+                        Expanded(
+                          child: tokenValue.maybeMap(
+                            ref: (ref) =>
+                                CustomDropdownField<ParserTokenNotifier>(
+                              asString: (t) => t.value.name,
+                              onChange: (t) =>
+                                  onChangedValue(TokenValue.ref(t.key)),
+                              options: parser.tokens.values,
+                              selected: parser
+                                  .tokens[(tokenValue as TokenValueRef).value],
+                            ),
+                            string: (v) => SimpleTextField(
+                              value: v.value,
+                              onChanged: (value) {
+                                onChangedValue(TokenValue.string(
+                                  value,
+                                  isPattern: v.isPattern,
+                                  caseSensitive: v.caseSensitive,
+                                ));
+                              },
+                            ),
+                            predifined: (predifined) => const SizedBox(),
+                            orElse: () => throw Error(),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                BaseTokenConfig(
-                  token: token,
-                  onChanged: onChanged,
-                  direction: Axis.horizontal,
-                ),
-              ],
+                  BaseTokenConfig(
+                    token: token,
+                    onChanged: onChanged,
+                    direction: Axis.horizontal,
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -441,10 +514,90 @@ class TokenValueView extends HookWidget {
       borderRadius: const BorderRadius.all(Radius.circular(8)),
     );
 
-    if (!tokenValue.isAnd && !tokenValue.isOr && !tokenValue.isSeparated) {
-      return inner;
-    } else if (tokenValue.isOr || tokenValue.isSeparated) {
-      return DecoratedBox(
+    Widget wrapInner(Widget child) {
+      return CustomOverlayButton.stack(
+        gesture: OverlayGesture.secondaryTap,
+        params: PortalParams(
+          childAnchor: Alignment.center,
+          portalAnchor: Alignment.center,
+          portalWrapper: makeDefaultPortalWrapper(),
+        ),
+        portalBuilder: (notifier) {
+          final isOr = parentToken?.value.isOr ?? false;
+          final list = parentToken?.value.maybeMap(
+                or: (or) => or.values,
+                and: (and) => and.values,
+                orElse: () => <ParserToken>[],
+              ) ??
+              [];
+          final index = list.indexOf(token);
+
+          return SizedBox(
+            width: 100,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    runInAction(() {
+                      final newToken = parser.addToken();
+                      newToken.notifier.value = token;
+                      onChangedValue(TokenValue.ref(newToken.key));
+                      notifier.hide();
+                    });
+                  },
+                  child: const Text('Extract'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    runInAction(() {
+                      final newToken = parser.addToken();
+                      newToken.notifier.value = token;
+                      notifier.hide();
+                    });
+                  },
+                  child: const Text('Duplicate'),
+                ),
+                if (index != -1) ...[
+                  if (index > 0)
+                    TextButton(
+                      onPressed: () {
+                        final prev = list[index - 1];
+                        list[index - 1] = token;
+                        onChanged(prev);
+                        notifier.hide();
+                      },
+                      child: Text(isOr ? 'Move Top' : 'Move Left'),
+                    ),
+                  if (index < list.length - 1)
+                    TextButton(
+                      onPressed: () {
+                        final next = list[index + 1];
+                        list[index + 1] = token;
+                        onChanged(next);
+                        notifier.hide();
+                      },
+                      child: Text(isOr ? 'Move Down' : 'Move Right'),
+                    ),
+                ]
+              ],
+            ),
+          );
+        },
+        child: child,
+      );
+    }
+
+    if (!tokenValue.isAnd &&
+        !tokenValue.isOr &&
+        !tokenValue.isSeparated &&
+        !tokenValue.isButNot) {
+      return wrapInner(inner);
+    } else if (tokenValue.isOr ||
+        tokenValue.isSeparated ||
+        tokenValue.isButNot) {
+      return wrapInner(DecoratedBox(
         decoration: _collectionDecoration,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -455,13 +608,19 @@ class TokenValueView extends HookWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 7.0, left: 4, right: 4),
-                  child: Text(tokenValue.isSeparated ? 'SEPARATED' : 'CHOICE'),
+                  child: Text(
+                    tokenValue.isSeparated
+                        ? 'SEPARATED'
+                        : tokenValue.isButNot
+                            ? 'BUT NOT'
+                            : 'CHOICE',
+                  ),
                 ),
                 const SizedBox(height: 5),
                 SizedBox(
                   width: 95,
-                  child: TextFormField(
-                    initialValue: token.name,
+                  child: SimpleTextField(
+                    value: token.name,
                     onChanged: (value) {
                       onChanged(token.copyWith(name: value));
                     },
@@ -484,11 +643,11 @@ class TokenValueView extends HookWidget {
             inner,
           ],
         ),
-      );
+      ));
     } else {
       assert(tokenValue.isAnd);
       final _tokenValue = tokenValue as TokenValueAnd;
-      return DecoratedBox(
+      return wrapInner(DecoratedBox(
         decoration: _collectionDecoration,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -504,8 +663,8 @@ class TokenValueView extends HookWidget {
                 const SizedBox(width: 6),
                 SizedBox(
                   width: 110,
-                  child: TextFormField(
-                    initialValue: token.name,
+                  child: SimpleTextField(
+                    value: token.name,
                     onChanged: (value) {
                       onChanged(token.copyWith(name: value));
                     },
@@ -544,7 +703,7 @@ class TokenValueView extends HookWidget {
             inner,
           ],
         ),
-      );
+      ));
     }
   }
 }
@@ -607,6 +766,33 @@ class BaseTokenConfig extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class SimpleTextField extends HookWidget {
+  const SimpleTextField({
+    Key? key,
+    required this.value,
+    required this.onChanged,
+  }) : super(key: key);
+
+  final String value;
+  final void Function(String) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = useTextEditingController(text: value);
+    useEffect(() {
+      if (controller.text != value) {
+        controller.text = value;
+      }
+    }, [value]);
+    return TextFormField(
+      controller: controller,
+      onChanged: (value) {
+        onChanged(value);
+      },
     );
   }
 }
