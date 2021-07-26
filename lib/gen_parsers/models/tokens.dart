@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/gen_parsers/models/predifined_parsers.dart';
 import 'package:snippet_generator/gen_parsers/models/stores.dart';
@@ -162,6 +164,7 @@ class ParserToken {
           ref: (ref) =>
               tokens[ref.value]?.value.dartType(tokens, parent: null) ?? '',
           predifined: (predifined) => predifined.value.toDartType(),
+          butNot: (b) => b.item.dartType(tokens, parent: this),
           separated: (separated) => 'List<${separated.item.dartType(
             tokens,
             parent: this,
@@ -180,7 +183,15 @@ class ParserToken {
     };
   }
 
-  factory ParserToken.fromJson(Map<String, dynamic> map) {
+  factory ParserToken.fromJson(Object? _map) {
+    final Map<String, dynamic> map;
+    if (_map is ParserToken) {
+      return _map;
+    } else if (_map is String) {
+      map = jsonDecode(_map) as Map<String, dynamic>;
+    } else {
+      map = (_map! as Map).cast();
+    }
     return ParserToken(
       name: map['name'] as String,
       value: TokenValue.fromJson(map['value'] as Map<String, dynamic>),

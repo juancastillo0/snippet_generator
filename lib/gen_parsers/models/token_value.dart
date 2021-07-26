@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui';
 
 import 'package:snippet_generator/gen_parsers/models/predifined_parsers.dart';
@@ -31,6 +32,10 @@ abstract class TokenValue {
     required bool includeSeparators,
     required bool optionalSeparatorAtEnd,
   }) = TokenValueSeparated;
+  const factory TokenValue.butNot({
+    required ParserToken item,
+    required ParserToken not,
+  }) = TokenValueButNot;
 
   _T when<_T>({
     required _T Function(List<ParserToken> values, bool flatten) and,
@@ -42,6 +47,7 @@ abstract class TokenValue {
     required _T Function(ParserToken item, ParserToken separator,
             bool includeSeparators, bool optionalSeparatorAtEnd)
         separated,
+    required _T Function(ParserToken item, ParserToken not) butNot,
   }) {
     final v = this;
     if (v is TokenValueAnd) {
@@ -57,6 +63,8 @@ abstract class TokenValue {
     } else if (v is TokenValueSeparated) {
       return separated(
           v.item, v.separator, v.includeSeparators, v.optionalSeparatorAtEnd);
+    } else if (v is TokenValueButNot) {
+      return butNot(v.item, v.not);
     }
     throw Exception();
   }
@@ -71,6 +79,7 @@ abstract class TokenValue {
     _T Function(ParserToken item, ParserToken separator, bool includeSeparators,
             bool optionalSeparatorAtEnd)?
         separated,
+    _T Function(ParserToken item, ParserToken not)? butNot,
   }) {
     final v = this;
     if (v is TokenValueAnd) {
@@ -90,6 +99,8 @@ abstract class TokenValue {
           ? separated(v.item, v.separator, v.includeSeparators,
               v.optionalSeparatorAtEnd)
           : orElse.call();
+    } else if (v is TokenValueButNot) {
+      return butNot != null ? butNot(v.item, v.not) : orElse.call();
     }
     throw Exception();
   }
@@ -101,6 +112,7 @@ abstract class TokenValue {
     required _T Function(TokenValueRef value) ref,
     required _T Function(TokenValuePredifined value) predifined,
     required _T Function(TokenValueSeparated value) separated,
+    required _T Function(TokenValueButNot value) butNot,
   }) {
     final v = this;
     if (v is TokenValueAnd) {
@@ -115,6 +127,8 @@ abstract class TokenValue {
       return predifined(v);
     } else if (v is TokenValueSeparated) {
       return separated(v);
+    } else if (v is TokenValueButNot) {
+      return butNot(v);
     }
     throw Exception();
   }
@@ -127,6 +141,7 @@ abstract class TokenValue {
     _T Function(TokenValueRef value)? ref,
     _T Function(TokenValuePredifined value)? predifined,
     _T Function(TokenValueSeparated value)? separated,
+    _T Function(TokenValueButNot value)? butNot,
   }) {
     final v = this;
     if (v is TokenValueAnd) {
@@ -141,6 +156,8 @@ abstract class TokenValue {
       return predifined != null ? predifined(v) : orElse.call();
     } else if (v is TokenValueSeparated) {
       return separated != null ? separated(v) : orElse.call();
+    } else if (v is TokenValueButNot) {
+      return butNot != null ? butNot(v) : orElse.call();
     }
     throw Exception();
   }
@@ -151,8 +168,18 @@ abstract class TokenValue {
   bool get isRef => this is TokenValueRef;
   bool get isPredifined => this is TokenValuePredifined;
   bool get isSeparated => this is TokenValueSeparated;
+  bool get isButNot => this is TokenValueButNot;
 
-  static TokenValue fromJson(Map<String, dynamic> map) {
+  static TokenValue fromJson(Object? _map) {
+    final Map<String, dynamic> map;
+    if (_map is TokenValue) {
+      return _map;
+    } else if (_map is String) {
+      map = jsonDecode(_map) as Map<String, dynamic>;
+    } else {
+      map = (_map! as Map).cast();
+    }
+
     switch (map['runtimeType'] as String) {
       case 'and':
         return TokenValueAnd.fromJson(map);
@@ -166,6 +193,8 @@ abstract class TokenValue {
         return TokenValuePredifined.fromJson(map);
       case 'separated':
         return TokenValueSeparated.fromJson(map);
+      case 'butNot':
+        return TokenValueButNot.fromJson(map);
       default:
         throw Exception('Invalid discriminator for TokenValue.fromJson '
             '${map["runtimeType"]}. Input map: $map');
@@ -205,11 +234,18 @@ class TokenValueAnd extends TokenValue {
   @override
   int get hashCode => hashValues(values, flatten);
 
-  static TokenValueAnd fromJson(Map<String, dynamic> map) {
+  static TokenValueAnd fromJson(Object? _map) {
+    final Map<String, dynamic> map;
+    if (_map is TokenValueAnd) {
+      return _map;
+    } else if (_map is String) {
+      map = jsonDecode(_map) as Map<String, dynamic>;
+    } else {
+      map = (_map! as Map).cast();
+    }
+
     return TokenValueAnd(
-      (map['values'] as List)
-          .map((e) => ParserToken.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      (map['values'] as List).map((e) => ParserToken.fromJson(e)).toList(),
       flatten: map['flatten'] as bool,
     );
   }
@@ -250,11 +286,18 @@ class TokenValueOr extends TokenValue {
   @override
   int get hashCode => values.hashCode;
 
-  static TokenValueOr fromJson(Map<String, dynamic> map) {
+  static TokenValueOr fromJson(Object? _map) {
+    final Map<String, dynamic> map;
+    if (_map is TokenValueOr) {
+      return _map;
+    } else if (_map is String) {
+      map = jsonDecode(_map) as Map<String, dynamic>;
+    } else {
+      map = (_map! as Map).cast();
+    }
+
     return TokenValueOr(
-      (map['values'] as List)
-          .map((e) => ParserToken.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      (map['values'] as List).map((e) => ParserToken.fromJson(e)).toList(),
     );
   }
 
@@ -303,7 +346,16 @@ class TokenValueString extends TokenValue {
   @override
   int get hashCode => hashValues(value, isPattern, caseSensitive);
 
-  static TokenValueString fromJson(Map<String, dynamic> map) {
+  static TokenValueString fromJson(Object? _map) {
+    final Map<String, dynamic> map;
+    if (_map is TokenValueString) {
+      return _map;
+    } else if (_map is String) {
+      map = jsonDecode(_map) as Map<String, dynamic>;
+    } else {
+      map = (_map! as Map).cast();
+    }
+
     return TokenValueString(
       map['value'] as String,
       isPattern: map['isPattern'] as bool,
@@ -348,7 +400,16 @@ class TokenValueRef extends TokenValue {
   @override
   int get hashCode => value.hashCode;
 
-  static TokenValueRef fromJson(Map<String, dynamic> map) {
+  static TokenValueRef fromJson(Object? _map) {
+    final Map<String, dynamic> map;
+    if (_map is TokenValueRef) {
+      return _map;
+    } else if (_map is String) {
+      map = jsonDecode(_map) as Map<String, dynamic>;
+    } else {
+      map = (_map! as Map).cast();
+    }
+
     return TokenValueRef(
       map['value'] as String,
     );
@@ -359,6 +420,56 @@ class TokenValueRef extends TokenValue {
     return {
       'runtimeType': 'ref',
       'value': value,
+    };
+  }
+}
+
+class TokenValuePredifined extends TokenValue {
+  final PredifinedParser value;
+
+  const TokenValuePredifined(
+    this.value,
+  ) : super._();
+
+  TokenValuePredifined copyWith({
+    PredifinedParser? value,
+  }) {
+    return TokenValuePredifined(
+      value ?? this.value,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is TokenValuePredifined) {
+      return this.value == other.value;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
+
+  static TokenValuePredifined fromJson(Object? _map) {
+    final Map<String, dynamic> map;
+    if (_map is TokenValuePredifined) {
+      return _map;
+    } else if (_map is String) {
+      map = jsonDecode(_map) as Map<String, dynamic>;
+    } else {
+      map = (_map! as Map).cast();
+    }
+
+    return TokenValuePredifined(
+      parseEnum(map['value'] as String, PredifinedParser.values)!,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'runtimeType': 'predifined',
+      'value': value.toJson(),
     };
   }
 }
@@ -406,10 +517,19 @@ class TokenValueSeparated extends TokenValue {
   int get hashCode =>
       hashValues(item, separator, includeSeparators, optionalSeparatorAtEnd);
 
-  static TokenValueSeparated fromJson(Map<String, dynamic> map) {
+  static TokenValueSeparated fromJson(Object? _map) {
+    final Map<String, dynamic> map;
+    if (_map is TokenValueSeparated) {
+      return _map;
+    } else if (_map is String) {
+      map = jsonDecode(_map) as Map<String, dynamic>;
+    } else {
+      map = (_map! as Map).cast();
+    }
+
     return TokenValueSeparated(
-      item: ParserToken.fromJson(map['item'] as Map<String, dynamic>),
-      separator: ParserToken.fromJson(map['separator'] as Map<String, dynamic>),
+      item: ParserToken.fromJson(map['item']),
+      separator: ParserToken.fromJson(map['separator']),
       includeSeparators: map['includeSeparators'] as bool,
       optionalSeparatorAtEnd: map['optionalSeparatorAtEnd'] as bool,
     );
@@ -427,43 +547,58 @@ class TokenValueSeparated extends TokenValue {
   }
 }
 
-class TokenValuePredifined extends TokenValue {
-  final PredifinedParser value;
+class TokenValueButNot extends TokenValue {
+  final ParserToken item;
+  final ParserToken not;
 
-  const TokenValuePredifined(
-    this.value,
-  ) : super._();
+  const TokenValueButNot({
+    required this.item,
+    required this.not,
+  }) : super._();
 
-  TokenValuePredifined copyWith({
-    PredifinedParser? value,
+  TokenValueButNot copyWith({
+    ParserToken? item,
+    ParserToken? not,
   }) {
-    return TokenValuePredifined(
-      value ?? this.value,
+    return TokenValueButNot(
+      item: item ?? this.item,
+      not: not ?? this.not,
     );
   }
 
   @override
   bool operator ==(Object other) {
-    if (other is TokenValuePredifined) {
-      return this.value == other.value;
+    if (other is TokenValueButNot) {
+      return this.item == other.item && this.not == other.not;
     }
     return false;
   }
 
   @override
-  int get hashCode => value.hashCode;
+  int get hashCode => hashValues(item, not);
 
-  static TokenValuePredifined fromJson(Map<String, dynamic> map) {
-    return TokenValuePredifined(
-      parseEnum(map['value'] as String, PredifinedParser.values)!,
+  static TokenValueButNot fromJson(Object? _map) {
+    final Map<String, dynamic> map;
+    if (_map is TokenValueButNot) {
+      return _map;
+    } else if (_map is String) {
+      map = jsonDecode(_map) as Map<String, dynamic>;
+    } else {
+      map = (_map! as Map).cast();
+    }
+
+    return TokenValueButNot(
+      item: ParserToken.fromJson(map['item']),
+      not: ParserToken.fromJson(map['not']),
     );
   }
 
   @override
   Map<String, dynamic> toJson() {
     return {
-      'runtimeType': 'predifined',
-      'value': value.toJson(),
+      'runtimeType': 'butNot',
+      'item': item.toJson(),
+      'not': not.toJson(),
     };
   }
 }
