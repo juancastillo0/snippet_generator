@@ -546,7 +546,7 @@ extension ${name}Extension on $name {
 
   return """
 $_declaration
-  ${variants.map((e) => "bool get is${e.firstToUpperCase()} => this == $name.${e.asVariableName()};").join("\n  ")}
+  ${variants.map((e) => "bool get is${e.asVariableName().firstToUpperCase()} => this == $name.${e.asVariableName()};").join("\n  ")}
 
   _T when<_T>({
     ${variants.map((e) => "$_required _T Function() ${e.asVariableName()},").join("\n    ")}

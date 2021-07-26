@@ -112,9 +112,18 @@ extension CasingString on String {
       length > 0 ? substring(0, 1).toUpperCase() + substring(1) : this;
   String asVariableName({bool dart = true}) {
     String value = replaceFirst('_', '').firstToLowerCase();
-    const _reserved = {'null', 'true', 'false', 'default'};
+    const _reserved = {'null', 'true', 'false', 'default', 'enum'};
+    const _reservedChar = {
+      '"': 'doubleQuote',
+      r'\\': 'escape',
+      r'\n': 'newLine',
+      '"""': 'tripleDoubleQuote',
+      r'\\"""': 'escapedTripleDoubleQuote',
+    };
     if (dart && _reserved.contains(value)) {
       value += '_';
+    } else if (_reservedChar.containsKey(value)) {
+      value = _reservedChar[value]!;
     }
     return value;
   }
