@@ -11,6 +11,7 @@ import 'package:snippet_generator/widgets/globals.dart';
 import 'package:snippet_generator/widgets/horizontal_item_list.dart';
 import 'package:snippet_generator/widgets/portal/portal_utils.dart';
 import 'package:snippet_generator/widgets/resizable_scrollable/resizable.dart';
+import 'package:snippet_generator/widgets/row_fields.dart';
 import 'package:snippet_generator/widgets/small_icon_button.dart';
 
 class GenerateParserTabView extends HookWidget {
@@ -183,55 +184,37 @@ class TokenList extends HookWidget {
     useListenable(parser.tokenKeys);
     const bottomHeight = 50.0;
 
-    return LayoutBuilder(
-      builder: (context, box) {
-        return Column(
-          children: [
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: box.maxHeight - bottomHeight,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    ...parser.tokenKeys.expand(
-                      (tokenKey) sync* {
-                        // yield Container(
-                        //   height: 1,
-                        //   color: Theme.of(context)
-                        //       .colorScheme
-                        //       .onSurface
-                        //       .withOpacity(0.1),
-                        // );
-                        yield Observer(
-                          key: Key(tokenKey),
-                          builder: (context) {
-                            final token = parser.tokens[tokenKey]!;
-                            return TokenRow(token: token);
-                          },
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.builder(
+            itemCount: parser.tokenKeys.length,
+            itemBuilder: (context, index) {
+              final tokenKey = parser.tokenKeys[index];
+              return Observer(
+                key: Key(tokenKey),
+                builder: (context) {
+                  final token = parser.tokens[tokenKey]!;
+                  return TokenRow(token: token);
+                },
+              );
+            },
+          ),
+        ),
+        Container(
+          height: bottomHeight,
+          padding: const EdgeInsets.only(top: 10),
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: OutlinedButton(
+              onPressed: () {
+                parser.addToken();
+              },
+              child: const Text('ADD'),
             ),
-            Container(
-              height: bottomHeight,
-              padding: const EdgeInsets.only(top: 10),
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: OutlinedButton(
-                  onPressed: () {
-                    parser.addToken();
-                  },
-                  child: const Text('ADD'),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -273,6 +256,7 @@ class TokenRow extends HookWidget {
                     builder: (context) {
                       return TokenValueView(
                         token: token.value,
+                        parentToken: null,
                         onDelete: null,
                         onChanged: (newValue) =>
                             token.notifier.value = newValue,
