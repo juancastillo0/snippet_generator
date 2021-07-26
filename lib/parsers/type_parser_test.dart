@@ -40,6 +40,10 @@ void main() {
           (r2.value.genericType as PrimitiveParser).type.toEnumString(), 'int');
       expect(r2.value.collectionType, CollectionType.Set);
 
+
+      final r3 = CollectionParser.listParser.parse('List<StringCharacter>?');
+      print(r3);
+
       // final r3 = CollectionParser.setParser.parse("Sets<int ");
       // print(r3);
       // expect(r3.isSuccess, false);

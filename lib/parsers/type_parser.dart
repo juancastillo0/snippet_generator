@@ -131,11 +131,11 @@ class PrimitiveParser extends JsonTypeParser {
     throw '';
   }
 
-  static final parser = ((string('int') |
-              string('double') |
-              string('num') |
-              string('String') |
-              string('bool') |
+  static final parser = ((string('int').end() |
+              string('double').end() |
+              string('num').end() |
+              string('String').end() |
+              string('bool').end() |
               (identifier &
                   (char('<') &
                           identifier.separatedBy(char(','),
