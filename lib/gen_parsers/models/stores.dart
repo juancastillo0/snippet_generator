@@ -377,6 +377,8 @@ class ParserTokenNotifier {
     ),
   );
 
+  bool get isShowing => showToken.value || store.showTokens.value;
+
   ParserToken get value => notifier.value;
 
   late final parser = Computed<fs.Result<Parser, Object>>(() {
@@ -389,7 +391,10 @@ class ParserTokenNotifier {
     }
   });
 
-  bool get isShowing => showToken.value || store.showTokens.value;
+  Parser _parser(ParserToken token) {
+    Parser result = token.value.when(
+      and: (list, flatten) {
+        Parser p = SequenceParser(list.map((e) => _parser(e)));
         if (flatten) {
           p = p.flatten();
         }
