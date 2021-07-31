@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart' hide Action;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:mobx/mobx.dart';
+import 'package:mobx/mobx.dart' show runInAction;
 import 'package:snippet_generator/fields/button_select_field.dart';
 import 'package:snippet_generator/gen_parsers/models/stores.dart';
 import 'package:snippet_generator/gen_parsers/models/tokens.dart';
@@ -213,6 +213,7 @@ class TokenList extends HookWidget {
   Widget build(BuildContext context) {
     final parser = useSelectedParser();
     const bottomHeight = 50.0;
+    final scrollController = parser.scrollController;
 
     return Observer(builder: (context) {
       final tokenKeys = parser.filteredTokenKeys.value;
@@ -220,69 +221,102 @@ class TokenList extends HookWidget {
       return Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              itemCount: tokenKeys.length * 2 + 1,
-              itemBuilder: (context, index) {
-                if (index.isEven) {
-                  return DragTarget<ParserTokenNotifier>(
-                    onAccept: (value) {
-                      runInAction(() {
-                        final prevIndex = tokenKeys.indexOf(value.key);
-                        tokenKeys.removeAt(prevIndex);
-                        tokenKeys.insert(index ~/ 2, value.key);
-                      });
-                    },
-                    builder: (context, candidate, rejected) {
-                      if (candidate.isNotEmpty && candidate.first != null) {
-                        final value = candidate.first!;
-                        final theme = Theme.of(context);
-                        final style = theme.textTheme.subtitle1!;
-                        return Container(
-                          padding: const EdgeInsets.all(10.0),
-                          margin: const EdgeInsets.only(bottom: 4),
-                          color: theme.colorScheme.primary.withOpacity(0.2),
-                          child: Text(
-                            value.value.name,
-                            style: style.copyWith(
-                              color: style.color!.withOpacity(0.7),
+            child: Scrollbar(
+              controller: scrollController,
+              isAlwaysShown: true,
+              child: AnimatedBuilder(
+                animation: parser.isDragging,
+                builder: (context, child) {
+                  return Listener(
+                    onPointerMove: parser.isDragging.value
+                        ? (event) {
+                            final renderObject =
+                                context.findRenderObject()! as RenderBox;
+                            final height = renderObject.size.height;
+                            if (event.localPosition.dy < 30) {
+                              scrollController
+                                  .jumpTo(scrollController.offset - 6);
+                            } else if (event.localPosition.dy > height - 30) {
+                              scrollController
+                                  .jumpTo(scrollController.offset + 6);
+                            }
+                          }
+                        : null,
+                    child: child,
+                  );
+                },
+                child: ListView.builder(
+                  controller: scrollController,
+                  itemCount: tokenKeys.length * 2 + 1,
+                  itemBuilder: (context, index) {
+                    if (index.isEven) {
+                      return DragTarget<ParserTokenNotifier>(
+                        onAccept: (value) {
+                          runInAction(() {
+                            final prevIndex = tokenKeys.indexOf(value.key);
+                            tokenKeys.removeAt(prevIndex);
+                            tokenKeys.insert(index ~/ 2, value.key);
+                          });
+                        },
+                        builder: (context, candidate, rejected) {
+                          if (candidate.isNotEmpty && candidate.first != null) {
+                            final value = candidate.first!;
+                            final theme = Theme.of(context);
+                            final style = theme.textTheme.subtitle1!;
+                            return Container(
+                              padding: const EdgeInsets.all(10.0),
+                              margin: const EdgeInsets.only(bottom: 4),
+                              color: theme.colorScheme.primary.withOpacity(0.2),
+                              child: Text(
+                                value.value.name,
+                                style: style.copyWith(
+                                  color: style.color!.withOpacity(0.7),
+                                ),
+                              ),
+                            );
+                          } else {
+                            return const SizedBox(
+                              height: 10,
+                            );
+                          }
+                        },
+                      );
+                    }
+                    final tokenKey = tokenKeys[index ~/ 2];
+                    return Observer(
+                      key: Key(tokenKey),
+                      builder: (context) {
+                        final token = parser.tokens[tokenKey]!;
+                        final child = TokenRow(token: token);
+
+                        if (isFiltered) {
+                          return child;
+                        }
+
+                        return Draggable<ParserTokenNotifier>(
+                          feedback: Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(token.value.name),
                             ),
                           ),
+                          onDragStarted: () {
+                            parser.isDragging.value = true;
+                          },
+                          onDragEnd: (_) {
+                            parser.isDragging.value = false;
+                          },
+                          dragAnchorStrategy: pointerDragAnchorStrategy,
+                          axis: Axis.vertical,
+                          data: parser.tokens[tokenKey],
+                          affinity: Axis.vertical,
+                          child: child,
                         );
-                      } else {
-                        return const SizedBox(
-                          height: 10,
-                        );
-                      }
-                    },
-                  );
-                }
-                final tokenKey = tokenKeys[index ~/ 2];
-                return Observer(
-                  key: Key(tokenKey),
-                  builder: (context) {
-                    final token = parser.tokens[tokenKey]!;
-                    final child = TokenRow(token: token);
-
-                    if (isFiltered) {
-                      return child;
-                    }
-
-                    return Draggable<ParserTokenNotifier>(
-                      feedback: Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(token.value.name),
-                        ),
-                      ),
-                      dragAnchorStrategy: pointerDragAnchorStrategy,
-                      axis: Axis.vertical,
-                      data: parser.tokens[tokenKey],
-                      affinity: Axis.vertical,
-                      child: child,
+                      },
                     );
                   },
-                );
-              },
+                ),
+              ),
             ),
           ),
           Container(
@@ -324,7 +358,12 @@ class TokenRow extends HookWidget {
             children: [
               Observer(builder: (context) {
                 if (selectedParser.isFiltered.value) {
-                  return const SizedBox();
+                  return TextButton(
+                    onPressed: () {
+                      selectedParser.clearSearchAndScrollTo(token);
+                    },
+                    child: const Text('Scroll to view'),
+                  );
                 }
                 return const InkWell(
                   mouseCursor: SystemMouseCursors.grab,
@@ -351,7 +390,10 @@ class TokenRow extends HookWidget {
           Expanded(
             child: Resizable(
               vertical: ResizeVertical.bottom,
-              defaultHeight: 190,
+              defaultHeight: token.widgetHeight,
+              onResize: (size) {
+                token.widgetHeight = size.height;
+              },
               child: SingleChildScrollView(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,

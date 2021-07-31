@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dart_style/dart_style.dart';
 import 'package:file_system_access/src/models/result.dart' as fs;
+import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobx/mobx.dart';
@@ -102,6 +103,8 @@ class GenerateParserItem {
   final tokenKeys = ListNotifier<String>([]);
   final tokens = MapNotifier<String, ParserTokenNotifier>();
 
+  final isDragging = AppNotifier(false);
+
   late final filteredTokenKeys = Computed(() {
     final text = searchText.value.toLowerCase();
     if (text.isEmpty) {
@@ -118,6 +121,8 @@ class GenerateParserItem {
   });
 
   final selectedTestTokenKey = AppNotifier('');
+
+  final scrollController = ScrollController();
 
   late final selectedTestToken =
       Computed(() => tokens[selectedTestTokenKey.value]!);
@@ -156,6 +161,25 @@ class GenerateParserItem {
       }
       selectedTestTokenKey.value = tokenKeys.first;
     });
+  }
+
+  void clearSearchAndScrollTo(ParserTokenNotifier token) {
+    searchText.controller.clear();
+
+    final index = tokenKeys.indexOf(token.key);
+    int i = 0;
+    double offset = 0;
+    while (i < index) {
+      final token = tokens[tokenKeys[i]]!;
+      offset += token.widgetHeight + 10;
+      i += 1;
+    }
+
+    scrollController.animateTo(
+      offset,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeIn,
+    );
   }
 
   ParserTokenNotifier addToken() {
@@ -322,6 +346,8 @@ class TokenContext {
 class ParserTokenNotifier {
   final String key;
   final GenerateParserItem store;
+  double widgetHeight = 190;
+
   ParserTokenNotifier(this.store, this.key);
 
   final notifier = AppNotifier(

@@ -19,6 +19,7 @@ class Resizable extends StatefulWidget {
 
   final Widget child;
   final Widget? handle;
+  final void Function(Size)? onResize;
 
   const Resizable({
     this.handle,
@@ -30,6 +31,7 @@ class Resizable extends StatefulWidget {
     this.defaultHeight,
     this.minHeight,
     this.flex,
+    this.onResize,
   });
 
   @override
@@ -49,6 +51,15 @@ class _ResizableState extends State<Resizable> {
     super.initState();
   }
 
+  void onResize() {
+    widget.onResize?.call(
+      Size(
+        (_width ?? _childKey.currentContext?.size?.width)!,
+        (_height ?? _childKey.currentContext?.size?.height)!,
+      ),
+    );
+  }
+
   void Function(DragUpdateDetails) _updateSize(
     bool proportional,
     bool horizontal,
@@ -58,12 +69,14 @@ class _ResizableState extends State<Resizable> {
             setState(() {
               _width = (_width ?? _childKey.currentContext?.size?.width)! +
                   (proportional ? details.delta.dx : -details.delta.dx);
+              onResize();
             });
           }
         : (DragUpdateDetails details) {
             setState(() {
               _height = (_height ?? _childKey.currentContext?.size?.height)! +
                   (proportional ? details.delta.dy : -details.delta.dy);
+              onResize();
             });
           };
   }
