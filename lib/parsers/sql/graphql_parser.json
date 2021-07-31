@@ -1134,12 +1134,10 @@
                                             "parentKey": null
                                         },
                                         {
-                                            "name": "",
+                                            "name": "typeSystem",
                                             "value": {
-                                                "runtimeType": "string",
-                                                "value": "sd",
-                                                "isPattern": false,
-                                                "caseSensitive": true
+                                                "runtimeType": "ref",
+                                                "value": "f518df0c-6da8-4f22-ab58-02c586d3ff64"
                                             },
                                             "repeat": {
                                                 "min": 1,
@@ -1536,7 +1534,7 @@
                                                 "min": 1,
                                                 "max": 1
                                             },
-                                            "trim": true,
+                                            "trim": false,
                                             "negated": false,
                                             "parentKey": null
                                         },
@@ -1550,7 +1548,7 @@
                                                 "min": 1,
                                                 "max": 1
                                             },
-                                            "trim": true,
+                                            "trim": false,
                                             "negated": false,
                                             "parentKey": null
                                         },
@@ -1564,7 +1562,7 @@
                                                 "min": 1,
                                                 "max": 1
                                             },
-                                            "trim": true,
+                                            "trim": false,
                                             "negated": false,
                                             "parentKey": null
                                         }
@@ -1574,7 +1572,7 @@
                                     "min": 1,
                                     "max": 1
                                 },
-                                "trim": true,
+                                "trim": false,
                                 "negated": false,
                                 "parentKey": null
                             }
@@ -2293,15 +2291,13 @@
                                 "parentKey": null
                             },
                             {
-                                "name": "",
+                                "name": "directives",
                                 "value": {
-                                    "runtimeType": "string",
-                                    "value": "",
-                                    "isPattern": false,
-                                    "caseSensitive": true
+                                    "runtimeType": "ref",
+                                    "value": "dce9a56e-8f7e-408e-ba11-2d91828d547d"
                                 },
                                 "repeat": {
-                                    "min": 1,
+                                    "min": 0,
                                     "max": 1
                                 },
                                 "trim": true,
@@ -2341,7 +2337,7 @@
                                             "min": 1,
                                             "max": 1
                                         },
-                                        "trim": true,
+                                        "trim": false,
                                         "negated": false,
                                         "parentKey": null
                                     },
@@ -2357,7 +2353,7 @@
                                             "min": 1,
                                             "max": 1
                                         },
-                                        "trim": true,
+                                        "trim": false,
                                         "negated": false,
                                         "parentKey": null
                                     }
@@ -2366,7 +2362,7 @@
                                     "min": 1,
                                     "max": 1
                                 },
-                                "trim": true,
+                                "trim": false,
                                 "negated": false,
                                 "parentKey": null
                             }
@@ -2377,7 +2373,7 @@
                         "min": 1,
                         "max": 1
                     },
-                    "trim": true,
+                    "trim": false,
                     "negated": false,
                     "parentKey": null
                 }
@@ -2868,16 +2864,14 @@
                                 "parentKey": null
                             },
                             {
-                                "name": "",
+                                "name": "fields",
                                 "value": {
-                                    "runtimeType": "string",
-                                    "value": "",
-                                    "isPattern": false,
-                                    "caseSensitive": true
+                                    "runtimeType": "ref",
+                                    "value": "52ccd000-b734-4286-bebb-c5902b25daf0"
                                 },
                                 "repeat": {
                                     "min": 1,
-                                    "max": 1
+                                    "max": null
                                 },
                                 "trim": true,
                                 "negated": false,

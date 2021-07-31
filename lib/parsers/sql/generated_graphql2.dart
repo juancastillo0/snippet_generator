@@ -1344,7 +1344,7 @@ class Document {
 
 final definition =
     ((executableDefinition.map((v) => Definition.executable(value: v)) |
-            string('sd').map((v) => Definition.sd(value: v)))
+            typeSystemDefinition.map((v) => Definition.typeSystem(value: v)))
         .cast<Definition>());
 
 abstract class Definition {
@@ -1358,21 +1358,21 @@ abstract class Definition {
   const factory Definition.executable({
     required ExecutableDefinition value,
   }) = DefinitionExecutable;
-  const factory Definition.sd({
-    required String value,
-  }) = DefinitionSd;
+  const factory Definition.typeSystem({
+    required TypeSystemDefinition value,
+  }) = DefinitionTypeSystem;
 
   Object get value;
 
   _T when<_T>({
     required _T Function(ExecutableDefinition value) executable,
-    required _T Function(String value) sd,
+    required _T Function(TypeSystemDefinition value) typeSystem,
   }) {
     final v = this;
     if (v is DefinitionExecutable) {
       return executable(v.value);
-    } else if (v is DefinitionSd) {
-      return sd(v.value);
+    } else if (v is DefinitionTypeSystem) {
+      return typeSystem(v.value);
     }
     throw Exception();
   }
@@ -1380,26 +1380,26 @@ abstract class Definition {
   _T maybeWhen<_T>({
     required _T Function() orElse,
     _T Function(ExecutableDefinition value)? executable,
-    _T Function(String value)? sd,
+    _T Function(TypeSystemDefinition value)? typeSystem,
   }) {
     final v = this;
     if (v is DefinitionExecutable) {
       return executable != null ? executable(v.value) : orElse.call();
-    } else if (v is DefinitionSd) {
-      return sd != null ? sd(v.value) : orElse.call();
+    } else if (v is DefinitionTypeSystem) {
+      return typeSystem != null ? typeSystem(v.value) : orElse.call();
     }
     throw Exception();
   }
 
   _T map<_T>({
     required _T Function(DefinitionExecutable value) executable,
-    required _T Function(DefinitionSd value) sd,
+    required _T Function(DefinitionTypeSystem value) typeSystem,
   }) {
     final v = this;
     if (v is DefinitionExecutable) {
       return executable(v);
-    } else if (v is DefinitionSd) {
-      return sd(v);
+    } else if (v is DefinitionTypeSystem) {
+      return typeSystem(v);
     }
     throw Exception();
   }
@@ -1407,19 +1407,19 @@ abstract class Definition {
   _T maybeMap<_T>({
     required _T Function() orElse,
     _T Function(DefinitionExecutable value)? executable,
-    _T Function(DefinitionSd value)? sd,
+    _T Function(DefinitionTypeSystem value)? typeSystem,
   }) {
     final v = this;
     if (v is DefinitionExecutable) {
       return executable != null ? executable(v) : orElse.call();
-    } else if (v is DefinitionSd) {
-      return sd != null ? sd(v) : orElse.call();
+    } else if (v is DefinitionTypeSystem) {
+      return typeSystem != null ? typeSystem(v) : orElse.call();
     }
     throw Exception();
   }
 
   bool get isExecutable => this is DefinitionExecutable;
-  bool get isSd => this is DefinitionSd;
+  bool get isTypeSystem => this is DefinitionTypeSystem;
 
   static Definition fromJson(Object? _map) {
     final Map<String, dynamic> map;
@@ -1434,8 +1434,8 @@ abstract class Definition {
     switch (map['runtimeType'] as String) {
       case 'executable':
         return DefinitionExecutable.fromJson(map);
-      case 'sd':
-        return DefinitionSd.fromJson(map);
+      case 'typeSystem':
+        return DefinitionTypeSystem.fromJson(map);
       default:
         throw Exception('Invalid discriminator for Definition.fromJson '
             '${map["runtimeType"]}. Input map: $map');
@@ -1495,24 +1495,24 @@ class DefinitionExecutable extends Definition {
   }
 }
 
-class DefinitionSd extends Definition {
-  final String value;
+class DefinitionTypeSystem extends Definition {
+  final TypeSystemDefinition value;
 
-  const DefinitionSd({
+  const DefinitionTypeSystem({
     required this.value,
   }) : super._();
 
-  DefinitionSd copyWith({
-    String? value,
+  DefinitionTypeSystem copyWith({
+    TypeSystemDefinition? value,
   }) {
-    return DefinitionSd(
+    return DefinitionTypeSystem(
       value: value ?? this.value,
     );
   }
 
   @override
   bool operator ==(Object other) {
-    if (other is DefinitionSd) {
+    if (other is DefinitionTypeSystem) {
       return this.value == other.value;
     }
     return false;
@@ -1521,9 +1521,9 @@ class DefinitionSd extends Definition {
   @override
   int get hashCode => value.hashCode;
 
-  static DefinitionSd fromJson(Object? _map) {
+  static DefinitionTypeSystem fromJson(Object? _map) {
     final Map<String, dynamic> map;
-    if (_map is DefinitionSd) {
+    if (_map is DefinitionTypeSystem) {
       return _map;
     } else if (_map is String) {
       map = jsonDecode(_map) as Map<String, dynamic>;
@@ -1531,16 +1531,16 @@ class DefinitionSd extends Definition {
       map = (_map! as Map).cast();
     }
 
-    return DefinitionSd(
-      value: map['value'] as String,
+    return DefinitionTypeSystem(
+      value: TypeSystemDefinition.fromJson(map['value']),
     );
   }
 
   @override
   Map<String, dynamic> toJson() {
     return {
-      'runtimeType': 'sd',
-      'value': value,
+      'runtimeType': 'typeSystem',
+      'value': value.toJson(),
     };
   }
 }
@@ -2224,11 +2224,10 @@ Parser<Selection> get selection {
     return _selection!;
   }
   _selection = undefined();
-  final p = ((field.trim().map((v) => Selection.field(value: v)) |
-          fragmentSpread.trim().map((v) => Selection.fragmentSpread(value: v)) |
-          inlineFragment.trim().map((v) => Selection.inlineFragment(value: v)))
-      .cast<Selection>()
-      .trim());
+  final p = ((field.map((v) => Selection.field(value: v)) |
+          fragmentSpread.map((v) => Selection.fragmentSpread(value: v)) |
+          inlineFragment.map((v) => Selection.inlineFragment(value: v)))
+      .cast<Selection>());
   _selection!.set(p);
   return _selection!;
 }
@@ -3944,42 +3943,48 @@ class NameNull extends Name {
 }
 
 final fragmentSpread =
-    (string('...').trim() & fragmentName.trim() & string('').trim()).map((l) {
+    (string('...').trim() & fragmentName.trim() & directives.trim().optional())
+        .map((l) {
   return FragmentSpread(
     name: l[1] as FragmentName,
+    directives: l[2] as Directives?,
   );
 });
 
 class FragmentSpread {
   final FragmentName name;
+  final Directives? directives;
 
   @override
   String toString() {
-    return '... ${name}  ';
+    return '... ${name} ${directives == null ? "" : "${directives!}"} ';
   }
 
   const FragmentSpread({
     required this.name,
+    this.directives,
   });
 
   FragmentSpread copyWith({
     FragmentName? name,
+    Directives? directives,
   }) {
     return FragmentSpread(
       name: name ?? this.name,
+      directives: directives ?? this.directives,
     );
   }
 
   @override
   bool operator ==(Object other) {
     if (other is FragmentSpread) {
-      return this.name == other.name;
+      return this.name == other.name && this.directives == other.directives;
     }
     return false;
   }
 
   @override
-  int get hashCode => name.hashCode;
+  int get hashCode => hashValues(name, directives);
 
   static FragmentSpread fromJson(Object? _map) {
     final Map<String, dynamic> map;
@@ -3993,28 +3998,32 @@ class FragmentSpread {
 
     return FragmentSpread(
       name: FragmentName.fromJson(map['name']),
+      directives: map['directives'] == null
+          ? null
+          : Directives.fromJson(map['directives']),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'name': name.toJson(),
+      'directives': directives?.toJson(),
     };
   }
 }
 
-final fragmentName = (name.trim().butNot(string('on').trim()).trim()).map((l) {
+final fragmentName = (name.butNot(string('on'))).map((l) {
   return FragmentName(
     name: l as String,
   );
-}).trim();
+});
 
 class FragmentName {
   final String name;
 
   @override
   String toString() {
-    return '${name} ';
+    return '${name}';
   }
 
   const FragmentName({
@@ -4752,33 +4761,53 @@ class ListValue {
   }
 }
 
-final objectValue =
-    (char('{').trim() & string('').trim() & char('}').trim()).map((l) {
-  return ObjectValue();
-});
+SettableParser<ObjectValue>? _objectValue;
+
+Parser<ObjectValue> get objectValue {
+  if (_objectValue != null) {
+    return _objectValue!;
+  }
+  _objectValue = undefined();
+  final p = (char('{').trim() & objectField.trim().plus() & char('}').trim())
+      .map((l) {
+    return ObjectValue(
+      fields: l[1] as List<ObjectField>,
+    );
+  });
+  _objectValue!.set(p);
+  return _objectValue!;
+}
 
 class ObjectValue {
+  final List<ObjectField> fields;
+
   @override
   String toString() {
-    return '{  } ';
+    return '{ ${fields.join(" ")} } ';
   }
 
-  const ObjectValue();
+  const ObjectValue({
+    required this.fields,
+  });
 
-  ObjectValue copyWith() {
-    return const ObjectValue();
+  ObjectValue copyWith({
+    List<ObjectField>? fields,
+  }) {
+    return ObjectValue(
+      fields: fields ?? this.fields,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     if (other is ObjectValue) {
-      return true;
+      return this.fields == other.fields;
     }
     return false;
   }
 
   @override
-  int get hashCode => const ObjectValue().hashCode;
+  int get hashCode => fields.hashCode;
 
   static ObjectValue fromJson(Object? _map) {
     final Map<String, dynamic> map;
@@ -4790,20 +4819,35 @@ class ObjectValue {
       map = (_map! as Map).cast();
     }
 
-    return const ObjectValue();
+    return ObjectValue(
+      fields:
+          (map['fields'] as List).map((e) => ObjectField.fromJson(e)).toList(),
+    );
   }
 
   Map<String, dynamic> toJson() {
-    return {};
+    return {
+      'fields': fields.map((e) => e.toJson()).toList(),
+    };
   }
 }
 
-final objectField = (name.trim() & char(':').trim() & value.trim()).map((l) {
-  return ObjectField(
-    name: l[0] as String,
-    value: l[2] as Value,
-  );
-});
+SettableParser<ObjectField>? _objectField;
+
+Parser<ObjectField> get objectField {
+  if (_objectField != null) {
+    return _objectField!;
+  }
+  _objectField = undefined();
+  final p = (name.trim() & char(':').trim() & value.trim()).map((l) {
+    return ObjectField(
+      name: l[0] as String,
+      value: l[2] as Value,
+    );
+  });
+  _objectField!.set(p);
+  return _objectField!;
+}
 
 class ObjectField {
   final String name;
