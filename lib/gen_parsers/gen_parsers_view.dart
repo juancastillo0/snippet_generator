@@ -233,12 +233,17 @@ class TokenList extends HookWidget {
                             final renderObject =
                                 context.findRenderObject()! as RenderBox;
                             final height = renderObject.size.height;
+                            final position = scrollController.position;
                             if (event.localPosition.dy < 30) {
-                              scrollController
-                                  .jumpTo(scrollController.offset - 6);
+                              final offset = scrollController.offset - 6;
+                              if (offset > 0) {
+                                scrollController.jumpTo(offset);
+                              }
                             } else if (event.localPosition.dy > height - 30) {
-                              scrollController
-                                  .jumpTo(scrollController.offset + 6);
+                              final offset = scrollController.offset + 6;
+                              if (offset < position.maxScrollExtent) {
+                                scrollController.jumpTo(offset);
+                              }
                             }
                           }
                         : null,
@@ -254,8 +259,13 @@ class TokenList extends HookWidget {
                         onAccept: (value) {
                           runInAction(() {
                             final prevIndex = tokenKeys.indexOf(value.key);
+                            final newIndex = index ~/ 2;
+
                             tokenKeys.removeAt(prevIndex);
-                            tokenKeys.insert(index ~/ 2, value.key);
+                            tokenKeys.insert(
+                              newIndex > prevIndex ? newIndex - 1 : newIndex,
+                              value.key,
+                            );
                           });
                         },
                         builder: (context, candidate, rejected) {
@@ -420,7 +430,8 @@ class TokenRow extends HookWidget {
               selectedParser.removeToken(token.key);
             },
             icon: const Icon(Icons.delete_rounded),
-          )
+          ),
+          const SizedBox(width: 10),
         ],
       ),
     );
