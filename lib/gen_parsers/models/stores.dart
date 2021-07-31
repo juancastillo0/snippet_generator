@@ -127,6 +127,7 @@ class GenerateParserItem {
   late final selectedTestToken =
       Computed(() => tokens[selectedTestTokenKey.value]!);
 
+  final showTokens = AppNotifier(true);
   final searchText = TextNotifier();
   final parserTestText = TextNotifier();
   final name = TextNotifier();
@@ -138,6 +139,15 @@ class GenerateParserItem {
       _tokens,
       name: name.value,
     );
+  }
+
+  void toggleShowTokens() {
+    final token = firstTokenInView();
+    print(token.value.name);
+    showTokens.value = !showTokens.value;
+    Future.delayed(const Duration(milliseconds: 10), () {
+      scrollTo(token);
+    });
   }
 
   void init([GenerateParserStoreValue? value]) {
@@ -163,15 +173,24 @@ class GenerateParserItem {
     });
   }
 
-  void clearSearchAndScrollTo(ParserTokenNotifier token) {
-    searchText.controller.clear();
+  ParserTokenNotifier firstTokenInView() {
+    int i = 0;
+    double offset = 0;
+    while (offset < scrollController.offset && i != tokenKeys.length - 1) {
+      final token = tokens[tokenKeys[i]]!;
+      offset += token.isShowing ? token.widgetHeight + 10 : 45 + 10;
+      i += 1;
+    }
+    return tokens[tokenKeys[i]]!;
+  }
 
+  void scrollTo(ParserTokenNotifier token) {
     final index = tokenKeys.indexOf(token.key);
     int i = 0;
     double offset = 0;
     while (i < index) {
       final token = tokens[tokenKeys[i]]!;
-      offset += token.widgetHeight + 10;
+      offset += token.isShowing ? token.widgetHeight + 10 : 45 + 10;
       i += 1;
     }
 
@@ -187,6 +206,7 @@ class GenerateParserItem {
       final token = ParserTokenNotifier(this, _uuid.v4());
       tokens[token.key] = token;
       tokenKeys.add(token.key);
+      scrollTo(token);
       return token;
     });
   }
@@ -350,6 +370,7 @@ class ParserTokenNotifier {
 
   ParserTokenNotifier(this.store, this.key);
 
+  final showToken = AppNotifier(false);
   final notifier = AppNotifier(
     const ParserToken.def(
       value: TokenValue.and([ParserToken.def()], flatten: false),
@@ -368,10 +389,7 @@ class ParserTokenNotifier {
     }
   });
 
-  Parser _parser(ParserToken token) {
-    Parser result = token.value.when(
-      and: (list, flatten) {
-        Parser p = SequenceParser(list.map((e) => _parser(e)));
+  bool get isShowing => showToken.value || store.showTokens.value;
         if (flatten) {
           p = p.flatten();
         }

@@ -7,11 +7,13 @@ import 'package:snippet_generator/gen_parsers/models/stores.dart';
 import 'package:snippet_generator/gen_parsers/models/tokens.dart';
 import 'package:snippet_generator/gen_parsers/widgets/token_value_view.dart';
 import 'package:snippet_generator/types/views/code_generated.dart';
+import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/widgets/code_text_field.dart';
 import 'package:snippet_generator/widgets/globals.dart';
 import 'package:snippet_generator/widgets/horizontal_item_list.dart';
 import 'package:snippet_generator/widgets/portal/portal_utils.dart';
 import 'package:snippet_generator/widgets/resizable_scrollable/resizable.dart';
+import 'package:snippet_generator/widgets/row_fields.dart';
 import 'package:snippet_generator/widgets/small_icon_button.dart';
 
 class GenerateParserTabView extends HookWidget {
@@ -113,7 +115,22 @@ class GenerateParserTabView extends HookWidget {
                             search.text.isEmpty ? Icons.search : Icons.close,
                           ),
                         );
-                      })
+                      }),
+                      const SizedBox(width: 20),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('Show'),
+                          selectedParser.showTokens.rebuild(
+                            (value) => Checkbox(
+                              value: value,
+                              onChanged: (value) {
+                                selectedParser.toggleShowTokens();
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ],
@@ -359,32 +376,54 @@ class TokenRow extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final selectedParser = useSelectedParser();
+    useListenable(selectedParser.showTokens);
+    useListenable(token.showToken);
+    final show = token.isShowing;
 
     return FocusTraversalGroup(
       child: Row(
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Flex(
+            direction: show ? Axis.vertical : Axis.horizontal,
+            crossAxisAlignment:
+                show ? CrossAxisAlignment.start : CrossAxisAlignment.center,
             children: [
-              Observer(builder: (context) {
-                if (selectedParser.isFiltered.value) {
-                  return TextButton(
-                    onPressed: () {
-                      selectedParser.clearSearchAndScrollTo(token);
-                    },
-                    child: const Text('Scroll to view'),
-                  );
-                }
-                return const InkWell(
-                  mouseCursor: SystemMouseCursors.grab,
-                  child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Icon(Icons.drag_indicator_outlined),
-                  ),
-                );
-              }),
+              Row(
+                children: [
+                  Observer(builder: (context) {
+                    if (selectedParser.isFiltered.value) {
+                      return TextButton(
+                        onPressed: () {
+                          selectedParser.searchText.controller.clear();
+                          selectedParser.scrollTo(token);
+                        },
+                        child: const Text('Scroll to view'),
+                      );
+                    }
+                    return const InkWell(
+                      mouseCursor: SystemMouseCursors.grab,
+                      child: Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Icon(Icons.drag_indicator_outlined),
+                      ),
+                    );
+                  }),
+                  if (!selectedParser.showTokens.value)
+                    Padding(
+                      padding: token.showToken.value
+                          ? EdgeInsets.only(
+                              left: selectedParser.isFiltered.value ? 6 : 65.0,
+                            )
+                          : const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: RowBoolField(
+                        notifier: token.showToken,
+                        label: 'Show',
+                      ),
+                    ),
+                ],
+              ),
               SizedBox(
-                width: 160,
+                width: 175,
                 child: TextFormField(
                   initialValue: token.value.name,
                   decoration: const InputDecoration(labelText: 'Name'),
@@ -397,31 +436,32 @@ class TokenRow extends HookWidget {
             ],
           ),
           const SizedBox(width: 10),
-          Expanded(
-            child: Resizable(
-              vertical: ResizeVertical.bottom,
-              defaultHeight: token.widgetHeight,
-              onResize: (size) {
-                token.widgetHeight = size.height;
-              },
-              child: SingleChildScrollView(
+          if (show)
+            Expanded(
+              child: Resizable(
+                vertical: ResizeVertical.bottom,
+                defaultHeight: token.widgetHeight,
+                onResize: (size) {
+                  token.widgetHeight = size.height;
+                },
                 child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Observer(
-                    builder: (context) {
-                      return TokenValueView(
-                        token: token.value,
-                        parentToken: null,
-                        onDelete: null,
-                        onChanged: (newValue) =>
-                            token.notifier.value = newValue,
-                      );
-                    },
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Observer(
+                      builder: (context) {
+                        return TokenValueView(
+                          token: token.value,
+                          parentToken: null,
+                          onDelete: null,
+                          onChanged: (newValue) =>
+                              token.notifier.value = newValue,
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
           const SizedBox(width: 10),
           IconButton(
             splashRadius: 26,
