@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' hide Action;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:mobx/mobx.dart';
 import 'package:snippet_generator/fields/button_select_field.dart';
 import 'package:snippet_generator/gen_parsers/models/stores.dart';
 import 'package:snippet_generator/gen_parsers/models/tokens.dart';
@@ -11,7 +12,6 @@ import 'package:snippet_generator/widgets/globals.dart';
 import 'package:snippet_generator/widgets/horizontal_item_list.dart';
 import 'package:snippet_generator/widgets/portal/portal_utils.dart';
 import 'package:snippet_generator/widgets/resizable_scrollable/resizable.dart';
-import 'package:snippet_generator/widgets/row_fields.dart';
 import 'package:snippet_generator/widgets/small_icon_button.dart';
 
 class GenerateParserTabView extends HookWidget {
@@ -80,12 +80,43 @@ class GenerateParserTabView extends HookWidget {
                   ],
                 );
               }),
-              Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  'Tokens',
-                  style: Theme.of(context).textTheme.headline5,
-                ),
+              Row(
+                children: [
+                  Text(
+                    'Tokens',
+                    style: Theme.of(context).textTheme.headline5,
+                  ),
+                  const SizedBox(width: 10),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 200,
+                        child: TextField(
+                          controller: selectedParser.searchText.controller,
+                          focusNode: selectedParser.searchText.focusNode,
+                          decoration: const InputDecoration(hintText: 'Search'),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Observer(builder: (context) {
+                        final search = selectedParser.searchText;
+                        return SmallIconButton(
+                          onPressed: () {
+                            if (search.text.isEmpty) {
+                              search.focusNode.requestFocus();
+                            } else {
+                              search.controller.clear();
+                            }
+                          },
+                          child: Icon(
+                            search.text.isEmpty ? Icons.search : Icons.close,
+                          ),
+                        );
+                      })
+                    ],
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               const Expanded(
@@ -181,41 +212,95 @@ class TokenList extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final parser = useSelectedParser();
-    useListenable(parser.tokenKeys);
     const bottomHeight = 50.0;
 
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            itemCount: parser.tokenKeys.length,
-            itemBuilder: (context, index) {
-              final tokenKey = parser.tokenKeys[index];
-              return Observer(
-                key: Key(tokenKey),
-                builder: (context) {
-                  final token = parser.tokens[tokenKey]!;
-                  return TokenRow(token: token);
-                },
-              );
-            },
-          ),
-        ),
-        Container(
-          height: bottomHeight,
-          padding: const EdgeInsets.only(top: 10),
-          child: Align(
-            alignment: Alignment.topLeft,
-            child: OutlinedButton(
-              onPressed: () {
-                parser.addToken();
+    return Observer(builder: (context) {
+      final tokenKeys = parser.filteredTokenKeys.value;
+      final isFiltered = parser.isFiltered.value;
+      return Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: tokenKeys.length * 2 + 1,
+              itemBuilder: (context, index) {
+                if (index.isEven) {
+                  return DragTarget<ParserTokenNotifier>(
+                    onAccept: (value) {
+                      runInAction(() {
+                        final prevIndex = tokenKeys.indexOf(value.key);
+                        tokenKeys.removeAt(prevIndex);
+                        tokenKeys.insert(index ~/ 2, value.key);
+                      });
+                    },
+                    builder: (context, candidate, rejected) {
+                      if (candidate.isNotEmpty && candidate.first != null) {
+                        final value = candidate.first!;
+                        final theme = Theme.of(context);
+                        final style = theme.textTheme.subtitle1!;
+                        return Container(
+                          padding: const EdgeInsets.all(10.0),
+                          margin: const EdgeInsets.only(bottom: 4),
+                          color: theme.colorScheme.primary.withOpacity(0.2),
+                          child: Text(
+                            value.value.name,
+                            style: style.copyWith(
+                              color: style.color!.withOpacity(0.7),
+                            ),
+                          ),
+                        );
+                      } else {
+                        return const SizedBox(
+                          height: 10,
+                        );
+                      }
+                    },
+                  );
+                }
+                final tokenKey = tokenKeys[index ~/ 2];
+                return Observer(
+                  key: Key(tokenKey),
+                  builder: (context) {
+                    final token = parser.tokens[tokenKey]!;
+                    final child = TokenRow(token: token);
+
+                    if (isFiltered) {
+                      return child;
+                    }
+
+                    return Draggable<ParserTokenNotifier>(
+                      feedback: Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(token.value.name),
+                        ),
+                      ),
+                      dragAnchorStrategy: pointerDragAnchorStrategy,
+                      axis: Axis.vertical,
+                      data: parser.tokens[tokenKey],
+                      affinity: Axis.vertical,
+                      child: child,
+                    );
+                  },
+                );
               },
-              child: const Text('ADD'),
             ),
           ),
-        ),
-      ],
-    );
+          Container(
+            height: bottomHeight,
+            padding: const EdgeInsets.only(top: 10),
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: OutlinedButton(
+                onPressed: () {
+                  parser.addToken();
+                },
+                child: const Text('ADD'),
+              ),
+            ),
+          ),
+        ],
+      );
+    });
   }
 }
 
@@ -234,15 +319,33 @@ class TokenRow extends HookWidget {
     return FocusTraversalGroup(
       child: Row(
         children: [
-          SizedBox(
-            width: 160,
-            child: TextFormField(
-              initialValue: token.value.name,
-              decoration: const InputDecoration(labelText: 'Name'),
-              onChanged: (value) {
-                token.setName(value);
-              },
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Observer(builder: (context) {
+                if (selectedParser.isFiltered.value) {
+                  return const SizedBox();
+                }
+                return const InkWell(
+                  mouseCursor: SystemMouseCursors.grab,
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Icon(Icons.drag_indicator_outlined),
+                  ),
+                );
+              }),
+              SizedBox(
+                width: 160,
+                child: TextFormField(
+                  initialValue: token.value.name,
+                  decoration: const InputDecoration(labelText: 'Name'),
+                  onChanged: (value) {
+                    token.setName(value);
+                  },
+                ),
+              ),
+              const SizedBox(height: 20)
+            ],
           ),
           const SizedBox(width: 10),
           Expanded(

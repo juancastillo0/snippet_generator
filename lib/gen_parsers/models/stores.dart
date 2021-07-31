@@ -102,11 +102,27 @@ class GenerateParserItem {
   final tokenKeys = ListNotifier<String>([]);
   final tokens = MapNotifier<String, ParserTokenNotifier>();
 
+  late final filteredTokenKeys = Computed(() {
+    final text = searchText.value.toLowerCase();
+    if (text.isEmpty) {
+      return tokenKeys;
+    }
+    return tokenKeys.where((key) {
+      final tokenValue = tokens[key]!.value;
+      return tokenValue.name.toLowerCase().contains(text);
+    }).toList();
+  });
+
+  late final isFiltered = Computed(() {
+    return searchText.value.isNotEmpty;
+  });
+
   final selectedTestTokenKey = AppNotifier('');
 
   late final selectedTestToken =
       Computed(() => tokens[selectedTestTokenKey.value]!);
 
+  final searchText = TextNotifier();
   final parserTestText = TextNotifier();
   final name = TextNotifier();
 
@@ -679,11 +695,13 @@ extension ClassNameString on String {
 }
 
 
-// name of variant in OR list
-// name unique property in AND
-// name of OR in AND
+// error name of variant in OR list
+// error name unique property in AND
+// error name of OR in AND
+// error duplicate names
+// error empty strings
 // dont trim by default
 // default name for references
-// duplicate names
 // default trim fro top AND (using context) (only for inner items in AND)
-// 
+// detect camelcase/pascalcase and normalize dart strings
+// use raw for generated strings
