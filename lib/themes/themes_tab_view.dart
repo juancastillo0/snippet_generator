@@ -4,11 +4,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:snippet_generator/fields/color_field.dart';
 import 'package:snippet_generator/fields/fields.dart';
-import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
-import 'package:snippet_generator/widgets/resizable_scrollable/scrollable.dart';
+import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/widgets/row_fields.dart';
+import 'package:stack_portal/resizable.dart';
 
 final Map<Type, Widget Function(BuildContext, AppNotifier<Object>)>
     _nestedThemeBuilders = {

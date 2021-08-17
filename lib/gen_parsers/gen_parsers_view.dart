@@ -11,10 +11,10 @@ import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/widgets/code_text_field.dart';
 import 'package:snippet_generator/widgets/globals.dart';
 import 'package:snippet_generator/widgets/horizontal_item_list.dart';
-import 'package:snippet_generator/widgets/portal/portal_utils.dart';
-import 'package:snippet_generator/widgets/resizable_scrollable/resizable.dart';
 import 'package:snippet_generator/widgets/row_fields.dart';
 import 'package:snippet_generator/widgets/small_icon_button.dart';
+import 'package:stack_portal/resizable.dart';
+import 'package:stack_portal/stack_portal.dart';
 
 class GenerateParserTabView extends HookWidget {
   const GenerateParserTabView({Key? key}) : super(key: key);

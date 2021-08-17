@@ -5,8 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/types/type_models.dart';
 import 'package:snippet_generator/utils/theme.dart';
-import 'package:snippet_generator/widgets/resizable_scrollable/scrollable.dart';
 import 'package:snippet_generator/widgets/row_fields.dart';
+import 'package:stack_portal/resizable.dart';
 
 class CodeGenerated extends HookWidget {
   final String sourceCode;

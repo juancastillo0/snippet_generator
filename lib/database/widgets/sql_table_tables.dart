@@ -13,11 +13,9 @@ import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/utils/formatters.dart';
 import 'package:snippet_generator/widgets/make_table.dart';
-import 'package:snippet_generator/widgets/portal/custom_overlay.dart';
-import 'package:snippet_generator/widgets/portal/global_stack.dart';
-import 'package:snippet_generator/widgets/portal/portal_utils.dart';
-import 'package:snippet_generator/widgets/resizable_scrollable/resizable.dart';
 import 'package:snippet_generator/widgets/small_icon_button.dart';
+import 'package:stack_portal/resizable.dart';
+import 'package:stack_portal/stack_portal.dart';
 
 double get _columnSpacing => 14;
 double get _dataRowHeight => 26;

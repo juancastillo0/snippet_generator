@@ -28,7 +28,7 @@ packages:
       name: async
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.7.0"
+    version: "2.8.1"
   boolean_selector:
     dependency: transitive
     description:
@@ -244,7 +244,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "74c8011f4116dbfd13e9eae09169bdc1b37a0e7c"
+      resolved-ref: "28a056f2557c886ec65db363f57e81e68557acfe"
       url: "https://github.com/juancastillo0/file_system_access_web"
     source: git
     version: "0.0.1"
@@ -275,7 +275,7 @@ packages:
       name: flutter_hooks
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.17.0"
+    version: "0.18.0"
   flutter_localizations:
     dependency: "direct main"
     description: flutter
@@ -295,13 +295,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.4.0"
-  flutter_riverpod:
-    dependency: transitive
-    description:
-      name: flutter_riverpod
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.14.0+3"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -319,13 +312,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.6.5"
-  freezed_annotation:
-    dependency: transitive
-    description:
-      name: freezed_annotation
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.14.3"
   frontend_server_client:
     dependency: transitive
     description:
@@ -368,13 +354,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0"
-  hooks_riverpod:
-    dependency: "direct main"
-    description:
-      name: hooks_riverpod
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.14.0+4"
   http:
     dependency: transitive
     description:
@@ -592,13 +571,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
-  riverpod:
-    dependency: transitive
-    description:
-      name: riverpod
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.14.0+3"
   shelf:
     dependency: transitive
     description:
@@ -653,6 +625,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.1"
+  stack_portal:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: fdfcebd44baaadb0819bd4a614d2e34c45537f21
+      url: "https://github.com/juancastillo0/stack_portal"
+    source: git
+    version: "0.0.1"
   stack_trace:
     dependency: transitive
     description:
@@ -660,13 +641,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.10.0"
-  state_notifier:
-    dependency: transitive
-    description:
-      name: state_notifier
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.7.0"
   stream_channel:
     dependency: transitive
     description:
@@ -701,21 +675,21 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.17.9"
+    version: "1.17.10"
   test_api:
     dependency: transitive
     description:
       name: test_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.1"
+    version: "0.4.2"
   test_core:
     dependency: transitive
     description:
       name: test_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.29"
+    version: "0.4.0"
   timing:
     dependency: transitive
     description:
@@ -842,10 +816,10 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "8d122e44526b538d2102a4b60cd8df13e17bb5dc"
+      resolved-ref: "9bf89851c232eda65460ba5a51a6ac3e24e7a7f9"
       url: "https://github.com/juancastillo0/y_crdt_dart"
     source: git
-    version: "0.0.0"
+    version: "0.0.1"
   yaml:
     dependency: transitive
     description:

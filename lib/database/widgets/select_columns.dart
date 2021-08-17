@@ -5,7 +5,7 @@ import 'package:snippet_generator/globals/option.dart';
 import 'package:snippet_generator/parsers/sql/table_models.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/widgets/globals.dart';
-import 'package:snippet_generator/widgets/portal/portal_utils.dart';
+import 'package:stack_portal/stack_portal.dart';
 
 class SelectReferenceColumnsField extends HookWidget {
   final List<SqlTable> tables;

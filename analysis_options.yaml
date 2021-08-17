@@ -20,14 +20,22 @@ linter:
 
     prefer_single_quotes: true
 
+    avoid_dynamic_calls: true
+    prefer_adjacent_string_concatenation: true
+    unawaited_futures: true
+    use_named_constants: true
+    avoid_renaming_method_parameters: true
+    avoid_equals_and_hash_code_on_mutable_classes: true
+
 analyzer:
+  strong-mode:
+    implicit-casts: false
+  #  implicit-dynamic: false
   exclude:
     - lib/**.g.dart
     - lib/**.freezed.dart
     - lib/generated/**/*
-  enable-experiment:
-    - non-nullable
-    - extension-methods
   errors:
     missing_return: error
+    unrelated_type_equality_checks: error
     null_check_on_nullable_type_parameter: warning

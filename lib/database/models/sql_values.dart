@@ -131,7 +131,7 @@ class SqlBoolLikeValue extends SqlBoolValue {
 
   @override
   String toSql(SqlContext ctx) {
-    return "(${value.toSql(ctx)} LIKE ${ctx.addString(pattern)})";
+    return '(${value.toSql(ctx)} LIKE ${ctx.addString(pattern)})';
   }
 }
 

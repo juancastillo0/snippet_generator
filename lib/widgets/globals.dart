@@ -2,6 +2,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+export 'package:stack_portal/stack_portal.dart' show Inherited;
+
 class GlobalKeyboardListener {
   static final focusNode = FocusNode();
   static final Set<void Function(RawKeyEvent event)> _listeners = {};
@@ -63,34 +65,5 @@ class AllowMultipleGestureRecognizer extends TapGestureRecognizer {
   @override
   void rejectGesture(int pointer) {
     acceptGesture(pointer);
-  }
-}
-
-class Inherited<T> extends InheritedWidget {
-  final T data;
-
-  const Inherited({
-    required this.data,
-    required Widget child,
-    Key? key,
-  }) : super(child: child, key: key);
-
-  @override
-  bool updateShouldNotify(Inherited<T> oldWidget) {
-    return oldWidget.data != this.data;
-  }
-
-  static T? maybeOf<T extends Object>(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<Inherited<T>>()?.data;
-  }
-
-  static T of<T extends Object>(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<Inherited<T>>()!.data;
-  }
-
-  static T get<T extends Object>(BuildContext context) {
-    final _widget =
-        context.getElementForInheritedWidgetOfExactType<Inherited<T>>()!.widget;
-    return (_widget as Inherited).data as T;
   }
 }

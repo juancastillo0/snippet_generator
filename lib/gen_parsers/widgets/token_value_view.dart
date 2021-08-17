@@ -8,10 +8,8 @@ import 'package:snippet_generator/gen_parsers/models/stores.dart';
 import 'package:snippet_generator/gen_parsers/models/token_value.dart';
 import 'package:snippet_generator/gen_parsers/models/tokens.dart';
 import 'package:snippet_generator/utils/extensions.dart';
-import 'package:snippet_generator/widgets/portal/custom_overlay.dart';
-import 'package:snippet_generator/widgets/portal/global_stack.dart';
-import 'package:snippet_generator/widgets/portal/portal_utils.dart';
 import 'package:snippet_generator/widgets/small_icon_button.dart';
+import 'package:stack_portal/stack_portal.dart';
 
 const _portalParams = PortalParams(
   portalAnchor: Alignment.topCenter,

@@ -169,7 +169,9 @@ class ${className}Cols {
     if (table.foreignKeys.isEmpty) {
       return '{$_baseQuery}';
     }
-    return '{$_baseQuery ${table.foreignKeys.map((e) => "bool with${e.reference.className} = false,").join()}}';
+    return '{$_baseQuery ${table.foreignKeys.map(
+          (e) => "bool with${e.reference.className} = false,",
+        ).join()}}';
   }
 
   String _joinSelects(Map<String, SqlTable> mapTables) {

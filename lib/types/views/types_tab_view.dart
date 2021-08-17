@@ -6,7 +6,7 @@ import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/types/views/code_generated.dart';
 import 'package:snippet_generator/types/views/type_config.dart';
 import 'package:snippet_generator/types/views/types_menu.dart';
-import 'package:snippet_generator/widgets/resizable_scrollable/resizable.dart';
+import 'package:stack_portal/resizable.dart';
 
 class TypesTabView extends HookWidget {
   const TypesTabView({Key? key}) : super(key: key);

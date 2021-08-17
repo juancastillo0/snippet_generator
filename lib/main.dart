@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_portal/flutter_portal.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:snippet_generator/database/database_view.dart';
 import 'package:snippet_generator/gen_parsers/gen_parsers_view.dart';
 import 'package:snippet_generator/globals/models.dart';
@@ -20,7 +19,7 @@ import 'package:snippet_generator/utils/set_up_globals.dart';
 import 'package:snippet_generator/utils/theme.dart';
 import 'package:snippet_generator/widgets/app_bar.dart';
 import 'package:snippet_generator/widgets/globals.dart';
-import 'package:snippet_generator/widgets/portal/global_stack.dart';
+import 'package:stack_portal/stack_portal.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
@@ -60,21 +59,19 @@ class MyApp extends HookWidget {
       rootStore: rootStore,
       child: GlobalKeyboardListener.wrapper(
         child: RootNotifier(
-          child: ProviderScope(
-            child: MaterialApp(
-              title: 'Snippet Generator',
-              debugShowCheckedModeBanner: false,
-              theme: lightTheme(),
-              darkTheme: darkTheme(),
-              themeMode: rootStore.themeModeNotifier.value,
-              scrollBehavior: const ScrollBehavior().copyWith(
-                scrollbars: false,
-                overscroll: false,
-              ),
-              navigatorObservers: [routeObserver],
-              home: const Portal(
-                child: GlobalStack(child: MyHomePage()),
-              ),
+          child: MaterialApp(
+            title: 'Snippet Generator',
+            debugShowCheckedModeBanner: false,
+            theme: lightTheme(),
+            darkTheme: darkTheme(),
+            themeMode: rootStore.themeModeNotifier.value,
+            scrollBehavior: const ScrollBehavior().copyWith(
+              scrollbars: false,
+              overscroll: false,
+            ),
+            navigatorObservers: [routeObserver],
+            home: const Portal(
+              child: GlobalStack(child: MyHomePage()),
             ),
           ),
         ),

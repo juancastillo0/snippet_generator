@@ -8,7 +8,7 @@ import 'package:snippet_generator/parsers/views/parser_fields.dart';
 import 'package:snippet_generator/parsers/widget_parsers/color_parser.dart';
 import 'package:snippet_generator/parsers/widget_parsers/flutter_props_parsers.dart';
 import 'package:snippet_generator/parsers/widget_parsers/widget_child.dart';
-import 'package:snippet_generator/widgets/resizable_scrollable/scrollable.dart';
+import 'package:stack_portal/resizable.dart';
 import 'package:test/test.dart' as test;
 
 class PParamValue {

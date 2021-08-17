@@ -128,7 +128,7 @@ class PaddingInput extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final key = this.key as ValueKey<String>;
+    final key = this.key! as ValueKey<String>;
     final value = _mapEdgeInsets(_value);
 
     return Card(

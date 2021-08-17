@@ -13,7 +13,7 @@ import 'package:snippet_generator/types/views/code_generated.dart';
 import 'package:snippet_generator/utils/tt.dart';
 import 'package:snippet_generator/widgets/code_text_field.dart';
 import 'package:snippet_generator/widgets/horizontal_item_list.dart';
-import 'package:snippet_generator/widgets/resizable_scrollable/resizable.dart';
+import 'package:stack_portal/resizable.dart';
 
 class DatabaseTabView extends HookWidget {
   const DatabaseTabView({Key? key}) : super(key: key);

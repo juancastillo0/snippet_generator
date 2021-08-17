@@ -8,8 +8,8 @@ import 'package:snippet_generator/types/views/class_properties.dart';
 import 'package:snippet_generator/types/views/enum_config.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/utils/theme.dart';
-import 'package:snippet_generator/widgets/resizable_scrollable/scrollable.dart';
 import 'package:snippet_generator/widgets/row_fields.dart';
+import 'package:stack_portal/resizable.dart';
 
 class TypeConfigTitleView extends HookWidget {
   const TypeConfigTitleView({

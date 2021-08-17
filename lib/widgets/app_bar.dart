@@ -7,9 +7,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:snippet_generator/types/root_store.dart';
 import 'package:snippet_generator/utils/download_json.dart';
 import 'package:snippet_generator/utils/extensions.dart';
-import 'package:snippet_generator/widgets/portal/custom_overlay.dart';
-import 'package:snippet_generator/widgets/portal/global_stack.dart';
-import 'package:snippet_generator/widgets/portal/portal_utils.dart';
+import 'package:stack_portal/stack_portal.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 ButtonStyle _actionButton(BuildContext context) {
@@ -190,8 +188,7 @@ class HomePageAppBar extends StatelessWidget implements PreferredSizeWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 persistenceActions.first,
-                CustomOverlayButton(
-                  builder: StackPortal.make,
+                CustomOverlayButton.stack(
                   params: PortalParams(
                     childAnchor: Alignment.bottomRight,
                     portalAnchor: Alignment.topRight,
