@@ -2,9 +2,10 @@ import 'dart:math';
 
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/parsers/parsers.dart';
-import 'package:snippet_generator/parsers/sql/create_table_parser.dart';
-import 'package:snippet_generator/parsers/sql/data_type_model.dart';
 import 'package:snippet_generator/utils/extensions.dart';
+
+import 'create_table_parser.dart';
+import 'data_type_model.dart';
 
 Parser<String> _token(String str) {
   return stringIgnoreCase(str).trim();

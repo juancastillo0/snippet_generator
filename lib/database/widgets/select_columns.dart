@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:snippet_generator/database/models/parsers/table_models.dart';
 import 'package:snippet_generator/fields/button_select_field.dart';
 import 'package:snippet_generator/globals/option.dart';
-import 'package:snippet_generator/parsers/sql/table_models.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 import 'package:snippet_generator/widgets/globals.dart';
 import 'package:stack_portal/stack_portal.dart';

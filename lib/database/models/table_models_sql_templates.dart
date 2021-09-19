@@ -1,5 +1,5 @@
 // ignore_for_file: missing_whitespace_between_adjacent_strings
-import 'package:snippet_generator/parsers/sql/table_models.dart';
+import 'parsers/table_models.dart';
 
 class SqlTableSqlTemplate {
   final SqlTable table;

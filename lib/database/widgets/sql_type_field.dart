@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:snippet_generator/database/models/parsers/data_type_model.dart';
 import 'package:snippet_generator/fields/base_fields.dart';
 import 'package:snippet_generator/fields/button_select_field.dart';
 import 'package:snippet_generator/globals/option.dart';
 import 'package:snippet_generator/notifiers/collection_notifier/map_notifier.dart';
-import 'package:snippet_generator/parsers/sql/data_type_model.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 
 class SqlTypeField extends HookWidget {

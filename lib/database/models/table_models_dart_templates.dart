@@ -1,7 +1,8 @@
 import 'package:dart_style/dart_style.dart';
-import 'package:snippet_generator/parsers/sql/data_type_model.dart';
-import 'package:snippet_generator/parsers/sql/table_models.dart';
 import 'package:snippet_generator/utils/extensions.dart';
+
+import 'parsers/data_type_model.dart';
+import 'parsers/table_models.dart';
 
 class SqlTableDartTemplate {
   final SqlTable table;

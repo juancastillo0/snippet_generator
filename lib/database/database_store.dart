@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:petitparser/petitparser.dart';
+import 'package:snippet_generator/database/models/parsers/create_table_parser.dart';
+import 'package:snippet_generator/database/models/parsers/table_models.dart';
 import 'package:snippet_generator/globals/async_state_notifer.dart';
 import 'package:snippet_generator/globals/flutter/highlighted_text_controller.dart';
 import 'package:snippet_generator/globals/props_serializable.dart';
 import 'package:snippet_generator/notifiers/app_notifier.dart';
-import 'package:snippet_generator/parsers/sql/create_table_parser.dart';
-import 'package:snippet_generator/parsers/sql/table_models.dart';
 
 const _initialRawSqlTable = '''
 CREATE TABLE `message` (

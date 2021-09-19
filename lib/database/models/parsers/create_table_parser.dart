@@ -1,8 +1,9 @@
 import 'package:petitparser/petitparser.dart';
-import 'package:snippet_generator/parsers/sql/data_type_model.dart';
-import 'package:snippet_generator/parsers/sql/data_type_parser.dart';
-import 'package:snippet_generator/parsers/sql/table_models.dart';
 import 'package:snippet_generator/utils/extensions.dart';
+
+import 'data_type_model.dart';
+import 'data_type_parser.dart';
+import 'table_models.dart';
 
 Parser<String> _token(String str) {
   return stringIgnoreCase(str).trim();
