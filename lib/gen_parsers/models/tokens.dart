@@ -92,7 +92,7 @@ class RepeatRange {
     }
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'min': min,
       'max': max,
@@ -172,7 +172,7 @@ class ParserToken {
         );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'name': name,
       'value': value.toJson(),
@@ -184,7 +184,7 @@ class ParserToken {
   }
 
   factory ParserToken.fromJson(Object? _map) {
-    final Map<String, dynamic> map;
+    final Map<String, Object?> map;
     if (_map is ParserToken) {
       return _map;
     } else if (_map is String) {
@@ -193,11 +193,11 @@ class ParserToken {
       map = (_map! as Map).cast();
     }
     return ParserToken(
-      name: map['name'] as String,
-      value: TokenValue.fromJson(map['value'] as Map<String, dynamic>),
-      repeat: RepeatRange.fromJson(map['repeat'] as Map<String, dynamic>),
-      trim: map['trim'] as bool,
-      negated: map['negated'] as bool,
+      name: map['name']! as String,
+      value: TokenValue.fromJson(map['value']),
+      repeat: RepeatRange.fromJson(map['repeat']! as Map<String, dynamic>),
+      trim: map['trim']! as bool,
+      negated: map['negated']! as bool,
       parentKey: map['parentKey'] as String?,
     );
   }

@@ -81,7 +81,7 @@ void main() {
 
   group('None', () {
     test('simple', () {
-      final Map m = {
+      final Map<String, Object?> m = {
         'd': {'w': 2}
       };
 

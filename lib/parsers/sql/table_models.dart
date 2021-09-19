@@ -168,7 +168,7 @@ class SqlTableKey {
     return 'SqlTableKey${toJson()}';
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'constraintName': constraintName,
       'indexName': indexName,
@@ -220,7 +220,7 @@ class SqlForeignKey {
     reference: SqlReference.defaultReference,
   );
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'constraintName': constraintName,
       'indexName': indexName,
@@ -301,7 +301,7 @@ class SqlKeyItem {
     required this.ascendent,
   });
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'columnName': columnName,
       'ascendent': ascendent,
@@ -349,7 +349,7 @@ class SqlReference {
     referencedTable: '',
   );
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'referencedTable': referencedTable,
       'matchType': matchType.toJson(),
@@ -439,7 +439,7 @@ class SqlColumn {
     return 'SqlColumn${toJson()}';
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'name': name,
       'type': type.toJson(),
@@ -526,7 +526,7 @@ class SqlColumnTokens {
     return 'SqlColumn${toJson()}';
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'name': name,
       'type': type,

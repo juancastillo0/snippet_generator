@@ -35,14 +35,6 @@ dependencies:
   flutter_colorpicker:
     git:
       url: https://github.com/mchome/flutter_colorpicker
-
-  # wasm:
-  #   path: C:/Users/jmanu/Downloads/sdk-master/sdk-master/pkg/wasm
-  #   # git:
-  #   #   url: https://github.com/dart-lang/sdk
-  #   #   path: pkg/wasm
-  #   #   ref: 1b94364da773700cb79723436f93291f1dcf7c82
-
   mobx: ^2.0.0
   flutter_mobx: ^2.0.0
   file_system_access:

@@ -80,7 +80,7 @@ class AppNotifier<T>
 }
 
 mixin ListenableFromObservable implements Listenable {
-  void Function() Function(void Function(dynamic)) get observeFunction;
+  void Function() Function(void Function(Object?)) get observeFunction;
 
   final _subsListenableFromObservable = <void Function(), _ListenerCount>{};
 

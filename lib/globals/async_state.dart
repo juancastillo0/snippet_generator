@@ -101,7 +101,7 @@ abstract class AsyncState<R, S, E> {
     return map(
       loading: (v) =>
           AsyncState.loading(mapper(v.request), previous: v.previous),
-      idle: (v) => AsyncState.idle(),
+      idle: (v) => const AsyncState.idle(),
       success: (v) => AsyncState.success(v.value, request: mapper(v.request)),
       error: (v) => AsyncState.error(v.error),
     );
@@ -111,7 +111,7 @@ abstract class AsyncState<R, S, E> {
     return map(
       loading: (v) => AsyncState.loading(v.request,
           previous: v.previous == null ? null : mapper(v.previous!)),
-      idle: (v) => AsyncState.idle(),
+      idle: (v) => const AsyncState.idle(),
       success: (v) => AsyncState.success(mapper(v.value), request: v.request),
       error: (v) => AsyncState.error(v.error),
     );
@@ -120,7 +120,7 @@ abstract class AsyncState<R, S, E> {
   AsyncState<R, S, _T> mapGenericE<_T>(_T Function(E) mapper) {
     return map(
       loading: (v) => AsyncState.loading(v.request, previous: v.previous),
-      idle: (v) => AsyncState.idle(),
+      idle: (v) => const AsyncState.idle(),
       success: (v) => AsyncState.success(v.value, request: v.request),
       error: (v) => AsyncState.error(mapper(v.error)),
     );

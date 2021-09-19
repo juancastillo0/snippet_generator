@@ -400,7 +400,7 @@ class SqlTypeDate extends SqlType {
   }
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'runtimeType': 'date',
       'type': type.toEnumString(),
@@ -447,7 +447,7 @@ class SqlTypeString extends SqlType {
   }
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'runtimeType': 'string',
       'variableSize': variableSize,
@@ -489,14 +489,15 @@ class SqlTypeEnumeration extends SqlType {
 
   static SqlTypeEnumeration fromJson(Map<String, dynamic> map) {
     return SqlTypeEnumeration(
-      variants: (map['variants'] as List).map((e) => e as String).toList(),
+      variants:
+          (map['variants'] as List).map((Object? e) => e! as String).toList(),
       allowMultipleValues: map['allowMultipleValues'] as bool,
       characterSet: map['characterSet'] as String,
     );
   }
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'runtimeType': 'enumeration',
       'variants': variants.map((e) => e).toList(),
@@ -542,7 +543,7 @@ class SqlTypeInteger extends SqlType {
   }
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'runtimeType': 'integer',
       'bytes': bytes,
@@ -615,7 +616,7 @@ class SqlTypeDecimal extends SqlType {
   }
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'runtimeType': 'decimal',
       'digitsTotal': digitsTotal,
@@ -670,7 +671,7 @@ class SqlTypeJson extends SqlType {
   }
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'runtimeType': 'json',
     };

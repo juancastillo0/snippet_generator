@@ -6,7 +6,7 @@ import 'package:snippet_generator/notifiers/app_notifier.dart';
 
 class AdvancedTypeConfig
     with PropsSerializable
-    implements Serializable<AdvancedTypeConfig> {
+    implements Serializable {
   @override
   final String name;
   late final TextNotifier customCodeNotifier;
@@ -42,7 +42,7 @@ class AdvancedTypeConfig
   }
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'customCode': customCode,
       'overrideConstructor': overrideConstructor,

@@ -1,7 +1,7 @@
 import 'package:snippet_generator/globals/serializer.dart';
 import 'package:test/test.dart';
 
-class WorkingHoursModel implements Serializable<WorkingHoursModel> {
+class WorkingHoursModel implements Serializable {
   final int? dayId;
   final bool? startHourId;
 
@@ -10,7 +10,7 @@ class WorkingHoursModel implements Serializable<WorkingHoursModel> {
     required this.startHourId,
   });
 
-  static WorkingHoursModel fromJson(Map<String, dynamic>? map) {
+  static WorkingHoursModel fromJson(Map<String, Object?>? map) {
     return WorkingHoursModel(
       dayId: map!['dayId'] as int?,
       startHourId: map['startHourId'] as bool?,
@@ -18,7 +18,7 @@ class WorkingHoursModel implements Serializable<WorkingHoursModel> {
   }
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'dayId': dayId,
       'startHourId': startHourId,

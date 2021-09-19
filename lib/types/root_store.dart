@@ -151,7 +151,7 @@ class RootStore {
     // });
   }
 
-  void _handleGlobalTap(_) {
+  void _handleGlobalTap(TapDownDetails _) {
     _selectedItem = null;
   }
 
@@ -259,24 +259,24 @@ class RootStore {
   }
 
   bool importJson(String jsonString) {
-    Map<String, dynamic> json = const {};
+    Map<String, Object?> json = const {};
     try {
       json = jsonDecode(jsonString) as Map<String, dynamic>;
     } catch (e, s) {
       print('jsonDecode error $e\n$s');
     }
     try {
-      final type = TypeConfig.fromJson(json['type'] as Map<String, dynamic>);
+      final type = TypeConfig.fromJson(json['type']! as Map<String, dynamic>);
 
       types[type.key] = type;
-      for (final _classJson in json['classes'] as List<dynamic>) {
+      for (final _classJson in json['classes']! as List<dynamic>) {
         final c = ClassConfig.fromJson(_classJson as Map<String, dynamic>);
         _loadItem<ClassConfig>(
           c,
           c.typeConfig.classes,
         );
       }
-      for (final _propertyJson in json['fields'] as List<dynamic>) {
+      for (final _propertyJson in json['fields']! as List<dynamic>) {
         final p = PropertyField.fromJson(_propertyJson as Map<String, dynamic>);
         _loadItem(
           p,

@@ -20,7 +20,7 @@ class PParamValue {
 
   static final parser =
       (separatedParser(word().plus().flatten()) | WidgetParser.parser.trim())
-          .map<PParamValue>((value) {
+          .map<PParamValue>((Object? value) {
     if (value is String) {
       return PParamValue(value, null, null);
     } else if (value is List) {
@@ -55,7 +55,7 @@ class PParams {
   const PParams(this.params);
 
   static final parser = (char('(') &
-          PParam.parser.separatedBy(
+          PParam.parser.separatedBy<PParam>(
             char(',').trim(),
             includeSeparators: false,
             optionalSeparatorAtEnd: true,
@@ -285,9 +285,10 @@ final pColumn = WidgetParser.createWithParams('Column', _flexParams, (params) {
     textDirection: params['textDirection'] as TextDirection?,
     verticalDirection: params['verticalDirection'] as VerticalDirection? ??
         VerticalDirection.down,
-    children:
-        (params['children'] as List?)?.map((w) => w.child as Widget).toList() ??
-            [],
+    children: (params['children'] as List?)
+            ?.map((Object? w) => (w as WidgetParser).child as Widget)
+            .toList() ??
+        [],
   );
 });
 
@@ -306,7 +307,7 @@ final pRow = WidgetParser.createWithParams('Row', _flexParams, (params) {
     verticalDirection: params['verticalDirection'] as VerticalDirection? ??
         VerticalDirection.down,
     children: (params['children'] as List?)
-            ?.map((w) => w.child)
+            ?.map((Object? w) => (w as WidgetParser).child)
             .whereType<Widget>()
             .toList() ??
         [],
@@ -333,9 +334,10 @@ final pFlex = WidgetParser.createWithParams('Flex', {
     textDirection: params['textDirection'] as TextDirection?,
     verticalDirection: params['verticalDirection'] as VerticalDirection? ??
         VerticalDirection.down,
-    children:
-        (params['children'] as List?)?.map((w) => w.child as Widget).toList() ??
-            [],
+    children: (params['children'] as List?)
+            ?.map((Object? w) => (w as WidgetParser).child as Widget)
+            .toList() ??
+        [],
   );
 });
 
@@ -354,9 +356,10 @@ final pStack = WidgetParser.createWithParams('Stack', {
     clipBehavior: params['clipBehavior'] as Clip? ?? Clip.hardEdge,
     fit: params['fit'] as StackFit? ?? StackFit.loose,
     textDirection: params['textDirection'] as TextDirection?,
-    children:
-        (params['children'] as List?)?.map((w) => w.child as Widget).toList() ??
-            [],
+    children: (params['children'] as List?)
+            ?.map((Object? w) => (w as WidgetParser).child as Widget)
+            .toList() ??
+        [],
   );
 });
 
@@ -579,7 +582,7 @@ class WidgetParser {
         final childIndex = hasFactory ? 3 : 2;
         Nested<WidgetParser?>? _child;
         if (value.length > childIndex && value[childIndex] != null) {
-          final widgets = value[childIndex];
+          final Object? widgets = value[childIndex];
           if (widgets is Token && widgets.value is List) {
             params['children'] = widgets as Token<Object>;
             _child = Nested.children((widgets.value as List).cast());

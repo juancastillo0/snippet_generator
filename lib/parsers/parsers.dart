@@ -31,8 +31,8 @@ class ManyGeneric<T> {
           final out = [list[1] as T];
           if (list[2] != null) {
             int index = 0;
-            out.addAll((list[2] as List)
-                .expand((l) => l as List)
+            out.addAll((list[2] as List<Object?>)
+                .expand<Object?>((l) => l! as List)
                 .where((e) => (index++ % 2) == 1)
                 .map((e) => e as T));
           }
@@ -77,7 +77,7 @@ Parser<List<T>> separatedParser<T>(
 }) {
   return ((left ?? char('[')).trim() &
           parser
-              .separatedBy(
+              .separatedBy<T>(
                 (separator ?? char(',')).trim(),
                 includeSeparators: false,
                 optionalSeparatorAtEnd: true,
@@ -85,7 +85,7 @@ Parser<List<T>> separatedParser<T>(
               .optional() &
           (right ?? char(']')).trim())
       .pick(1)
-      .map((value) => List.castFrom<dynamic, T>(value as List? ?? []));
+      .map((Object? value) => List.castFrom<Object?, T>(value as List? ?? []));
 }
 
 Parser<Map<String, T>> structParser<T>(
@@ -199,11 +199,11 @@ Parser<List<T>> tupleParser<T>(
             }
 
             if (previousValue == null) {
-              previousValue = curr.map((value) => [value as T]);
+              previousValue = curr.map((Object? value) => [value as T]);
             } else {
               previousValue = previousValue
                   .seq(curr)
-                  .map((v) => List.castFrom((v[0] as List)..add(v[1])));
+                  .map((v) => List.castFrom<Object?, T>((v[0] as List)..add(v[1])));
             }
             index++;
             return previousValue;
@@ -219,7 +219,7 @@ Parser<List<T>> tupleParser<T>(
 }
 
 final boolParser =
-    (string('true') | string('false')).map((value) => value == 'true');
+    (string('true') | string('false')).map((Object? value) => value == 'true');
 
 final _num = char('0').or(pattern('1-9') & digit().star());
 final unsignedIntParser = _num.flatten().map((value) => int.parse(value));

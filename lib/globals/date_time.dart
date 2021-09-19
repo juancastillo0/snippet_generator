@@ -1,5 +1,8 @@
 import 'dart:ui';
 
+import 'package:flutter/material.dart';
+
+@immutable
 class Time {
   final int hour;
   final int minute;
@@ -49,7 +52,7 @@ class Time {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'hour': hour,
       'minute': minute,
@@ -59,13 +62,13 @@ class Time {
     };
   }
 
-  factory Time.fromJson(Map<String, dynamic> map) {
+  factory Time.fromJson(Map<String, Object?> map) {
     return Time(
-      hour: map['hour'] as int,
-      minute: map['minute'] as int,
-      second: map['second'] as int,
-      millisecond: map['millisecond'] as int,
-      microsecond: map['microsecond'] as int,
+      hour: map['hour']! as int,
+      minute: map['minute']! as int,
+      second: map['second']! as int,
+      millisecond: map['millisecond']! as int,
+      microsecond: map['microsecond']! as int,
     );
   }
 
@@ -99,6 +102,7 @@ class Time {
   }
 }
 
+@immutable
 class Date {
   final int year;
   final int month;
@@ -138,7 +142,7 @@ class Date {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'year': year,
       'month': month,
@@ -146,11 +150,11 @@ class Date {
     };
   }
 
-  factory Date.fromJson(Map<String, dynamic> map) {
+  factory Date.fromJson(Map<String, Object?> map) {
     return Date(
-      year: map['year'] as int,
-      month: map['month'] as int,
-      day: map['day'] as int,
+      year: map['year']! as int,
+      month: map['month']! as int,
+      day: map['day']! as int,
     );
   }
 

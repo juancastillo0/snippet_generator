@@ -36,7 +36,7 @@ class NestedNotifier extends ChangeNotifier {
     }
   }
 
-  Map<String?, dynamic> toJson() {
+  Map<String?, Object?> toJson() {
     return Map.fromEntries(
       _notifiers
           .map(

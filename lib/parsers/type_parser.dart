@@ -107,8 +107,8 @@ class PrimitiveParser extends JsonTypeParser {
   final List<String> genericIds;
   final bool nullable;
 
-  static PrimitiveParser _collect(dynamic _raw) {
-    final raw = (_raw as List).first;
+  static PrimitiveParser _collect(List<Object?> _raw) {
+    final raw = _raw.first;
     final nullable = _raw.last != null;
     if (raw is String) {
       final type = parsePrimitiveJson(raw);
@@ -121,7 +121,7 @@ class PrimitiveParser extends JsonTypeParser {
           type,
           rawString,
           genericIds: raw[1] != null
-              ? (raw[1] as List).map((e) => e as String).toList()
+              ? (raw[1] as List).map((Object? e) => e! as String).toList()
               : const <String>[],
           nullable: nullable,
         ),
@@ -138,7 +138,7 @@ class PrimitiveParser extends JsonTypeParser {
               string('bool').end() |
               (identifier &
                   (char('<') &
-                          identifier.separatedBy(char(','),
+                          identifier.separatedBy<String>(char(','),
                               includeSeparators: false) &
                           char('>'))
                       .pick(1)
@@ -167,7 +167,7 @@ class JsonTypeParser {
             CollectionParser.listParser |
             CollectionParser.setParser |
             PrimitiveParser.parser)
-        .map((value) => value as JsonTypeParser));
+        .map((Object? value) => value! as JsonTypeParser));
   }
 
   static final SettableParser<JsonTypeParser> _parser =

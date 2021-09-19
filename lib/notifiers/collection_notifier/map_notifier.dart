@@ -47,7 +47,7 @@ abstract class MapEvent<K, V> implements Event<MapEvent<K, V>> {
     throw '';
   }
 
-  static MapEvent? fromJson(Map<String, dynamic> map) {
+  static MapEvent<K, V>? fromJson<K, V>(Map<String, Object?> map) {
     switch (map['runtimeType'] as String?) {
       case 'Change':
         return MapChangeEvent.fromJson(map);
@@ -76,7 +76,7 @@ class MapChangeEvent<K, V> extends MapEvent<K, V> {
     required this.newValue,
   }) : super._();
 
-  static MapChangeEvent<K, V> fromJson<K, V>(Map<String, dynamic> map) {
+  static MapChangeEvent<K, V> fromJson<K, V>(Map<String, Object?> map) {
     return MapChangeEvent<K, V>._(
       key: Serializers.fromJson<K>(map['key']),
       oldValue: Serializers.fromJson<V>(map['oldValue']),
@@ -84,7 +84,7 @@ class MapChangeEvent<K, V> extends MapEvent<K, V> {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'key': Serializers.toJson(key),
       'oldValue': Serializers.toJson(oldValue),
@@ -108,14 +108,14 @@ class MapInsertEvent<K, V> extends MapEvent<K, V> {
     required this.value,
   }) : super._();
 
-  static MapInsertEvent<K, V> fromJson<K, V>(Map<String, dynamic> map) {
+  static MapInsertEvent<K, V> fromJson<K, V>(Map<String, Object?> map) {
     return MapInsertEvent<K, V>._(
       key: Serializers.fromJson<K>(map['key']),
       value: Serializers.fromJson<V>(map['key']),
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'key': Serializers.toJson(key),
       'value': Serializers.toJson(value),
@@ -137,14 +137,14 @@ class MapRemoveEvent<K, V> extends MapEvent<K, V> {
     required this.value,
   }) : super._();
 
-  static MapRemoveEvent<K, V> fromJson<K, V>(Map<String, dynamic> map) {
+  static MapRemoveEvent<K, V> fromJson<K, V>(Map<String, Object?> map) {
     return MapRemoveEvent._(
       key: Serializers.fromJson<K>(map['key']),
       value: Serializers.fromJson<V>(map['key']),
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'key': Serializers.toJson(key),
       'value': Serializers.toJson(value),
@@ -164,14 +164,14 @@ class MapManyEvent<K, V> extends MapEvent<K, V> {
     required this.events,
   }) : super._();
 
-  static MapManyEvent<K, V> fromJson<K, V>(Map<String, dynamic> map) {
+  static MapManyEvent<K, V> fromJson<K, V>(Map<String, Object?> map) {
     return MapManyEvent._(
       events:
-          Serializers.fromJsonList<MapEvent<K, V>>(map['events'] as Iterable),
+          Serializers.fromJsonList<MapEvent<K, V>>(map['events']! as Iterable),
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     // TODO:
     return {
       'events': events,
@@ -195,14 +195,14 @@ class MapReplaceEvent<K, V> extends MapEvent<K, V> {
     required this.newMap,
   }) : super._();
 
-  static MapReplaceEvent<K, V> fromJson<K, V>(Map<String, dynamic> map) {
+  static MapReplaceEvent<K, V> fromJson<K, V>(Map<String, Object?> map) {
     return MapReplaceEvent._(
       oldMap: Serializers.fromJsonMap<K, V>(map['oldMap']),
       newMap: Serializers.fromJsonMap<K, V>(map['newMap']),
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'oldMap': Serializers.toJson(oldMap),
       'newMap': Serializers.toJson(newMap),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_portal/flutter_portal.dart';
 
-class MenuPortalEntry<T> extends StatelessWidget {
+class MenuPortalEntry extends StatelessWidget {
   const MenuPortalEntry({
     Key? key,
     required this.options,

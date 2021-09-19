@@ -36,7 +36,7 @@ const supportedTypes = {
 
 final fieldsParser =
     (_required.trim().optional() & _name & char(':').optional().trim() & _name)
-        .separatedBy(
+        .separatedBy<List<Object?>>(
   pattern(',;\n\t').star().trim(),
   includeSeparators: false,
   optionalSeparatorAtEnd: true,
@@ -46,7 +46,7 @@ final fieldsParser =
   final rightTyped = <RawField>[];
 
   int typeIsRightCount = 0;
-  for (final List _field in List.castFrom(value)) {
+  for (final _field in value) {
     final List<String?> field = List.castFrom(_field);
     final String left = field[1]!;
     final String right = field[3]!;

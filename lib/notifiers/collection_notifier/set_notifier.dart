@@ -91,7 +91,7 @@ abstract class SetEvent<V> implements Event<SetEvent<V>> {
     throw '';
   }
 
-  static SetEvent? fromJson(Map<String, dynamic> map) {
+  static SetEvent<V>? fromJson<V>(Map<String, dynamic> map) {
     switch (map['runtimeType'] as String?) {
       case 'InsertSetEvent':
         return InsertSetEvent.fromJson(map);
@@ -114,13 +114,13 @@ class InsertSetEvent<V> extends SetEvent<V> {
     required this.value,
   }) : super._();
 
-  static InsertSetEvent<V> fromJson<V>(Map<String, dynamic> map) {
+  static InsertSetEvent<V> fromJson<V>(Map<String, Object?> map) {
     return InsertSetEvent(
       value: Serializers.fromJson<V>(map['value']),
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'runtimeType': 'InsertSetEvent',
       'value': Serializers.toJson(value),
@@ -142,7 +142,7 @@ class ManyTypedSetEvent<V> extends SetEvent<V> {
     required this.type,
   }) : super._();
 
-  static ManyTypedSetEvent<V> fromJson<V>(Map<String, dynamic> map) {
+  static ManyTypedSetEvent<V> fromJson<V>(Map<String, Object?> map) {
     return ManyTypedSetEvent<V>(
       values: Serializers.fromJsonList<V>(map['values'] as Iterable),
       type: map['type'] == SetEventManyType.insert.toString().split('.')[1]
@@ -151,7 +151,7 @@ class ManyTypedSetEvent<V> extends SetEvent<V> {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'runtimeType': 'ManyTypedSetEvent',
       'value': Serializers.toJson(values),
@@ -177,13 +177,13 @@ class RemoveSetEvent<V> extends SetEvent<V> {
     required this.value,
   }) : super._();
 
-  static RemoveSetEvent<V> fromJson<V>(Map<String, dynamic> map) {
+  static RemoveSetEvent<V> fromJson<V>(Map<String, Object?> map) {
     return RemoveSetEvent(
       value: Serializers.fromJson<V>(map['value']),
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'runtimeType': 'RemoveSetEvent',
       'value': Serializers.toJson(value),
@@ -203,13 +203,13 @@ class ManySetEvent<V> extends SetEvent<V> {
     required this.events,
   }) : super._();
 
-  static ManySetEvent<V> fromJson<V>(Map<String, dynamic> map) {
+  static ManySetEvent<V> fromJson<V>(Map<String, Object?> map) {
     return ManySetEvent(
       events: Serializers.fromJsonList<SetEvent<V>>(map['events'] as Iterable),
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'runtimeType': 'ManySetEvent',
       'events': events.map((e) => e).toList(),

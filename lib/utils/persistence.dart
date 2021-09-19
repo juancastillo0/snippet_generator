@@ -45,7 +45,7 @@ class _JsonAdapter<T> extends TypeAdapter<T> {
   @override
   T read(BinaryReader reader) {
     final jsonString = reader.readString();
-    final json = jsonDecode(jsonString);
+    final Object? json = jsonDecode(jsonString);
     return serializer.fromJson(json);
   }
 

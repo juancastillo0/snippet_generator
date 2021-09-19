@@ -148,7 +148,7 @@ class ClassPropertiesTable extends HookWidget {
                     width: 110,
                     child: ElevatedButton(
                       onPressed: () {
-                        showDialog(
+                        showDialog<Object?>(
                           context: context,
                           builder: (context) {
                             return Dialog(
@@ -232,7 +232,7 @@ class ClassPropertiesTable extends HookWidget {
                   e.toLowerCase().contains(property.type.toLowerCase()) &&
                   property.type != e)
               .toList();
-          return MenuPortalEntry<String>(
+          return MenuPortalEntry(
             options: options
                 .map(
                   (e) => TextButton(

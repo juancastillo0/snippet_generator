@@ -61,7 +61,7 @@ class TextThemeInput extends HookWidget {
             Row(
               children: [
                 Expanded(
-                  child: MenuPortalEntry<String>(
+                  child: MenuPortalEntry(
                     options: found
                         .map(
                           (e) => TextButton(

@@ -13,7 +13,7 @@ Parser<String> _token(String str) {
 final sqlDataTypeParser = (_numericTypeParser |
         _dateTypeParser |
         _stringTypeParser |
-        _token('JSON').map((value) => const SqlType.json()))
+        _token('JSON').map<SqlType>((value) => const SqlType.json()))
     .cast<SqlType>();
 
 final _numericTypeParser = ((((stringIgnoreCase('TINY') |
@@ -36,7 +36,7 @@ final _numericTypeParser = ((((stringIgnoreCase('TINY') |
         _token('UNSIGNED').optional() &
         _token('ZEROFILL').optional())
     .map((value) {
-  final props = value[0];
+  final Object? props = value[0];
   final unsigned = value[value.length - 2] != null;
   final zerofill = value[value.length - 1] != null;
 
@@ -59,7 +59,7 @@ final _numericTypeParser = ((((stringIgnoreCase('TINY') |
     final float = 'FLOAT' == key;
 
     final digits = (props is List ? props[1] as List? : null) ??
-        [
+        <Object?>[
           null,
           [null, null]
         ];
@@ -72,7 +72,7 @@ final _numericTypeParser = ((((stringIgnoreCase('TINY') |
           (fixed
               ? SqlTypeDecimal.defaultDigitsTotalFixed
               : SqlTypeDecimal.defaultDigitsTotalNotFixed),
-      digitsDecimal: digits[1][1] as int? ??
+      digitsDecimal: (digits[1]! as List)[1] as int? ??
           (fixed
               ? SqlTypeDecimal.defaultDigitsDecimalFixed
               : float
@@ -89,7 +89,7 @@ final _dateTypeParser =
                 parens(pattern('0-6')).optional() |
             _token('DATE') |
             _token('YEAR'))
-        .map((value) {
+        .map((Object? value) {
   final String rawType;
   final int? fractionalSeconds;
   if (value is List) {
@@ -110,7 +110,7 @@ final _stringTypeParser = (((_token('CHAR') |
                     _token('TEXT')) &
                 parens(unsignedIntParser).optional() |
             (_token('VARCHAR') | _token('VARBINARY')) &
-                parens(unsignedIntParser) |
+                parens<int>(unsignedIntParser) |
             _token('TINYTEXT') |
             _token('MEDIUMTEXT') |
             _token('LONGTEXT') |
@@ -118,13 +118,14 @@ final _stringTypeParser = (((_token('CHAR') |
             _token('MEDIUMBLOB') |
             _token('LONGBLOB') |
             (_token('ENUM') | _token('SET')) &
-                parens(sqlStringLiteral.separatedBy(char(',').trim(),
+                parens<List<String>>(sqlStringLiteral.separatedBy<String>(
+                    char(',').trim(),
                     includeSeparators: false))) &
         (_token('CHARACTER') & _token('SET') & word().plus().flatten().trim())
             .optional() &
         collateParser.optional())
     .map((value) {
-  final props = value[0];
+  final Object? props = value[0];
   final characterSet =
       value[1] == null ? null : (value[1] as List)[2] as String;
   final collation = value[2] as String?;
@@ -133,7 +134,7 @@ final _stringTypeParser = (((_token('CHAR') |
   final int? size;
   if (props is List) {
     key = props[0] as String;
-    final _p = props[1];
+    final Object? _p = props[1];
     if (_p is List) {
       return SqlType.enumeration(
         variants: _p.cast(),

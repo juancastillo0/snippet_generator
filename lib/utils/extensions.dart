@@ -29,7 +29,7 @@ extension IndexedMap<T> on Iterable<T> {
     return this.map((v) => f(v, i++));
   }
 
-  Iterable<ItemIndex<T>> indexed<V>() {
+  Iterable<ItemIndex<T>> indexed() {
     int i = 0;
     return this.map((v) => ItemIndex(i++, v));
   }

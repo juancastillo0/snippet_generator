@@ -21,7 +21,7 @@ final table = (stringIgnoreCase('CREATE').trim() &
         string('(').trim() &
         column
             .trim()
-            .separatedBy(string(',').trim(),
+            .separatedBy<String>(string(',').trim(),
                 includeSeparators: false, optionalSeparatorAtEnd: false)
             .trim() &
         string(')').trim() &
@@ -154,7 +154,7 @@ final foreignKey = (stringIgnoreCase('REFERENCES').trim() &
         stringIgnoreCase('(').trim() &
         identifier
             .trim()
-            .separatedBy(string(',').trim(),
+            .separatedBy<String>(string(',').trim(),
                 includeSeparators: false, optionalSeparatorAtEnd: true)
             .trim() &
         stringIgnoreCase(')').trim() &

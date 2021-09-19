@@ -28,8 +28,12 @@ final createTableListParser = createTableParser.separatedBy<SqlTable>(
 final createTableParser = (_token('CREATE') &
         _token('TABLE') &
         _symbol &
-        parens(
-            _tableItem.separatedBy(char(',').trim(), includeSeparators: false)))
+        parens<Object?>(
+          _tableItem.separatedBy<Object?>(
+            char(',').trim(),
+            includeSeparators: false,
+          ),
+        ))
     .map((value) {
   final list = value[3] as List;
   return SqlTable(
@@ -68,7 +72,7 @@ final _constraintDefinition = ((_token('CONSTRAINT') & _symbol.optional())
     .map((value) {
   final constraintName = value[0] == null ? null : value[0][1] as String?;
   final list = value[1] as List;
-  final f = list[0];
+  final Object? f = list[0];
   if (f is String && f.toUpperCase() == 'FOREIGN') {
     final indexName = list[2] as String?;
     return SqlForeignKey(
@@ -127,8 +131,8 @@ final _indexDefinition = (((_token('INDEX') | _token('KEY')) &
 
 final _indexTypeParser =
     (_token('USING') & (_token('BTREE') | _token('HASH'))).pick(1).map(
-          (value) => parseEnum(
-            value as String,
+          (Object? value) => parseEnum(
+            value! as String,
             SqlIndexType.values,
             caseSensitive: false,
           )!,
@@ -139,10 +143,9 @@ final _foreignKeysParser = parens(
 
 final _keysParser = parens(
         (_symbol & (_token('ASC') | _token('DESC')).optional())
-            .separatedBy(char(',').trim(), includeSeparators: false))
+            .separatedBy<List>(char(',').trim(), includeSeparators: false))
     .map((value) {
-  return value.map((e) {
-    final l = e as List;
+  return value.map((l) {
     final order = l[1] as String?;
     return SqlKeyItem(
       columnName: l[0] as String,
@@ -180,12 +183,12 @@ final referenceOptionParser = (_token('RESTRICT') |
         _token('SET') & _token('NULL') |
         _token('NO') & _token('ACTION') |
         _token('SET') & _token('DEFAULT'))
-    .map((value) {
+    .map((Object? value) {
   final String _str;
   if (value is List) {
     _str = value.join('_');
   } else {
-    _str = value as String;
+    _str = value! as String;
   }
   return parseEnum(_str, ReferenceOption.values, caseSensitive: false)!;
 });

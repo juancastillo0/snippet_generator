@@ -29,7 +29,7 @@ class SqlTypeField extends HookWidget {
         ? (value as SqlTypeEnumeration).variants.length
         : 1;
     final _createdVariants = useMemoized(
-      () => Iterable.generate(_numVariants).toList(),
+      () => Iterable<int>.generate(_numVariants).toList(),
       [_numVariants],
     );
     useListenable(typeMap);

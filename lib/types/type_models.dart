@@ -23,7 +23,7 @@ import 'package:y_crdt/y_crdt.dart';
 
 class TypeConfig
     with ItemsSerializable
-    implements Serializable<TypeConfig>, Keyed, Clonable<TypeConfig> {
+    implements Serializable, Keyed, Clonable<TypeConfig> {
   @override
   final String key;
 
@@ -268,8 +268,7 @@ class TypeConfig
   ];
 }
 
-class ClassConfig
-    implements Serializable<ClassConfig>, Keyed, Clonable<ClassConfig> {
+class ClassConfig implements Serializable, Keyed, Clonable<ClassConfig> {
   @override
   final String key;
 
@@ -298,6 +297,7 @@ class ClassConfig
   TypeConfig get typeConfig {
     return (_typeConfig ??= Globals.get<RootStore>().types[typeConfigKey])!;
   }
+
   set typeConfig(TypeConfig c) {
     _typeConfig = c;
   }
@@ -358,7 +358,7 @@ class ClassConfig
   }
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'typeKey': typeConfig.key,
       'key': key,
@@ -401,7 +401,7 @@ class ClassConfig
 class PropertyField
     implements
         Comparable<PropertyField>,
-        Serializable<PropertyField>,
+        Serializable,
         Keyed,
         Clonable<PropertyField> {
   @override
@@ -434,6 +434,7 @@ class PropertyField
         .expand((e) => e.classes)
         .firstWhereOrNull((e) => e.key == classConfigKey);
   }
+
   set classConfig(ClassConfig? c) {
     _classConfig = c;
   }
@@ -469,7 +470,7 @@ class PropertyField
   Listenable? get listenable => _listenable;
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'classKey': classConfig!.key,
       'key': key,

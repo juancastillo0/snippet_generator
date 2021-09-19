@@ -2,8 +2,7 @@ import 'package:snippet_generator/gen_parsers/models/tokens.dart';
 import 'package:snippet_generator/globals/serializer.dart';
 import 'package:uuid/uuid.dart';
 
-class GenerateParserStoreValue
-    implements Serializable<GenerateParserStoreValue> {
+class GenerateParserStoreValue implements Serializable {
   final List<MapEntry<String, ParserToken>> tokens;
   final String name;
   final String key;
@@ -31,7 +30,7 @@ class GenerateParserStoreValue
   }
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'key': key,
       'name': name,

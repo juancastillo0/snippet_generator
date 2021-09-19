@@ -1,10 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dart_style/dart_style.dart';
-import 'package:file_system_access/src/models/result.dart' as fs;
+import 'package:file_system_access/file_system_access.dart' as fs;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobx/mobx.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:snippet_generator/gen_parsers/models/predifined_parsers.dart';
@@ -24,10 +24,6 @@ import 'package:uuid/uuid.dart';
 const _uuid = Uuid();
 final _formatter = DartFormatter();
 final testPod = Pod.notifier(1);
-
-final parserStoreProvider = Provider<GenerateParserStore>(
-  (ref) => GenerateParserStore(),
-);
 
 extension ButNotParser<T> on Parser<T> {
   Parser<T> butNot(Parser not) {

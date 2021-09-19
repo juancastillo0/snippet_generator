@@ -114,7 +114,7 @@ abstract class TypeItem implements Clonable<TypeItem> {
     throw '';
   }
 
-  static TypeItem? fromJson(Map<String, dynamic> map) {
+  static TypeItem? fromJson(Map<String, Object?> map) {
     switch (map['runtimeType'] as String?) {
       case '_ClassI':
         return _ClassI.fromJson(map);
@@ -146,7 +146,7 @@ class _ClassI extends TypeItem {
   }
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'runtimeType': '_ClassI',
       'value': value.toJson(),
@@ -161,14 +161,14 @@ class _TypeI extends TypeItem {
     this.value,
   ) : super._();
 
-  static _TypeI fromJson(Map<String, dynamic> map) {
+  static _TypeI fromJson(Map<String, Object?> map) {
     return _TypeI(
-      TypeConfig.fromJson(map['value'] as Map<String, dynamic>),
+      TypeConfig.fromJson(map['value'] as Map<String, Object?>),
     );
   }
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'runtimeType': '_TypeI',
       'value': value.toJson(),
@@ -183,14 +183,14 @@ class _PropertyI extends TypeItem {
     this.value,
   ) : super._();
 
-  static _PropertyI fromJson(Map<String, dynamic> map) {
+  static _PropertyI fromJson(Map<String, Object?> map) {
     return _PropertyI(
-      PropertyField.fromJson(map['value'] as Map<String, dynamic>),
+      PropertyField.fromJson(map['value'] as Map<String, Object?>),
     );
   }
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'runtimeType': '_PropertyI',
       'value': value.toJson(),
@@ -205,16 +205,17 @@ class _PropertyListI extends TypeItem {
     this.value,
   ) : super._();
 
-  static _PropertyListI fromJson(Map<String, dynamic> map) {
+  static _PropertyListI fromJson(Map<String, Object?> map) {
     return _PropertyListI(
-      (map['value'] as List)
-          .map((e) => PropertyField.fromJson(e as Map<String, dynamic>))
+      (map['value']! as List)
+          .map(
+              (Object? e) => PropertyField.fromJson(e! as Map<String, Object?>))
           .toList(),
     );
   }
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     return {
       'runtimeType': '_PropertyListI',
       'value': value.map((e) => e.toJson()).toList(),
