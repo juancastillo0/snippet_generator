@@ -2386,46 +2386,16 @@
                         "runtimeType": "and",
                         "values": [
                             {
-                                "name": "",
+                                "name": "directives",
                                 "value": {
-                                    "runtimeType": "string",
-                                    "value": "@",
-                                    "isPattern": false,
-                                    "caseSensitive": true
+                                    "runtimeType": "ref",
+                                    "value": "b823d1d9-4638-4855-bbba-85fbfcc83613"
                                 },
                                 "repeat": {
                                     "min": 1,
-                                    "max": 1
+                                    "max": null
                                 },
-                                "trim": true,
-                                "negated": false,
-                                "parentKey": null
-                            },
-                            {
-                                "name": "name",
-                                "value": {
-                                    "runtimeType": "ref",
-                                    "value": "15b4da04-3112-4413-9db4-5b76626903f0"
-                                },
-                                "repeat": {
-                                    "min": 1,
-                                    "max": 1
-                                },
-                                "trim": true,
-                                "negated": false,
-                                "parentKey": null
-                            },
-                            {
-                                "name": "arguments",
-                                "value": {
-                                    "runtimeType": "ref",
-                                    "value": "9494bb86-0e44-4920-acb8-94e3a51053e8"
-                                },
-                                "repeat": {
-                                    "min": 0,
-                                    "max": 1
-                                },
-                                "trim": true,
+                                "trim": false,
                                 "negated": false,
                                 "parentKey": null
                             }
@@ -5544,6 +5514,69 @@
                                     "max": 1
                                 },
                                 "trim": false,
+                                "negated": false,
+                                "parentKey": null
+                            }
+                        ],
+                        "flatten": false
+                    },
+                    "repeat": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "trim": false,
+                    "negated": false,
+                    "parentKey": null
+                }
+            },
+            {
+                "key": "b823d1d9-4638-4855-bbba-85fbfcc83613",
+                "value": {
+                    "name": "directive",
+                    "value": {
+                        "runtimeType": "and",
+                        "values": [
+                            {
+                                "name": "",
+                                "value": {
+                                    "runtimeType": "string",
+                                    "value": "@",
+                                    "isPattern": false,
+                                    "caseSensitive": true
+                                },
+                                "repeat": {
+                                    "min": 1,
+                                    "max": 1
+                                },
+                                "trim": true,
+                                "negated": false,
+                                "parentKey": null
+                            },
+                            {
+                                "name": "name",
+                                "value": {
+                                    "runtimeType": "ref",
+                                    "value": "15b4da04-3112-4413-9db4-5b76626903f0"
+                                },
+                                "repeat": {
+                                    "min": 1,
+                                    "max": 1
+                                },
+                                "trim": true,
+                                "negated": false,
+                                "parentKey": null
+                            },
+                            {
+                                "name": "arguments",
+                                "value": {
+                                    "runtimeType": "ref",
+                                    "value": "9494bb86-0e44-4920-acb8-94e3a51053e8"
+                                },
+                                "repeat": {
+                                    "min": 0,
+                                    "max": 1
+                                },
+                                "trim": true,
                                 "negated": false,
                                 "parentKey": null
                             }
