@@ -1,0 +1,1261 @@
+{
+    "tokens": [
+        {
+            "key": "5cf288b6-a85a-4da6-8101-64d3b274b188",
+            "value": {
+                "name": "table",
+                "value": {
+                    "runtimeType": "and",
+                    "values": [
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "string",
+                                "value": "CREATE",
+                                "isPattern": false,
+                                "caseSensitive": false
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "temp",
+                            "value": {
+                                "runtimeType": "or",
+                                "values": [
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "TEMPORARY",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": false,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "TEMP",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": false,
+                                        "negated": false
+                                    }
+                                ]
+                            },
+                            "repeat": {
+                                "min": 0,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "string",
+                                "value": "TABLE",
+                                "isPattern": false,
+                                "caseSensitive": false
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "name",
+                            "value": {
+                                "runtimeType": "ref",
+                                "value": "60e22d8c-df5c-44c6-b672-0bb4be42073d"
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "string",
+                                "value": "(",
+                                "isPattern": false,
+                                "caseSensitive": true
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "columns",
+                            "value": {
+                                "runtimeType": "separated",
+                                "item": {
+                                    "name": "",
+                                    "value": {
+                                        "runtimeType": "ref",
+                                        "value": "9ef5bb53-9c0c-4c3e-bef1-b01612ea96eb"
+                                    },
+                                    "repeat": {
+                                        "min": 1,
+                                        "max": 1
+                                    },
+                                    "trim": true,
+                                    "negated": false
+                                },
+                                "separator": {
+                                    "name": "",
+                                    "value": {
+                                        "runtimeType": "string",
+                                        "value": ",",
+                                        "isPattern": false,
+                                        "caseSensitive": true
+                                    },
+                                    "repeat": {
+                                        "min": 1,
+                                        "max": 1
+                                    },
+                                    "trim": true,
+                                    "negated": false
+                                },
+                                "includeSeparators": false,
+                                "optionalSeparatorAtEnd": false
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "string",
+                                "value": ")",
+                                "isPattern": false,
+                                "caseSensitive": true
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "string",
+                                "value": ";",
+                                "isPattern": false,
+                                "caseSensitive": true
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        }
+                    ],
+                    "flatten": false
+                },
+                "repeat": {
+                    "min": 1,
+                    "max": 1
+                },
+                "trim": true,
+                "negated": false
+            }
+        },
+        {
+            "key": "60e22d8c-df5c-44c6-b672-0bb4be42073d",
+            "value": {
+                "name": "identifier",
+                "value": {
+                    "runtimeType": "and",
+                    "values": [
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "predifined",
+                                "value": "letter"
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": false,
+                            "negated": false
+                        },
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "or",
+                                "values": [
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "predifined",
+                                            "value": "letter"
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": false,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "predifined",
+                                            "value": "digit"
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": false,
+                                        "negated": false
+                                    }
+                                ]
+                            },
+                            "repeat": {
+                                "min": 0,
+                                "max": null
+                            },
+                            "trim": false,
+                            "negated": false
+                        }
+                    ],
+                    "flatten": true
+                },
+                "repeat": {
+                    "min": 1,
+                    "max": 1
+                },
+                "trim": true,
+                "negated": false
+            }
+        },
+        {
+            "key": "9ef5bb53-9c0c-4c3e-bef1-b01612ea96eb",
+            "value": {
+                "name": "column",
+                "value": {
+                    "runtimeType": "and",
+                    "values": [
+                        {
+                            "name": "name",
+                            "value": {
+                                "runtimeType": "ref",
+                                "value": "60e22d8c-df5c-44c6-b672-0bb4be42073d"
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "type",
+                            "value": {
+                                "runtimeType": "ref",
+                                "value": "bbd25d0c-8076-4e44-acbe-c266ac16d46f"
+                            },
+                            "repeat": {
+                                "min": 0,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "ref",
+                                "value": "a58c9289-d889-47db-8649-eb1ed7b10cfe"
+                            },
+                            "repeat": {
+                                "min": 0,
+                                "max": null
+                            },
+                            "trim": true,
+                            "negated": false
+                        }
+                    ],
+                    "flatten": false
+                },
+                "repeat": {
+                    "min": 1,
+                    "max": 1
+                },
+                "trim": true,
+                "negated": false
+            }
+        },
+        {
+            "key": "bbd25d0c-8076-4e44-acbe-c266ac16d46f",
+            "value": {
+                "name": "columnType",
+                "value": {
+                    "runtimeType": "and",
+                    "values": [
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "or",
+                                "values": [
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "TEXT",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": false,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "NUMERIC",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": false,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "INTEGER",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": false,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "REAL",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": false,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "BLOB",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": false,
+                                        "negated": false
+                                    }
+                                ]
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": false,
+                            "negated": false
+                        }
+                    ],
+                    "flatten": false
+                },
+                "repeat": {
+                    "min": 1,
+                    "max": 1
+                },
+                "trim": true,
+                "negated": false
+            }
+        },
+        {
+            "key": "a58c9289-d889-47db-8649-eb1ed7b10cfe",
+            "value": {
+                "name": "constraint",
+                "value": {
+                    "runtimeType": "and",
+                    "values": [
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "string",
+                                "value": "CONSTRAINT",
+                                "isPattern": false,
+                                "caseSensitive": false
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "name",
+                            "value": {
+                                "runtimeType": "ref",
+                                "value": "60e22d8c-df5c-44c6-b672-0bb4be42073d"
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "value",
+                            "value": {
+                                "runtimeType": "or",
+                                "values": [
+                                    {
+                                        "name": "primaryKey",
+                                        "value": {
+                                            "runtimeType": "and",
+                                            "values": [
+                                                {
+                                                    "name": "",
+                                                    "value": {
+                                                        "runtimeType": "string",
+                                                        "value": "PRIMARY",
+                                                        "isPattern": false,
+                                                        "caseSensitive": false
+                                                    },
+                                                    "repeat": {
+                                                        "min": 1,
+                                                        "max": 1
+                                                    },
+                                                    "trim": true,
+                                                    "negated": false
+                                                },
+                                                {
+                                                    "name": "",
+                                                    "value": {
+                                                        "runtimeType": "string",
+                                                        "value": "KEY",
+                                                        "isPattern": false,
+                                                        "caseSensitive": false
+                                                    },
+                                                    "repeat": {
+                                                        "min": 1,
+                                                        "max": 1
+                                                    },
+                                                    "trim": true,
+                                                    "negated": false
+                                                },
+                                                {
+                                                    "name": "order",
+                                                    "value": {
+                                                        "runtimeType": "or",
+                                                        "values": [
+                                                            {
+                                                                "name": "",
+                                                                "value": {
+                                                                    "runtimeType": "string",
+                                                                    "value": "ASC",
+                                                                    "isPattern": false,
+                                                                    "caseSensitive": false
+                                                                },
+                                                                "repeat": {
+                                                                    "min": 1,
+                                                                    "max": 1
+                                                                },
+                                                                "trim": false,
+                                                                "negated": false
+                                                            },
+                                                            {
+                                                                "name": "",
+                                                                "value": {
+                                                                    "runtimeType": "string",
+                                                                    "value": "DESC",
+                                                                    "isPattern": false,
+                                                                    "caseSensitive": false
+                                                                },
+                                                                "repeat": {
+                                                                    "min": 1,
+                                                                    "max": 1
+                                                                },
+                                                                "trim": false,
+                                                                "negated": false
+                                                            }
+                                                        ]
+                                                    },
+                                                    "repeat": {
+                                                        "min": 0,
+                                                        "max": 1
+                                                    },
+                                                    "trim": true,
+                                                    "negated": false
+                                                },
+                                                {
+                                                    "name": "clause",
+                                                    "value": {
+                                                        "runtimeType": "ref",
+                                                        "value": "623514d3-73c5-464d-bf3b-c6c451f51a5c"
+                                                    },
+                                                    "repeat": {
+                                                        "min": 1,
+                                                        "max": 1
+                                                    },
+                                                    "trim": true,
+                                                    "negated": false
+                                                }
+                                            ],
+                                            "flatten": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "notNull",
+                                        "value": {
+                                            "runtimeType": "and",
+                                            "values": [
+                                                {
+                                                    "name": "",
+                                                    "value": {
+                                                        "runtimeType": "string",
+                                                        "value": "NOT",
+                                                        "isPattern": false,
+                                                        "caseSensitive": false
+                                                    },
+                                                    "repeat": {
+                                                        "min": 1,
+                                                        "max": 1
+                                                    },
+                                                    "trim": true,
+                                                    "negated": false
+                                                },
+                                                {
+                                                    "name": "",
+                                                    "value": {
+                                                        "runtimeType": "string",
+                                                        "value": "NULL",
+                                                        "isPattern": false,
+                                                        "caseSensitive": false
+                                                    },
+                                                    "repeat": {
+                                                        "min": 1,
+                                                        "max": 1
+                                                    },
+                                                    "trim": true,
+                                                    "negated": false
+                                                },
+                                                {
+                                                    "name": "clause",
+                                                    "value": {
+                                                        "runtimeType": "ref",
+                                                        "value": "623514d3-73c5-464d-bf3b-c6c451f51a5c"
+                                                    },
+                                                    "repeat": {
+                                                        "min": 1,
+                                                        "max": 1
+                                                    },
+                                                    "trim": true,
+                                                    "negated": false
+                                                }
+                                            ],
+                                            "flatten": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "unique",
+                                        "value": {
+                                            "runtimeType": "and",
+                                            "values": [
+                                                {
+                                                    "name": "",
+                                                    "value": {
+                                                        "runtimeType": "string",
+                                                        "value": "UNIQUE",
+                                                        "isPattern": false,
+                                                        "caseSensitive": false
+                                                    },
+                                                    "repeat": {
+                                                        "min": 1,
+                                                        "max": 1
+                                                    },
+                                                    "trim": true,
+                                                    "negated": false
+                                                },
+                                                {
+                                                    "name": "clause",
+                                                    "value": {
+                                                        "runtimeType": "ref",
+                                                        "value": "623514d3-73c5-464d-bf3b-c6c451f51a5c"
+                                                    },
+                                                    "repeat": {
+                                                        "min": 1,
+                                                        "max": 1
+                                                    },
+                                                    "trim": true,
+                                                    "negated": false
+                                                }
+                                            ],
+                                            "flatten": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "CHECK",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "DEFAULT",
+                                            "isPattern": false,
+                                            "caseSensitive": true
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "ref",
+                                            "value": "4754496a-7aef-4ebd-af59-8b837f0205ff"
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    }
+                                ]
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        }
+                    ],
+                    "flatten": false
+                },
+                "repeat": {
+                    "min": 1,
+                    "max": 1
+                },
+                "trim": true,
+                "negated": false
+            }
+        },
+        {
+            "key": "623514d3-73c5-464d-bf3b-c6c451f51a5c",
+            "value": {
+                "name": "conflictClause",
+                "value": {
+                    "runtimeType": "and",
+                    "values": [
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "string",
+                                "value": "ON",
+                                "isPattern": false,
+                                "caseSensitive": false
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "string",
+                                "value": "CONFLICT",
+                                "isPattern": false,
+                                "caseSensitive": false
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "or",
+                                "values": [
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "ROLLBACK",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "ABORT",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "FAIL",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "IGNORE",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "REPLACE",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    }
+                                ]
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        }
+                    ],
+                    "flatten": false
+                },
+                "repeat": {
+                    "min": 0,
+                    "max": 1
+                },
+                "trim": true,
+                "negated": false
+            }
+        },
+        {
+            "key": "4754496a-7aef-4ebd-af59-8b837f0205ff",
+            "value": {
+                "name": "foreignKey",
+                "value": {
+                    "runtimeType": "and",
+                    "values": [
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "string",
+                                "value": "REFERENCES",
+                                "isPattern": false,
+                                "caseSensitive": false
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "tableName",
+                            "value": {
+                                "runtimeType": "ref",
+                                "value": "60e22d8c-df5c-44c6-b672-0bb4be42073d"
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "string",
+                                "value": "(",
+                                "isPattern": false,
+                                "caseSensitive": false
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "columnNames",
+                            "value": {
+                                "runtimeType": "separated",
+                                "item": {
+                                    "name": "",
+                                    "value": {
+                                        "runtimeType": "ref",
+                                        "value": "60e22d8c-df5c-44c6-b672-0bb4be42073d"
+                                    },
+                                    "repeat": {
+                                        "min": 1,
+                                        "max": 1
+                                    },
+                                    "trim": true,
+                                    "negated": false
+                                },
+                                "separator": {
+                                    "name": "",
+                                    "value": {
+                                        "runtimeType": "string",
+                                        "value": ",",
+                                        "isPattern": false,
+                                        "caseSensitive": true
+                                    },
+                                    "repeat": {
+                                        "min": 1,
+                                        "max": 1
+                                    },
+                                    "trim": true,
+                                    "negated": false
+                                },
+                                "includeSeparators": false,
+                                "optionalSeparatorAtEnd": true
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "string",
+                                "value": ")",
+                                "isPattern": false,
+                                "caseSensitive": false
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "changeClauses",
+                            "value": {
+                                "runtimeType": "ref",
+                                "value": "e6dc4085-66a4-499d-b381-7900c7cc3d20"
+                            },
+                            "repeat": {
+                                "min": 0,
+                                "max": 2
+                            },
+                            "trim": true,
+                            "negated": false
+                        }
+                    ],
+                    "flatten": false
+                },
+                "repeat": {
+                    "min": 1,
+                    "max": 1
+                },
+                "trim": true,
+                "negated": false
+            }
+        },
+        {
+            "key": "e6dc4085-66a4-499d-b381-7900c7cc3d20",
+            "value": {
+                "name": "foreignKeyChangeClause",
+                "value": {
+                    "runtimeType": "and",
+                    "values": [
+                        {
+                            "name": "",
+                            "value": {
+                                "runtimeType": "string",
+                                "value": "ON",
+                                "isPattern": false,
+                                "caseSensitive": false
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "type",
+                            "value": {
+                                "runtimeType": "or",
+                                "values": [
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "DELETE",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "UPDATE",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    }
+                                ]
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        },
+                        {
+                            "name": "value",
+                            "value": {
+                                "runtimeType": "or",
+                                "values": [
+                                    {
+                                        "name": "setNull",
+                                        "value": {
+                                            "runtimeType": "and",
+                                            "values": [
+                                                {
+                                                    "name": "",
+                                                    "value": {
+                                                        "runtimeType": "string",
+                                                        "value": "SET",
+                                                        "isPattern": false,
+                                                        "caseSensitive": false
+                                                    },
+                                                    "repeat": {
+                                                        "min": 1,
+                                                        "max": 1
+                                                    },
+                                                    "trim": true,
+                                                    "negated": false
+                                                },
+                                                {
+                                                    "name": "",
+                                                    "value": {
+                                                        "runtimeType": "string",
+                                                        "value": "NULL",
+                                                        "isPattern": false,
+                                                        "caseSensitive": false
+                                                    },
+                                                    "repeat": {
+                                                        "min": 1,
+                                                        "max": 1
+                                                    },
+                                                    "trim": true,
+                                                    "negated": false
+                                                }
+                                            ],
+                                            "flatten": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "setDefault",
+                                        "value": {
+                                            "runtimeType": "and",
+                                            "values": [
+                                                {
+                                                    "name": "",
+                                                    "value": {
+                                                        "runtimeType": "string",
+                                                        "value": "SET",
+                                                        "isPattern": false,
+                                                        "caseSensitive": false
+                                                    },
+                                                    "repeat": {
+                                                        "min": 1,
+                                                        "max": 1
+                                                    },
+                                                    "trim": true,
+                                                    "negated": false
+                                                },
+                                                {
+                                                    "name": "",
+                                                    "value": {
+                                                        "runtimeType": "string",
+                                                        "value": "DEFAULT",
+                                                        "isPattern": false,
+                                                        "caseSensitive": false
+                                                    },
+                                                    "repeat": {
+                                                        "min": 1,
+                                                        "max": 1
+                                                    },
+                                                    "trim": true,
+                                                    "negated": false
+                                                }
+                                            ],
+                                            "flatten": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "CASCADE",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "",
+                                        "value": {
+                                            "runtimeType": "string",
+                                            "value": "RESTRICT",
+                                            "isPattern": false,
+                                            "caseSensitive": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    },
+                                    {
+                                        "name": "noAction",
+                                        "value": {
+                                            "runtimeType": "and",
+                                            "values": [
+                                                {
+                                                    "name": "",
+                                                    "value": {
+                                                        "runtimeType": "string",
+                                                        "value": "NO",
+                                                        "isPattern": false,
+                                                        "caseSensitive": false
+                                                    },
+                                                    "repeat": {
+                                                        "min": 1,
+                                                        "max": 1
+                                                    },
+                                                    "trim": true,
+                                                    "negated": false
+                                                },
+                                                {
+                                                    "name": "",
+                                                    "value": {
+                                                        "runtimeType": "string",
+                                                        "value": "ACTION",
+                                                        "isPattern": false,
+                                                        "caseSensitive": false
+                                                    },
+                                                    "repeat": {
+                                                        "min": 1,
+                                                        "max": 1
+                                                    },
+                                                    "trim": true,
+                                                    "negated": false
+                                                }
+                                            ],
+                                            "flatten": false
+                                        },
+                                        "repeat": {
+                                            "min": 1,
+                                            "max": 1
+                                        },
+                                        "trim": true,
+                                        "negated": false
+                                    }
+                                ]
+                            },
+                            "repeat": {
+                                "min": 1,
+                                "max": 1
+                            },
+                            "trim": true,
+                            "negated": false
+                        }
+                    ],
+                    "flatten": false
+                },
+                "repeat": {
+                    "min": 1,
+                    "max": 1
+                },
+                "trim": true,
+                "negated": false
+            }
+        }
+    ]
+}
