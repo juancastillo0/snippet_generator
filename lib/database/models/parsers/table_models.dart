@@ -1,10 +1,10 @@
 // ignore_for_file: constant_identifier_names
 import 'package:petitparser/petitparser.dart';
-import 'package:snippet_generator/database/models/table_models_dart_templates.dart';
-import 'package:snippet_generator/database/models/table_models_sql_templates.dart';
 import 'package:snippet_generator/globals/option.dart';
 import 'package:snippet_generator/utils/extensions.dart';
 
+import '../templates/table_models_dart_templates.dart';
+import '../templates/table_models_sql_templates.dart';
 import 'data_type_model.dart';
 
 class SqlTable {
